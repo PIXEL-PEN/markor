@@ -471,6 +471,10 @@ public class MainActivity extends AutumnBaseActivity {
                 _tree.focusOn(_journal.currentTargetDir());
             }
             _tree.reload();
+        } else if (_tree != null) {
+            // Leaving the Tree closes every category, so coming back shows exactly one open: the
+            // one the dropdown points at. Cheaper to state than to track.
+            _tree.collapseCategories();
         }
 
         applySearchVisibility(pos);

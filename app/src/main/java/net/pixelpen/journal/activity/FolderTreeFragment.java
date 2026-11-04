@@ -233,6 +233,46 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
                 NoteTimestamp.monthFolderName(now));
     }
 
+    /**
+     * Close every category, leaving the root, the year and the month open.
+     *
+     * <p>Called when the Tree tab is left. Tracking which single category was opened automatically
+     * and closing it on change turned out not to be enough -- a category opened by hand, or left
+     * over from revealing a captured note, is indistinguishable from one opened automatically, so
+     * they piled up and two categories showed at once.
+     *
+     * <p>Clearing them on the way out makes it unconditional instead of bookkeeping: come back and
+     * exactly one category is open, the one the dropdown points at. The year and month stay, since
+     * those are the default the tree should show.
+     */
+    public void collapseCategories() {
+        final File root = _root;
+        if (root == null) {
+            return;
+        }
+        final String rootPath = root.getAbsolutePath();
+        final java.util.Iterator<String> it = _expanded.iterator();
+        while (it.hasNext()) {
+            final String path = it.next();
+            if (path.equals(rootPath)) {
+                continue;
+            }
+            if (!path.startsWith(rootPath + "/")) {
+                // Left over from another archive root; it can never draw anyway.
+                it.remove();
+                continue;
+            }
+            final String rel = path.substring(rootPath.length() + 1);
+            // One segment is a year, two is a month; anything deeper is a category or below.
+            if (rel.isEmpty() || rel.split("/").length > 2) {
+                it.remove();
+            }
+        }
+        // So the next visit opens whatever the dropdown points at, rather than deciding it is
+        // already open and doing nothing.
+        _seededCategory = null;
+    }
+
     /** A note to make visible on the next draw. See {@link #revealPathTo}. */
     private File _pendingReveal;
 
