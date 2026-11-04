@@ -15,10 +15,10 @@ import android.content.Intent;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
-import net.gsantner.markor.ApplicationObject;
-import net.gsantner.markor.R;
-import net.gsantner.markor.model.AppSettings;
-import net.gsantner.markor.model.Document;
+import net.pixelpen.journal.ApplicationObject;
+import net.pixelpen.journal.R;
+import net.pixelpen.journal.model.AppSettings;
+import net.pixelpen.journal.model.Document;
 import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserListAdapter;
 import net.gsantner.opoc.util.GsFileUtils;
 

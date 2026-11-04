@@ -1,0 +1,84 @@
+Markor Plus
+Copyright 2025-2026 PIXEL-PEN
+
+This product includes software developed as part of the Markor project.
+
+================================================================================
+Upstream attribution
+================================================================================
+
+This is a MODIFIED FORK of Markor, an open-source text editor for Android.
+
+    Markor
+    Copyright 2017-2025 Gregor Santner <gsantner AT mailbox DOT org>
+    https://github.com/gsantner/markor
+    Licensed under the Apache License, Version 2.0
+
+Markor Plus is NOT affiliated with, endorsed by, or supported by the Markor
+project or Gregor Santner. Please do not report issues with this fork to the
+upstream project.
+
+================================================================================
+Summary of modifications
+================================================================================
+
+Changes made to the original Markor source by PIXEL-PEN include:
+
+  - Added a Calendar Input module for creating date-stamped notes into a
+    Year / Month / Category folder structure.
+  - Added a Folder Tree browser presenting notes in creation chronology.
+  - Added creation-time tracking (CreationIndex, NoteTimestamp) so that notes
+    sort by when they were created rather than when they were last modified.
+  - Added category management.
+  - Changed the application id and Java package from net.gsantner.markor to
+    net.pixelpen.journal.
+  - Removed all product flavors.
+  - Various bug fixes to the above and to inherited code.
+
+The upstream Markor codebase remains under net.gsantner.opoc (the project's
+portable utility package) and is unmodified in substance.
+
+================================================================================
+Third-party components
+================================================================================
+
+The following are included under their own licenses. See
+app/src/main/res/raw/licenses_3rd_party.md for full license texts.
+
+MIT License
+  - writeily / writeily-pro   Copyright (c) 2014 Jeff Martin
+                              Copyright (c) 2015 Pedro Lafuente
+                              (app/thirdparty/, see LICENSE.writeily-pro.txt)
+  - KaTeX                     Copyright KaTeX authors
+  - Mermaid                   Copyright Mermaid authors
+  - asciidoctor.js            Copyright asciidoctor.js authors
+  - asciidoctor-skins         Copyright asciidoctor-skins authors
+  - Prism                     Copyright Lea Verou and contributors
+
+Apache License 2.0
+  - Material design icons     Copyright Google
+  - AndroidX / AppCompat      Copyright (C) 2011 The Android Open Source Project
+  - adapter-kit               Copyright 2013 Mobs & Geeks
+  - commons-io, commons-lang3 Copyright Apache Software Foundation
+  - OpenCSV                   Copyright Bytecode Pty Ltd.
+  - gene-rate                 Copyright 2017 Pixplicity
+  - AppIntro                  Copyright AppIntro authors
+  - EpubParser                Copyright Mert Akdut
+  - hsv-alpha-color-picker    Copyright Martin Stone
+
+BSD 2-Clause "Simplified" License
+  - flexmark-java             Copyright (c) 2015-2016 Atlassian and others
+                              Copyright (c) 2016-2018 Vladimir Schneider
+
+================================================================================
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.

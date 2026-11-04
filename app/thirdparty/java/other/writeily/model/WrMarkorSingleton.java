@@ -14,8 +14,8 @@ import android.content.Context;
 
 import androidx.documentfile.provider.DocumentFile;
 
-import net.gsantner.markor.frontend.MarkorDialogFactory;
-import net.gsantner.markor.util.MarkorContextUtils;
+import net.pixelpen.journal.frontend.MarkorDialogFactory;
+import net.pixelpen.journal.util.MarkorContextUtils;
 import net.gsantner.opoc.util.GsFileUtils;
 
 import java.io.File;

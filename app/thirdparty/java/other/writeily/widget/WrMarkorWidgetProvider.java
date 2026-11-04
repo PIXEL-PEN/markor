@@ -23,12 +23,12 @@ import android.widget.RemoteViews;
 import androidx.annotation.ColorInt;
 import androidx.core.content.ContextCompat;
 
-import net.gsantner.markor.ApplicationObject;
-import net.gsantner.markor.R;
-import net.gsantner.markor.activity.MainActivity;
-import net.gsantner.markor.activity.openeditor.OpenFromShortcutOrWidgetActivity;
-import net.gsantner.markor.model.AppSettings;
-import net.gsantner.markor.model.Document;
+import net.pixelpen.journal.ApplicationObject;
+import net.pixelpen.journal.R;
+import net.pixelpen.journal.activity.MainActivity;
+import net.pixelpen.journal.activity.openeditor.OpenFromShortcutOrWidgetActivity;
+import net.pixelpen.journal.model.AppSettings;
+import net.pixelpen.journal.model.Document;
 import net.gsantner.opoc.util.GsFileUtils;
 
 import java.io.File;

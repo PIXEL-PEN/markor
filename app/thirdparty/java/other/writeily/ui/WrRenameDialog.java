@@ -25,8 +25,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.DialogFragment;
 
-import net.gsantner.markor.R;
-import net.gsantner.markor.util.MarkorContextUtils;
+import net.pixelpen.journal.R;
+import net.pixelpen.journal.util.MarkorContextUtils;
 import net.gsantner.opoc.util.GsContextUtils;
 import net.gsantner.opoc.util.GsFileUtils;
 import net.gsantner.opoc.wrapper.GsCallback;

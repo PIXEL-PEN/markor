@@ -1,6 +1,6 @@
 package other.writeily;
 
-import net.gsantner.markor.frontend.textview.SyntaxHighlighterBase;
+import net.pixelpen.journal.frontend.textview.SyntaxHighlighterBase;
 
 import org.junit.Assert;
 import org.junit.Test;

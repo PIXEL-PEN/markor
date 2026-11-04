@@ -59,12 +59,25 @@ work. If not, see <https://creativecommons.org/publicdomain/zero/1.0/>.
     <string name="hexcode" translatable="false">Hexcode</string>
     <string name="markup_formats_supported_list" translatable="false">Markdown, todo.txt, Plaintext</string>
 
-    <!-- About Screen -->
+    <!-- About Screen.
+         Apache-2.0 requires a derivative work to carry the original attribution notices AND to
+         state prominently that the files were changed. The previous text named only upstream's
+         copyright and pointed at upstream's issue tracker as this app's "official sources",
+         which both failed that obligation and sent our bug reports to someone else. -->
     <string name="copyright_license_text_official" translatable="false"><![CDATA[
-        ### Copyright © 2017-2025
-        **Gregor Santner**
-        \n**Official project sources:**
-        [Project page](https://github.com/gsantner/markor#readme) | [Source code](https://github.com/gsantner/markor) | [F-Droid](https://f-droid.org/repository/browse/?fdid=net.gsantner.markor)
+        ### Copyright © 2025-2026
+        **PIXEL-PEN**
+        \n[Source code](https://github.com/PIXEL-PEN/markor)
+        \n---
+        \n**A modified fork of Markor**
+        \nThis app is based on Markor and has been modified. It is not affiliated with,
+        endorsed by, or supported by the Markor project. Please do not report issues with
+        this app to Markor.
+        \n\nMarkor is Copyright © 2017-2025 **Gregor Santner**, licensed under the Apache
+        License 2.0.
+        \n[Markor project page](https://github.com/gsantner/markor#readme) | [Markor source](https://github.com/gsantner/markor)
+        \n\nSee the NOTICE file in the source repository for the full attribution and a
+        summary of changes.
     ]]></string>
 
     <string name="inject_to_head" translatable="false">Inject -> head</string>

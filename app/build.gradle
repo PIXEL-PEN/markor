@@ -21,7 +21,7 @@ android {
     compileSdkVersion rootProject.ext.version_compileSdk
 
     defaultConfig {
-        applicationId "net.pixelpen.markorplus"
+        applicationId "net.pixelpen.journal"
         versionCode Integer.parseInt(new Date().format('yyMMdd'))
         versionName "1.2.5"
 
@@ -29,7 +29,7 @@ android {
         targetSdkVersion rootProject.ext.version_compileSdk
         multiDexEnabled true
 
-        resValue "string", "manifest_package_id", "net.pixelpen.markorplus"
+        resValue "string", "manifest_package_id", "net.pixelpen.journal"
 
         // Was set per-flavour; now per-build-type (true in debug, false in release).
         buildConfigField "boolean", "IS_TEST_BUILD", "false"
@@ -51,7 +51,7 @@ android {
     // There used to be four (flavorAtest, flavorDefault, pixelpen, flavorGplay), which meant
     // eight build variants for the IDE to index and four icon source sets to keep in step. They
     // also carried real hazards: flavorAtest shipped upstream's applicationId
-    // (net.gsantner.markor_test), and the IDE defaulted to it because it sorted first.
+    // (net.pixelpen.journal_test), and the IDE defaulted to it because it sorted first.
     //
     // The two variants that remain are debug (side-by-side preview) and release.
     // The pixelpen flavour's launcher icons were promoted into src/main/res.
@@ -75,7 +75,7 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix ".dev"    // installs as net.pixelpen.markorplus.dev, beside the real app
+            applicationIdSuffix ".dev"    // installs as net.pixelpen.journal.dev, beside the real app
             versionNameSuffix "-dev"
             buildConfigField "boolean", "IS_TEST_BUILD", "true"
             // Debug builds read and write /Documents/Markor Plus (dev), NOT the live
@@ -108,7 +108,7 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    namespace 'net.gsantner.markor'
+    namespace 'net.pixelpen.journal'
 }
 
 dependencies {

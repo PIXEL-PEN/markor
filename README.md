@@ -105,7 +105,12 @@ Notes are plain files in local storage. No analytics or tracking. Permissions ar
 
 ## License
 
-TBD (likely **Apache-2.0** to align with Markor; confirm before first public release).
+**Apache-2.0**, same as upstream Markor. See `LICENSE.txt` for the full text and
+`NOTICE` for attribution and a summary of modifications.
+
+Markor Plus is a modified fork of [Markor](https://github.com/gsantner/markor)
+(Copyright 2017-2025 Gregor Santner), and is not affiliated with or endorsed by that
+project. Please report issues with this fork here, not upstream.
 
 ## Acknowledgments
 

@@ -16,10 +16,10 @@ import android.os.Bundle;
 
 import androidx.fragment.app.FragmentManager;
 
-import net.gsantner.markor.ApplicationObject;
-import net.gsantner.markor.R;
-import net.gsantner.markor.activity.MarkorBaseActivity;
-import net.gsantner.markor.frontend.filebrowser.MarkorFileBrowserFactory;
+import net.pixelpen.journal.ApplicationObject;
+import net.pixelpen.journal.R;
+import net.pixelpen.journal.activity.MarkorBaseActivity;
+import net.pixelpen.journal.frontend.filebrowser.MarkorFileBrowserFactory;
 import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserListAdapter;
 import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserOptions;
 

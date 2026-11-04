@@ -49,7 +49,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
-import net.gsantner.markor.frontend.textview.TextViewUtils;
+import net.pixelpen.journal.frontend.textview.TextViewUtils;
 
 import java.io.File;
 import java.util.LinkedList;
