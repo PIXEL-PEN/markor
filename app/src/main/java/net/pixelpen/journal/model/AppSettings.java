@@ -809,11 +809,23 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
      */
     public @IdRes
     int getAppStartupTab() {
-        final int i = getIntOfStringPref(R.string.pref_key__app_start_tab_v2, R.id.nav_notebook);
+        final int i = getIntOfStringPref(R.string.pref_key__app_start_tab_v2, R.id.nav_journal);
+        if (i == R.id.nav_tree) {
+            return R.id.nav_tree;
+        }
+        if (i == R.id.nav_notebook) {
+            return R.id.nav_notebook;
+        }
         if (i == R.id.nav_more) {
             return R.id.nav_more;
         }
-        return R.id.nav_notebook;
+        // Journal is the default and the front door: this is a capture-first app, so the
+        // calendar should be what you land on, not a file browser.
+        //
+        // Anything else stored here is a legacy index from when the preference UI existed
+        // (0 = Notebook, 1 = ToDo, 2 = QuickNote) and falls through to Journal rather than
+        // resolving a tab that no longer exists.
+        return R.id.nav_journal;
     }
 
     public boolean isSwipeToChangeMode() {

@@ -196,6 +196,24 @@ public class FolderTreeFragment extends AutumnBaseFragment {
         final String selectedCategory = null;
         final String selectedMonth = null;
 
+        reload();
+    }
+
+    /**
+     * Rescan the archive and redraw.
+     * <p>
+     * Called on first view and again whenever the Tree tab becomes visible. Without the second
+     * call, a note captured on the Journal tab would not appear here until the fragment was
+     * recreated -- which breaks the one loop this app exists for: capture, then see it in place.
+     * <p>
+     * The scan walks the whole archive on every call, so this is also the thing to make lazy
+     * when the native tree replaces the WebView.
+     */
+    public void reload() {
+        if (!isAdded() || webView == null) {
+            return;
+        }
+
         // The single home folder. Was StorageRoots.getWorkingRoot(), a second independent
         // root that could and did disagree with the one the file browser used.
         rootFolder = ApplicationObject.settings().getNotebookDirectory();

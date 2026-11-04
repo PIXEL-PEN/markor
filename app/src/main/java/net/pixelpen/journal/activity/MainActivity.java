@@ -167,9 +167,14 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
     @Override
     public void onActivityFirstTimeVisible() {
         super.onActivityFirstTimeVisible();
-        // Switch to tab if specific folder _not_ requested, and not recreating from saved instance
+        // The pager already rests on position 0, which is Journal, so only move if the user
+        // wants a different tab AND no specific file/folder was passed in by an intent.
+        //
+        // This used to compare against nav_notebook because Notebook was position 0. It is
+        // position 2 now, so leaving that check in place would have jumped to the file browser
+        // on every launch -- the opposite of opening on the calendar.
         final int startTab = _appSettings.getAppStartupTab();
-        if (startTab != R.id.nav_notebook && AutumnContextUtils.getValidIntentFile(getIntent(), null) == null) {
+        if (startTab != R.id.nav_journal && AutumnContextUtils.getValidIntentFile(getIntent(), null) == null) {
             _viewPager.postDelayed(() -> _viewPager.setCurrentItem(tabIdToPos(startTab)), 100);
         }
     }
@@ -460,6 +465,13 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
         } else {
             _fab.hide();
             restoreDefaultToolbar();
+        }
+
+        // Rescan the Tree each time it is shown. The pager keeps fragments alive, so without
+        // this a note just captured on the Journal tab would not appear here until the fragment
+        // was recreated -- breaking capture-then-see-it, which is the whole loop.
+        if (pos == tabIdToPos(R.id.nav_tree) && _tree != null) {
+            _tree.reload();
         }
 
         setTitle(getPosTitle(pos));
