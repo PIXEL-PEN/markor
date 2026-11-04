@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Folder Tree as a tab.
+
+  The old activity_folder_browser.xml carried its own black header row with a back arrow and
+  title, because it was a standalone Activity. As a fragment inside MainActivity it inherits the
+  toolbar and the bottom nav, so the header is gone and back is handled by the pager.
+
+  The WebView is kept for now: it renders the accordion the way you want it to look. Swapping
+  its internals for a native RecyclerView is a separate change that will not touch navigation.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/folder_tree_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.FolderTreeFragment">
+
+    <WebView
+        android:id="@+id/folder_browser_webview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <ProgressBar
+        android:id="@+id/folder_tree_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+</FrameLayout>

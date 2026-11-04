@@ -44,7 +44,7 @@
         android:layout_marginTop="?attr/actionBarSize"
         android:layout_marginBottom="?attr/actionBarSize" />
 
-    <!-- Existing FAB for adding new item -->
+    <!-- New-file FAB. Shown only on the Files tab; see MainActivity.onViewPagerPageSelected. -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_new_item"
         android:layout_width="wrap_content"
@@ -57,22 +57,7 @@
         android:src="@drawable/ic_add_white_24dp"
         app:shapeAppearance="@style/ShapeAppearanceOverlay.Material3.FloatingActionButton" />
 
-    <!-- New FAB for opening calendar -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_open_calendar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="4dp"
-        android:layout_marginRight="4dp"
-        android:layout_marginBottom="133dp"
-        android:contentDescription="@string/fab_open_calendar"
-        android:src="@drawable/ic_calendar_white_24dp"
-        android:tint="@android:color/white"
-        app:backgroundTint="@color/dark_green"
-        app:maxImageSize="41dp"
-        app:useCompatPadding="true"
-        app:shapeAppearance="@style/ShapeAppearanceOverlay.Material3.FloatingActionButton" />
+    <!-- The calendar FAB was removed: Journal is the first tab now. -->
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation_bar"

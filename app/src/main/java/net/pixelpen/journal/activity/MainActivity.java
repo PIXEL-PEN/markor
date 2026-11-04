@@ -65,6 +65,8 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
     private BottomNavigationView _bottomNav;
     private ViewPager2 _viewPager;
     private GsFileBrowserFragment _notebook;
+    private CalendarFragment _journal;
+    private FolderTreeFragment _tree;
     private MoreFragment _more;
     private FloatingActionButton _fab;
 
@@ -93,11 +95,6 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
         _fab.setOnClickListener(this::onClickFab);
         _fab.setOnLongClickListener(this::onLongClickFab);
 
-        FloatingActionButton calendarFab = findViewById(R.id.fab_open_calendar);
-        calendarFab.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, CalendarActivity.class);
-            startActivity(intent);
-        });
 
 
         _viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
@@ -140,7 +137,7 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
 
         // Setup viewpager
         _viewPager.setAdapter(new SectionsPagerAdapter(getSupportFragmentManager()));
-        _viewPager.setOffscreenPageLimit(2);
+        _viewPager.setOffscreenPageLimit(4);
         _bottomNav.setOnItemSelectedListener((item) -> {
             _viewPager.setCurrentItem(tabIdToPos(item.getItemId()));
             return true;
@@ -186,6 +183,8 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
             final FragmentManager manager = getSupportFragmentManager();
             // Put and get notebook first. Most important for correct operation.
             manager.putFragment(outState, Integer.toString(R.id.nav_notebook), _notebook);
+            manager.putFragment(outState, Integer.toString(R.id.nav_journal), _journal);
+            manager.putFragment(outState, Integer.toString(R.id.nav_tree), _tree);
             manager.putFragment(outState, Integer.toString(R.id.nav_more), _more);
         } catch (NullPointerException | IllegalStateException ignored) {
             Log.d(MainActivity.class.getName(), "Child fragments null in onSaveInstanceState()");
@@ -204,6 +203,8 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
         try {
             final FragmentManager manager = getSupportFragmentManager();
             _notebook = (GsFileBrowserFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_notebook));
+            _journal = (CalendarFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_journal));
+            _tree = (FolderTreeFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_tree));
             _more = (MoreFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_more));
 
             final NewFileDialog nf = (NewFileDialog) manager.findFragmentByTag(NewFileDialog.FRAGMENT_TAG);
@@ -402,9 +403,12 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
     // Tabs are Notebook, More. QuickNote and ToDo were removed: this is a journalling and
     // archiving app, and a scratch pad and a task list were neither used nor wanted here.
     // Phase 4 adds Journal and Tree in their place.
+    // Order must match main__bottom_nav.xml. Journal first: the app opens on capture.
     public int tabIdToPos(final int id) {
-        if (id == R.id.nav_notebook) return 0;
-        if (id == R.id.nav_more) return 1;
+        if (id == R.id.nav_journal) return 0;
+        if (id == R.id.nav_tree) return 1;
+        if (id == R.id.nav_notebook) return 2;
+        if (id == R.id.nav_more) return 3;
         return 0;
     }
 
@@ -417,14 +421,18 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
     }
 
     public String getPosTitle(final int pos) {
-        if (pos == 0) return getFileBrowserTitle();
-        if (pos == 1) return getString(R.string.more);
+        if (pos == 0) return getString(R.string.calendar);
+        if (pos == 1) return getString(R.string.tree);
+        if (pos == 2) return getFileBrowserTitle();
+        if (pos == 3) return getString(R.string.more);
         return "";
     }
 
     public GsFragmentBase<?, ?> getPosFragment(final int pos) {
-        if (pos == 0) return _notebook;
-        if (pos == 1) return _more;
+        if (pos == 0) return _journal;
+        if (pos == 1) return _tree;
+        if (pos == 2) return _notebook;
+        if (pos == 3) return _more;
         return null;
     }
 
@@ -442,9 +450,13 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
     public void onViewPagerPageSelected(final int pos) {
         _bottomNav.getMenu().getItem(pos).setChecked(true);
 
+        // The new-file FAB belongs to the Files tab. Journal has its own Submit button and the
+        // Tree is read-only, so showing it there was just a second way to do the wrong thing.
         if (pos == tabIdToPos(R.id.nav_notebook)) {
             _fab.show();
-            _cu.showSoftKeyboard(this, false, _notebook.getView());
+            if (_notebook != null) {
+                _cu.showSoftKeyboard(this, false, _notebook.getView());
+            }
         } else {
             _fab.hide();
             restoreDefaultToolbar();
@@ -504,7 +516,11 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
         public Fragment createFragment(final int pos) {
             final GsFragmentBase<?, ?> frag;
             final int id = tabIdFromPos(pos);
-            if (id == R.id.nav_more) {
+            if (id == R.id.nav_journal) {
+                frag = _journal = CalendarFragment.newInstance();
+            } else if (id == R.id.nav_tree) {
+                frag = _tree = FolderTreeFragment.newInstance();
+            } else if (id == R.id.nav_more) {
                 frag = _more = MoreFragment.newInstance();
             } else {
                 frag = _notebook = GsFileBrowserFragment.newInstance();

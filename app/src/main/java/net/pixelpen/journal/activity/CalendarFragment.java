@@ -3,6 +3,7 @@ package net.pixelpen.journal.activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import androidx.annotation.NonNull;
 import android.text.InputFilter;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,7 +18,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
 
 import net.pixelpen.journal.R;
 import net.pixelpen.journal.model.CreationIndex;
@@ -37,8 +37,25 @@ import net.pixelpen.journal.ApplicationObject;
 import net.pixelpen.journal.util.NoteTimestamp;
 
 
-public class CalendarActivity extends AppCompatActivity
+public class CalendarFragment extends AutumnBaseFragment
         implements ManageCategoriesDialogFragment.CategoryChangeSink {
+
+    public static final String FRAGMENT_TAG = "CalendarFragment";
+
+    public static CalendarFragment newInstance() {
+        return new CalendarFragment();
+    }
+
+    @Override
+    protected int getLayoutResId() {
+        return R.layout.fragment_calendar;
+    }
+
+    @Override
+    public String getFragmentTag() {
+        return FRAGMENT_TAG;
+    }
+
 
     private static final String DEFAULT_CATEGORY = "General";
     private static final String ADD_CATEGORY_ITEM = "➕ Add category…";
@@ -53,35 +70,24 @@ public class CalendarActivity extends AppCompatActivity
     private EditText inputNoteTitle;
     private Button btnReset, btnSubmit;
     private Spinner spinnerCategory;
-    private ImageButton btnBrowser;
     private CalendarView calendarView;
     private final Calendar selectedCalendarDate = Calendar.getInstance();
 
     private ArrayAdapter<String> categoryAdapter;
     private int lastRealCategorySelection = 0;
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_calendar);
+    public void onViewCreated(@NonNull final View view, final Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         // Views
-        inputNoteTitle = findViewById(R.id.input_note_title);
-        btnReset = findViewById(R.id.btn_reset);
-        btnSubmit = findViewById(R.id.btn_submit);
-        spinnerCategory = findViewById(R.id.spinner_category);
-        btnBrowser = findViewById(R.id.btn_browser);
-        calendarView = findViewById(R.id.calendarView);
-
-        // Header/back
-        View headerTap = findViewById(R.id.header_click_target);
-        if (headerTap != null) headerTap.setOnClickListener(v -> handleBackFromCalendar());
-        ImageButton backBtnHeader = findViewById(R.id.btn_back);
-        if (backBtnHeader != null) backBtnHeader.setOnClickListener(v -> handleBackFromCalendar());
-        TextView title = findViewById(R.id.title_text);
-        if (title != null) title.setText("› Calendar");
+        inputNoteTitle = view.findViewById(R.id.input_note_title);
+        btnReset = view.findViewById(R.id.btn_reset);
+        btnSubmit = view.findViewById(R.id.btn_submit);
+        spinnerCategory = view.findViewById(R.id.spinner_category);
+        calendarView = view.findViewById(R.id.calendarView);
 
         // Gear button
-        ImageButton gear = findViewById(R.id.btn_manage_categories_toolbar);
+        ImageButton gear = view.findViewById(R.id.btn_manage_categories_toolbar);
         if (gear != null) {
             gear.setOnClickListener(v -> openManageCategoriesDialog());
             gear.setOnLongClickListener(v -> {
@@ -91,22 +97,11 @@ public class CalendarActivity extends AppCompatActivity
             gear.setLongClickable(true);
         }
 
-// Browser button — click only
-        if (btnBrowser != null) {
-            btnBrowser.setOnClickListener(v -> {
-                android.content.Intent intent =
-                        new android.content.Intent(CalendarActivity.this, FolderBrowserActivity.class);
-                startActivity(intent);
-            });
-            btnBrowser.setOnLongClickListener(null);
-            btnBrowser.setLongClickable(false);
-        }
-
 // Initial categories
         bindCategories(false);
 
         // Calendar date change
-        calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
+        calendarView.setOnDateChangeListener((cv, year, month, dayOfMonth) -> {
             selectedCalendarDate.set(Calendar.YEAR, year);
             selectedCalendarDate.set(Calendar.MONTH, month);
             selectedCalendarDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
@@ -121,29 +116,16 @@ public class CalendarActivity extends AppCompatActivity
             lastRealCategorySelection = spinnerCategory.getSelectedItemPosition();
             calendarView.setDate(System.currentTimeMillis(), false, true);
             selectedCalendarDate.setTimeInMillis(System.currentTimeMillis());
-            Toast.makeText(CalendarActivity.this, "Reset", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Reset", Toast.LENGTH_SHORT).show();
         });
 
         // Submit
         btnSubmit.setOnClickListener(v -> createNoteFileAndSeedContent());
 
-        // Open folder browser
-        btnBrowser.setOnClickListener(v -> {
-            String selectedCategory = spinnerCategory.getSelectedItem() == null
-                    ? DEFAULT_CATEGORY
-                    : spinnerCategory.getSelectedItem().toString();
-            // Pinned to Locale.ENGLISH: this has to match the folder names on disk.
-            String selectedMonth = NoteTimestamp.monthFolderName(selectedCalendarDate);
-
-            Intent intent = new Intent(CalendarActivity.this, FolderBrowserActivity.class);
-            intent.putExtra("selectedCategory", selectedCategory);
-            intent.putExtra("selectedMonth", selectedMonth);
-            startActivity(intent);
-        });
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
         bindCategories(true);
     }
@@ -181,7 +163,7 @@ public class CalendarActivity extends AppCompatActivity
 
     // Gear popup
     private void showCategoryToolsPopup(View anchor) {
-        PopupMenu pm = new PopupMenu(this, anchor);
+        PopupMenu pm = new PopupMenu(requireContext(), anchor);
         pm.getMenu().add(0, 1, 0, "Clear categories (UI only)");
         pm.getMenu().add(0, 4, 1, "Restore previous list");
         pm.getMenu().add(0, 3, 2, "Reset to defaults");
@@ -197,20 +179,20 @@ public class CalendarActivity extends AppCompatActivity
                     saveUiCategoryList(new ArrayList<>());
                     setPreferUi(true);
                     bindCategories(false);
-                    Toast.makeText(this, "Spinner list cleared.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Spinner list cleared.", Toast.LENGTH_SHORT).show();
                 });
                 return true;
             case 4:
                 List<String> prev = getUiCategoryListBackup();
                 if (prev == null || prev.isEmpty()) {
-                    Toast.makeText(this, "No previous list found.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "No previous list found.", Toast.LENGTH_SHORT).show();
                     return true;
                 }
                 confirmAndRun("Restore the previous category list?", () -> {
                     saveUiCategoryList(prev);
                     setPreferUi(true);
                     bindCategories(false);
-                    Toast.makeText(this, "Previous category list restored.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Previous category list restored.", Toast.LENGTH_SHORT).show();
                 });
                 return true;
             case 3:
@@ -220,7 +202,7 @@ public class CalendarActivity extends AppCompatActivity
                     saveUiCategoryList(def);
                     setPreferUi(true);
                     bindCategories(false);
-                    Toast.makeText(this, "Categories reset to defaults.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Categories reset to defaults.", Toast.LENGTH_SHORT).show();
                 });
                 return true;
         }
@@ -228,7 +210,7 @@ public class CalendarActivity extends AppCompatActivity
     }
 
     private void confirmAndRun(String message, Runnable action) {
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setMessage(message)
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(android.R.string.ok, (d, w) -> action.run())
@@ -278,30 +260,13 @@ public class CalendarActivity extends AppCompatActivity
         }
     }
 
-    private void handleBackFromCalendar() {
-        if (!isTaskRoot()) {
-            finish();
-            return;
-        }
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        intent.putExtra("open_tab", "files");
-        startActivity(intent);
-        finish();
-    }
-
-    @Override
-    public void onBackPressed() {
-        handleBackFromCalendar();
-    }
-
     /**
      * Open Manage Categories Dialog (no-arg factory to match existing class).
      * Note: This won’t enforce UI-only list inside the dialog until we edit the dialog class.
      */
     private void openManageCategoriesDialog() {
         ManageCategoriesDialogFragment.newInstance()
-                .show(getSupportFragmentManager(), "manage_categories");
+                .show(getChildFragmentManager(), "manage_categories");
     }
 
     // Data sources (UI-only; no filesystem scan here)
@@ -329,7 +294,7 @@ public class CalendarActivity extends AppCompatActivity
         display.add(ADD_CATEGORY_ITEM);
 
         if (categoryAdapter == null) {
-            categoryAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, display);
+            categoryAdapter = new ArrayAdapter<>(requireContext(), R.layout.spinner_item, display);
             categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinnerCategory.setAdapter(categoryAdapter);
         } else {
@@ -376,12 +341,12 @@ public class CalendarActivity extends AppCompatActivity
     }
 
     private void showAddCategoryDialog() {
-        final EditText input = new EditText(this);
+        final EditText input = new EditText(requireContext());
         input.setSingleLine(true);
         input.setHint("New category name");
         input.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(CATEGORY_MAX_LEN) });
 
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle("Add Category")
                 .setMessage("Choose a concise name (no \\/:*?\"<>|)")
                 .setView(input)
@@ -389,7 +354,7 @@ public class CalendarActivity extends AppCompatActivity
                 .setPositiveButton("Add", (d, w) -> {
                     String name = input.getText() == null ? "" : input.getText().toString();
                     if (!isValidCategoryName(name)) {
-                        Toast.makeText(this,
+                        Toast.makeText(requireContext(),
                                 "Invalid or duplicate name.\n(Disallowed: \\/:*?\"<>|, max " + CATEGORY_MAX_LEN + " chars)",
                                 Toast.LENGTH_LONG).show();
                         return;
@@ -424,7 +389,7 @@ public class CalendarActivity extends AppCompatActivity
         display.add(ADD_CATEGORY_ITEM);
 
         if (categoryAdapter == null) {
-            categoryAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, display);
+            categoryAdapter = new ArrayAdapter<>(requireContext(), R.layout.spinner_item, display);
             categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinnerCategory.setAdapter(categoryAdapter);
         } else {
@@ -452,7 +417,7 @@ public class CalendarActivity extends AppCompatActivity
     private void createNoteFileAndSeedContent() {
         String title = inputNoteTitle.getText().toString().trim();
         if (title.isEmpty()) {
-            Toast.makeText(this, "Please enter a note title.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Please enter a note title.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -462,7 +427,7 @@ public class CalendarActivity extends AppCompatActivity
 
         // Guard against special Add item
         if (ADD_CATEGORY_ITEM.equals(category)) {
-            Toast.makeText(this, "Please choose a category.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Please choose a category.", Toast.LENGTH_SHORT).show();
             return;
         }
         // Stamp = the day the user picked, plus the current wall-clock time so that several
@@ -478,7 +443,7 @@ public class CalendarActivity extends AppCompatActivity
         File categoryDir = ensureNoteParentDir(category, calendar);
 
         if (!categoryDir.exists() && !categoryDir.mkdirs()) {
-            Toast.makeText(this, "Failed to create folders.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Failed to create folders.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -486,7 +451,7 @@ public class CalendarActivity extends AppCompatActivity
         File noteFile = new File(categoryDir, safeTitle + ".md");
 
         if (noteFile.exists()) {
-            Toast.makeText(this, "Note already exists.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Note already exists.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -499,11 +464,11 @@ public class CalendarActivity extends AppCompatActivity
             writer.write(timestamp + "\n\n");
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(this, "Failed to create note.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Failed to create note.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Toast.makeText(this, "Note created: " + noteFile.getName(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(requireContext(), "Note created: " + noteFile.getName(), Toast.LENGTH_SHORT).show();
 
         // Open the note in OUR editor.
         //
@@ -513,14 +478,14 @@ public class CalendarActivity extends AppCompatActivity
         // ActivityNotFoundException when it was not, inside a try block that only caught
         // IOException. Launching DocumentActivity directly is what FolderBrowserActivity already
         // did, and needs no uri permissions at all.
-        final Intent intent = new Intent(this, DocumentActivity.class);
+        final Intent intent = new Intent(requireContext(), DocumentActivity.class);
         intent.putExtra(Document.EXTRA_FILE, noteFile);
         startActivity(intent);
     }
 
     // UI list persistence + backup
     private SharedPreferences prefs() {
-        return getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        return requireContext().getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE);
     }
 
     private boolean preferUi() {

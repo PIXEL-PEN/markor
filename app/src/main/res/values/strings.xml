@@ -1,4 +1,4 @@
-﻿<resources xmlns:tools="http://schemas.android.com/tools">
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="settings">Settings</string>
     <string name="light">Light</string>
     <string name="dark">Dark</string>
@@ -34,6 +34,7 @@
     <string name="editor">Editor</string>
     <string name="folders">Folders</string>
     <string name="files">Files</string>
+    <string name="tree">Tree</string>
     <string name="document">Document</string>
     <string name="documents">Documents</string>
     <string name="html_as_plaintext">HTML (as plain text)</string>

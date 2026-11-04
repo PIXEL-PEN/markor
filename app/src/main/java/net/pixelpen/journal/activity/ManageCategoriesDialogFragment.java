@@ -249,10 +249,31 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
         }
     }
 
-    // --- Activity notifications ---
-    private void notifyRemoved(String name) {
+    // --- Host notifications ---
+
+    /**
+     * The host that wants to hear about category changes.
+     * <p>
+     * This used to check only getActivity(), which worked while the Calendar screen was an
+     * Activity. It is a Fragment now and shows this dialog on its child FragmentManager, so the
+     * sink is the PARENT FRAGMENT and getActivity() returns MainActivity — which is not a sink.
+     * Checking the activity alone would have made category add/remove silently stop refreshing
+     * the spinner, with no error anywhere.
+     */
+    private CategoryChangeSink sink() {
+        if (getParentFragment() instanceof CategoryChangeSink) {
+            return (CategoryChangeSink) getParentFragment();
+        }
         if (getActivity() instanceof CategoryChangeSink) {
-            ((CategoryChangeSink) getActivity()).onCategoryRemoved(name);
+            return (CategoryChangeSink) getActivity();
+        }
+        return null;
+    }
+
+    private void notifyRemoved(String name) {
+        final CategoryChangeSink s = sink();
+        if (s != null) {
+            s.onCategoryRemoved(name);
         } else {
             // fallback: generic changed
             notifyChanged();
@@ -261,8 +282,9 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
     }
 
     private void notifyChanged() {
-        if (getActivity() instanceof CategoryChangeSink) {
-            ((CategoryChangeSink) getActivity()).onCategoriesChanged();
+        final CategoryChangeSink s = sink();
+        if (s != null) {
+            s.onCategoriesChanged();
         }
         dismissAllowingStateLoss();
     }

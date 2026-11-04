@@ -1,8 +1,8 @@
 package net.pixelpen.journal.activity;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import androidx.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -30,7 +30,24 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class FolderBrowserActivity extends Activity {
+public class FolderTreeFragment extends AutumnBaseFragment {
+
+    public static final String FRAGMENT_TAG = "FolderTreeFragment";
+
+    public static FolderTreeFragment newInstance() {
+        return new FolderTreeFragment();
+    }
+
+    @Override
+    protected int getLayoutResId() {
+        return R.layout.fragment_folder_tree;
+    }
+
+    @Override
+    public String getFragmentTag() {
+        return FRAGMENT_TAG;
+    }
+
 
     private static final String TAG = "WebViewDebug";
 
@@ -40,15 +57,14 @@ public class FolderBrowserActivity extends Activity {
     private WebView webView;
     private File rootFolder;
 
-    // [onCreate] FolderBrowserActivity — revert to first Loading… iteration (async scan, full hierarchy)
+    // [onCreate] FolderTreeFragment — revert to first Loading… iteration (async scan, full hierarchy)
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_folder_browser);
+    public void onViewCreated(@NonNull final View view, final Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         // Shortcuts refresh (safe no-op if missing)
         if (android.os.Build.VERSION.SDK_INT >= 25) {
-            android.content.pm.ShortcutManager sm = getSystemService(android.content.pm.ShortcutManager.class);
+            android.content.pm.ShortcutManager sm = requireContext().getSystemService(android.content.pm.ShortcutManager.class);
             if (sm != null) sm.removeAllDynamicShortcuts();
         }
         // Direct call. This used to go through
@@ -57,26 +73,15 @@ public class FolderBrowserActivity extends Activity {
         // dependency, and the hardcoded package name broke silently (inside a
         // `catch (Throwable ignored)`) the moment the package moved. Which it since has.
         try {
-            ShortcutUtils.updateShortcuts(this);
+            ShortcutUtils.updateShortcuts(requireContext());
         } catch (Exception ignored) {
         }
 
-        getWindow().setSoftInputMode(
-                WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN
-                        | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
-        );
-
-        View headerTap = findViewById(R.id.header_click_target);
-        if (headerTap != null) headerTap.setOnClickListener(v -> finish());
-        ImageButton backBtn = findViewById(R.id.btn_back);
-        if (backBtn != null) backBtn.setOnClickListener(v -> finish());
-        TextView title = findViewById(R.id.title_text);
-        if (title != null) title.setText("› Browser Tree");
 
         net.pixelpen.journal.model.CreationIndex cidx = new net.pixelpen.journal.model.CreationIndex(this);
         net.pixelpen.journal.model.FolderTreeScanner.setCreationIndex(cidx);
 
-        webView = findViewById(R.id.folder_browser_webview);
+        webView = view.findViewById(R.id.folder_browser_webview);
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webView.setFocusable(false);
@@ -121,11 +126,11 @@ public class FolderBrowserActivity extends Activity {
             private void openInMarkor(String filePath) {
                 try {
                     try {
-                        View focused = getCurrentFocus();
+                        View focused = (getActivity() != null) ? getActivity().getCurrentFocus() : null;
                         if (focused != null) focused.clearFocus();
                         if (webView != null) webView.clearFocus();
                         android.view.inputmethod.InputMethodManager imm =
-                                (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                                (android.view.inputmethod.InputMethodManager) requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
                         if (imm != null) {
                             View anchor = (focused != null) ? focused : webView;
                             if (anchor != null) imm.hideSoftInputFromWindow(anchor.getWindowToken(), 0);
@@ -136,18 +141,16 @@ public class FolderBrowserActivity extends Activity {
                     File target = requested.exists() ? requested : findBestMatch(requested);
 
                     if (target != null && target.exists()) {
-                        Intent intent = new Intent(FolderBrowserActivity.this, net.pixelpen.journal.activity.DocumentActivity.class);
+                        Intent intent = new Intent(requireContext(), net.pixelpen.journal.activity.DocumentActivity.class);
                         intent.putExtra(net.pixelpen.journal.model.Document.EXTRA_FILE, target);
                         intent.putExtra(net.pixelpen.journal.model.Document.EXTRA_DO_PREVIEW, true);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                         startActivity(intent);
-                        overridePendingTransition(0, 0);
                     } else {
-                        android.widget.Toast.makeText(FolderBrowserActivity.this, "File not found:\n" + filePath, android.widget.Toast.LENGTH_SHORT).show();
+                        android.widget.Toast.makeText(requireContext(), "File not found:\n" + filePath, android.widget.Toast.LENGTH_SHORT).show();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    android.widget.Toast.makeText(FolderBrowserActivity.this, "Unable to open file.", android.widget.Toast.LENGTH_SHORT).show();
+                    android.widget.Toast.makeText(requireContext(), "Unable to open file.", android.widget.Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -188,8 +191,10 @@ public class FolderBrowserActivity extends Activity {
             }
         });
 
-        String selectedCategory = getIntent().getStringExtra("selectedCategory");
-        String selectedMonth = getIntent().getStringExtra("selectedMonth");
+        // Was passed as Intent extras by the Calendar screen. As a tab the Tree simply opens
+        // on the current month; a later change can let the Journal tab drive this selection.
+        final String selectedCategory = null;
+        final String selectedMonth = null;
 
         // The single home folder. Was StorageRoots.getWorkingRoot(), a second independent
         // root that could and did disagree with the one the file browser used.
@@ -218,8 +223,13 @@ public class FolderBrowserActivity extends Activity {
             FolderNode tree = FolderTreeScanner.scan(rf, cat, targetMonth);
             String html = buildHtml(tree, cat, targetMonth);
 
-            runOnUiThread(() -> {
-                if (!isFinishing()) {
+            final android.app.Activity host = getActivity();
+            if (host == null) {
+                return;
+            }
+            host.runOnUiThread(() -> {
+                // isAdded() guards the fragment being detached while the scan was running.
+                if (isAdded() && webView != null) {
                     webView.loadDataWithBaseURL(null, html, "text/html", "utf-8", null);
                 }
             });

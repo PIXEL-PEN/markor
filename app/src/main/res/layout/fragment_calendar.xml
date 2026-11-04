@@ -8,67 +8,9 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@android:color/white"
-    tools:context=".activity.CalendarActivity">
+    tools:context=".activity.CalendarFragment">
 
     <!-- Header -->
-    <LinearLayout
-        android:id="@+id/header_row"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="@android:color/black"
-        android:gravity="center_vertical"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:orientation="horizontal">
-
-        <LinearLayout
-            android:id="@+id/header_click_target"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackgroundBorderless"
-            android:paddingEnd="8dp">
-
-            <ImageButton
-                android:id="@+id/btn_back"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="@android:color/transparent"
-                android:contentDescription="@string/back"
-                android:src="@drawable/ic_arrow_back_white_24dp" />
-
-            <TextView
-                android:id="@+id/title_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="› Calendar"
-                android:textColor="@android:color/white"
-                android:textSize="23sp"
-                android:textStyle="bold"
-                android:paddingStart="4dp"/>
-        </LinearLayout>
-
-        <View
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <ImageButton
-            android:id="@+id/btn_manage_categories_toolbar"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="10dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/manage_categories"
-            android:padding="8dp"
-            android:src="@android:drawable/ic_menu_manage"
-            app:tint="@android:color/white" />
-    </LinearLayout>
-
-    <!-- Content -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -107,16 +49,15 @@
 
 
             <ImageButton
-                android:id="@+id/btn_browser"
-                android:layout_width="63dp"
-                android:layout_height="63dp"
-                android:src="@drawable/ic_folder_outline_black_24dp"
+                android:id="@+id/btn_manage_categories_toolbar"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_settings_black_24dp"
                 android:scaleType="centerInside"
                 android:background="?android:selectableItemBackgroundBorderless"
-                android:contentDescription="Browse"
+                android:contentDescription="@string/manage_categories"
                 android:layout_marginEnd="4dp"
-                android:layout_gravity="center_vertical"
-                android:longClickable="false"/>
+                android:layout_gravity="center_vertical"/>
 
 
         </LinearLayout>

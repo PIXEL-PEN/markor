@@ -1,24 +1,30 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-/*#######################################################
- *
- *   Maintained 2017-2025 by Gregor Santner <gsantner AT mailbox DOT org>
- *   License of this file: Apache 2.0
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
-#########################################################*/
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Bottom navigation.
+
+  Order here defines tab order, and MainActivity's tabIdToPos / getPosTitle / getPosFragment
+  follow it. SectionsPagerAdapter.getItemCount() is this menu's size. Change one, change all.
+
+  Journal is first so the app opens on capture, not on a file browser.
 -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="net.pixelpen.journal.activity.MainActivity">
 
     <item
+        android:id="@+id/nav_journal"
+        android:icon="@drawable/ic_calendar_white_24dp"
+        android:title="@string/calendar" />
+
+    <item
+        android:id="@+id/nav_tree"
+        android:icon="@drawable/ic_baseline_account_tree_24"
+        android:title="@string/tree" />
+
+    <item
         android:id="@+id/nav_notebook"
         android:icon="@drawable/ic_folder_white_24dp"
         android:title="@string/files" />
-
-    <!-- QuickNote and ToDo removed. getItemCount() on the pager adapter is driven by this
-         menu's size, and MainActivity's tab index maps follow this order, so adding or
-         removing an item here means updating tabIdToPos/getPosTitle/getPosFragment too. -->
 
     <item
         android:id="@+id/nav_more"
