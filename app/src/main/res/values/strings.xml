@@ -521,4 +521,10 @@
 
     <!-- Search stopped at its result cap, so what is shown may not be all of it. -->
     <string name="tree_search_truncated">Showing the first 500 matches.</string>
+
+    <!--
+      Marks a search result whose match was in the note's text rather than its title, and says
+      where. %1$d is a 1-based line number. Tapping the result opens the note at that line.
+    -->
+    <string name="tree_search_in_body">line %1$d</string>
     </resources>

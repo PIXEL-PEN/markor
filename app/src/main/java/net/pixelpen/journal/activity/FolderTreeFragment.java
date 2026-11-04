@@ -122,14 +122,15 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         final File root = ApplicationObject.settings().getNotebookDirectory();
         if (_root == null || !_root.equals(root)) {
             // First draw, or the home folder moved underneath us. Paths from the old archive mean
-            // nothing in the new one.
+            // nothing in the new one, and neither does the record of which month was opened.
             _root = root;
             _expanded.clear();
+            _seededMonth = null;
         }
-        // Every reload, not only the first: the folder being worked in changes as the Calendar
-        // screen's date and category change, and this is what opens it. Seeding only adds paths,
-        // so whatever the user opened by hand stays open.
+        // Opens the year and month if they are not the ones already opened. Does nothing on a
+        // plain revisit, which is what lets a collapse stick.
         seedExpansion(root);
+        applyPendingReveal(root);
         _store.invalidateAll();
         redraw();
     }
@@ -145,29 +146,93 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         _focus = dir;
     }
 
+    /** The month folder last opened automatically, so it is only ever done once per month. */
+    private String _seededMonth;
+
     /**
-     * Open the path down to the folder being worked in.
+     * Open the year and the month, and nothing below them.
      *
-     * <p>This used to open the root, the current year and the current month and stop there, which
-     * left the category collapsed -- so landing on the Tree showed the month's categories as a
-     * list of closed folders rather than the notes just written. The focus folder comes from the
-     * Calendar screen and already accounts for a backdated entry: pick a day in March and the
-     * Tree opens March, not today.
+     * <p>The previous version opened the path all the way down to the category and ran on every
+     * reload, which was wrong twice over. Expansion state is never pruned, so every category ever
+     * selected stayed open for the rest of the session and the tree ended up fully unfolded; and
+     * re-seeding on each reload undid any folder the user had deliberately collapsed, because the
+     * next visit to the tab put it straight back.
+     *
+     * <p>So: year and month only, and only when the month to open actually changes. A collapse
+     * now sticks, because nothing re-adds what was removed. Picking a day in March still opens
+     * March rather than today -- the Calendar screen's date decides which month this is, not the
+     * clock.
      */
     private void seedExpansion(final File root) {
         _expanded.add(root.getAbsolutePath());
 
-        File target = _focus;
-        if (target == null || !isUnder(root, target)) {
-            final Calendar now = Calendar.getInstance();
-            target = new File(new File(root, NoteTimestamp.yearFolderName(now)),
-                    NoteTimestamp.monthFolderName(now));
+        final File month = targetMonthDir(root);
+        if (month == null) {
+            return;
         }
+        final String path = month.getAbsolutePath();
+        if (path.equals(_seededMonth)) {
+            // Already opened once. Whatever state it is in now is the user's doing.
+            return;
+        }
+        _seededMonth = path;
+        final File year = month.getParentFile();
+        if (year != null) {
+            _expanded.add(year.getAbsolutePath());
+        }
+        _expanded.add(path);
+    }
 
-        // Walk up rather than down: the target is a full path, and every folder between it and
-        // the root has to be open for it to be on screen at all. Folders that do not exist yet
-        // are harmless -- nothing will draw them.
-        for (File f = target; f != null && isUnder(root, f); f = f.getParentFile()) {
+    /**
+     * The month folder to open: the one the Calendar screen points at, else the current one.
+     *
+     * <p>Derived from the focus path's first two segments under the root rather than by taking
+     * its parent, so it lands on the month whether the focus is a category, a month, or something
+     * deeper that gets added later.
+     */
+    private File targetMonthDir(final File root) {
+        final File focus = _focus;
+        if (focus != null && isUnder(root, focus)) {
+            final String rel = focus.getAbsolutePath()
+                    .substring(root.getAbsolutePath().length()).replaceFirst("^/", "");
+            final String[] parts = rel.split("/");
+            if (parts.length >= 2) {
+                return new File(new File(root, parts[0]), parts[1]);
+            }
+        }
+        final Calendar now = Calendar.getInstance();
+        return new File(new File(root, NoteTimestamp.yearFolderName(now)),
+                NoteTimestamp.monthFolderName(now));
+    }
+
+    /** A note to make visible on the next draw. See {@link #revealPathTo}. */
+    private File _pendingReveal;
+
+    /**
+     * Open the path down to one note, once.
+     *
+     * <p>The exception to year-and-month-only, and deliberately not part of the default: a note
+     * just written should be visible when the Tree comes up, not filed away inside a category
+     * folder the user then has to go and open. Called after a capture, for that note alone.
+     *
+     * <p>Recorded rather than applied immediately: this is called from the host the moment a note
+     * is created, which can be before this fragment's view exists and before it knows the root.
+     * {@link #reload} applies it.
+     */
+    public void revealPathTo(final File file) {
+        _pendingReveal = file;
+    }
+
+    private void applyPendingReveal(final File root) {
+        final File file = _pendingReveal;
+        if (file == null) {
+            return;
+        }
+        _pendingReveal = null;
+        if (!isUnder(root, file)) {
+            return;
+        }
+        for (File f = file.getParentFile(); f != null && isUnder(root, f); f = f.getParentFile()) {
             _expanded.add(f.getAbsolutePath());
         }
     }
@@ -267,13 +332,21 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         if (root == null || query == null) {
             return;
         }
+        // Taken here, on the main thread, and the application context rather than the fragment's:
+        // getString() off a detached fragment throws, and the walk can outlive the view.
+        final android.content.Context ctx = requireContext().getApplicationContext();
         new Thread(() -> {
             final List<ArchiveSearch.Hit> hits = ArchiveSearch.run(root, query, _index);
             final List<FolderTreeAdapter.Row> rows = new ArrayList<>(hits.size());
             for (final ArchiveSearch.Hit h : hits) {
+                // A body match says which line, both so the reader can see the hit was in the
+                // text rather than the title and because that is where tapping will land them.
+                final String where = h.inBody
+                        ? h.where + "  ·  " + ctx.getString(R.string.tree_search_in_body, h.line + 1)
+                        : h.where;
                 rows.add(new FolderTreeAdapter.Row(
                         TreeStore.Entry.forNote(h.file, h.display, h.createdMillis),
-                        0, false, h.where));
+                        0, false, where, h.line));
             }
             final boolean capped = ArchiveSearch.wasCapped(hits);
 

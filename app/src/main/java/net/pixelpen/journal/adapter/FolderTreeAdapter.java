@@ -60,17 +60,23 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
          * already says where it sits; set for a search result, where it does not.
          */
         public final String subtitle;
+        /**
+         * Zero-based line to open the note at, or -1 for the top. Set on a search result whose
+         * match was in the body.
+         */
+        public final int line;
 
         public Row(final TreeStore.Entry entry, final int depth, final boolean expanded) {
-            this(entry, depth, expanded, null);
+            this(entry, depth, expanded, null, -1);
         }
 
         public Row(final TreeStore.Entry entry, final int depth, final boolean expanded,
-                   final String subtitle) {
+                   final String subtitle, final int line) {
             this.entry = entry;
             this.depth = depth;
             this.expanded = expanded;
             this.subtitle = subtitle;
+            this.line = line;
         }
     }
 
@@ -201,7 +207,7 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         indent(h.itemView, row.depth);
 
-        h.itemView.setOnClickListener(v -> open(v.getContext(), e.file));
+        h.itemView.setOnClickListener(v -> open(v.getContext(), e.file, row.line));
         h.itemView.setOnLongClickListener(v ->
                 _listener != null && _listener.onFileLongPressed(e.file));
     }
@@ -218,8 +224,12 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
      * <p>Markdown and text go to this app's editor. HTML goes out as a view intent, pinned to
      * this package so it opens here rather than in a browser -- or, on a device that still has
      * the app this one was forked from, in that.
+     *
+     * <p>{@code line} is where to put the cursor, or -1 for the top. A search result that matched
+     * in the body passes the line it matched on; DocumentActivity opens in edit mode rather than
+     * preview whenever a line is given, which is what makes the match visible.
      */
-    private static void open(final Context context, final File file) {
+    private static void open(final Context context, final File file, final int line) {
         File target = file;
         if (target == null || !target.isFile()) {
             target = findByPrefix(file);
@@ -242,7 +252,13 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             } else {
                 final Intent i = new Intent(context, DocumentActivity.class);
                 i.putExtra(Document.EXTRA_FILE, target);
-                i.putExtra(Document.EXTRA_DO_PREVIEW, true);
+                if (line >= 0) {
+                    // Preview is not asked for here on purpose: the line is what matters, and
+                    // DocumentActivity switches to edit mode to show it.
+                    i.putExtra(Document.EXTRA_FILE_LINE_NUMBER, line);
+                } else {
+                    i.putExtra(Document.EXTRA_DO_PREVIEW, true);
+                }
                 context.startActivity(i);
             }
         } catch (final Exception e) {

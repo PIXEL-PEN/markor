@@ -109,12 +109,16 @@ public class CalendarFragment extends AutumnBaseFragment
     }
 
     /**
-     * Write the entry the form currently describes.
+     * Write the entry the form currently describes, and return the note written, or null if
+     * nothing was.
      *
-     * <p>Called by MainActivity's FAB, which is the primary action for the Calendar tab.
+     * <p>Called by MainActivity's FAB, which is the primary action for the Calendar tab. The
+     * return value is what lets the host move to the Tree and reveal the new note only when there
+     * actually is one -- a missing title or a bad category must leave the user on this screen
+     * with what they typed.
      */
-    public void captureNote() {
-        createNoteFileAndSeedContent();
+    public File captureNote() {
+        return createNoteFileAndSeedContent();
     }
 
     /**
@@ -454,11 +458,11 @@ public class CalendarFragment extends AutumnBaseFragment
         return -1;
     }
 
-    private void createNoteFileAndSeedContent() {
+    private File createNoteFileAndSeedContent() {
         String title = inputNoteTitle.getText().toString().trim();
         if (title.isEmpty()) {
             Toast.makeText(requireContext(), "Please enter a note title.", Toast.LENGTH_SHORT).show();
-            return;
+            return null;
         }
 
         String category = spinnerCategory.getSelectedItem() == null
@@ -468,7 +472,7 @@ public class CalendarFragment extends AutumnBaseFragment
         // Guard against special Add item
         if (ADD_CATEGORY_ITEM.equals(category)) {
             Toast.makeText(requireContext(), "Please choose a category.", Toast.LENGTH_SHORT).show();
-            return;
+            return null;
         }
         // Stamp = the day the user picked, plus the current wall-clock time so that several
         // entries backdated to the same day keep a stable order.
@@ -484,7 +488,7 @@ public class CalendarFragment extends AutumnBaseFragment
 
         if (!categoryDir.exists() && !categoryDir.mkdirs()) {
             Toast.makeText(requireContext(), "Failed to create folders.", Toast.LENGTH_SHORT).show();
-            return;
+            return null;
         }
 
         String safeTitle = title.replaceAll("[\\\\/:*?\"<>|]", "_");
@@ -492,7 +496,7 @@ public class CalendarFragment extends AutumnBaseFragment
 
         if (noteFile.exists()) {
             Toast.makeText(requireContext(), "Note already exists.", Toast.LENGTH_SHORT).show();
-            return;
+            return null;
         }
 
         long createdMillis = calendar.getTimeInMillis();
@@ -505,7 +509,7 @@ public class CalendarFragment extends AutumnBaseFragment
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(requireContext(), "Failed to create note.", Toast.LENGTH_SHORT).show();
-            return;
+            return null;
         }
 
         Toast.makeText(requireContext(), "Note created: " + noteFile.getName(), Toast.LENGTH_SHORT).show();
@@ -526,6 +530,8 @@ public class CalendarFragment extends AutumnBaseFragment
         final Intent intent = new Intent(requireContext(), DocumentActivity.class);
         intent.putExtra(Document.EXTRA_FILE, noteFile);
         startActivity(intent);
+
+        return noteFile;
     }
 
     // UI list persistence + backup

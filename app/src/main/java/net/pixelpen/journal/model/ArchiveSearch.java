@@ -58,14 +58,20 @@ public final class ArchiveSearch {
         public final long createdMillis;
         /** True when the title did not match and the body did. */
         public final boolean inBody;
+        /**
+         * Zero-based line the match was found on, or -1 for a title match. Passed to the editor
+         * so opening a result lands on the line rather than at the top of the note.
+         */
+        public final int line;
 
         Hit(final File file, final String display, final String where,
-            final long createdMillis, final boolean inBody) {
+            final long createdMillis, final boolean inBody, final int line) {
             this.file = file;
             this.display = display;
             this.where = where;
             this.createdMillis = createdMillis;
             this.inBody = inBody;
+            this.line = line;
         }
     }
 
@@ -125,12 +131,12 @@ public final class ArchiveSearch {
                 final String display = stripExtension(name);
                 final boolean titleMatch = display.toLowerCase(Locale.ROOT).contains(needle);
                 // Only open the file when the name did not already answer the question.
-                final boolean bodyMatch = !titleMatch && bodyContains(f, needle);
-                if (!titleMatch && !bodyMatch) {
+                final int bodyLine = titleMatch ? -1 : findInBody(f, needle);
+                if (!titleMatch && bodyLine < 0) {
                     continue;
                 }
                 hits.add(new Hit(f, display, relative(rootPath, f.getParentFile()),
-                        created(f, index), bodyMatch));
+                        created(f, index), bodyLine >= 0, bodyLine));
             }
         }
 
@@ -158,24 +164,33 @@ public final class ArchiveSearch {
         return f.lastModified();
     }
 
-    private static boolean bodyContains(final File f, final String needle) {
+    /**
+     * Zero-based line of the first match in the body, or -1 if there is none.
+     *
+     * <p>Returns the line rather than just a yes, so opening a result can land on the match.
+     * Finding the note and then dumping the reader at the top of it is only half an answer when
+     * the note is long.
+     */
+    private static int findInBody(final File f, final String needle) {
         if (f.length() > MAX_BODY_BYTES) {
-            return false;
+            return -1;
         }
         BufferedReader br = null;
         try {
             br = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
             String line;
+            int n = 0;
             while ((line = br.readLine()) != null) {
                 if (line.toLowerCase(Locale.ROOT).contains(needle)) {
-                    return true;
+                    return n;
                 }
+                n++;
             }
-            return false;
+            return -1;
         } catch (final Exception e) {
             // An unreadable note is not a match. Failing the whole search over one file would be
             // worse than missing it.
-            return false;
+            return -1;
         } finally {
             try {
                 if (br != null) {

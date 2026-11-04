@@ -335,6 +335,13 @@ public class MainActivity extends AutumnBaseActivity {
 
         if (_cu == null) { _cu = new net.pixelpen.journal.util.AutumnContextUtils(this); }
 
+        // Coming back from the editor is the common way to arrive here, and the note that was
+        // being edited has almost certainly changed on disk. The page-change callback does not
+        // fire on resume -- the pager never moved -- so without this the Tree would show the
+        // note as it was when the editor opened.
+        if (_tree != null && getCurrentPos() == tabIdToPos(R.id.nav_tree)) {
+            _tree.reload();
+        }
 
         _cu.setKeepScreenOn(this, _appSettings.isKeepScreenOn());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && _appSettings.isMultiWindowEnabled()) {
@@ -373,8 +380,26 @@ public class MainActivity extends AutumnBaseActivity {
      * which is why there is no per-tab branch here.
      */
     public void onClickFab(final View view) {
-        if (_journal != null) {
-            _journal.captureNote();
+        if (_journal == null) {
+            return;
+        }
+        final File created = _journal.captureNote();
+        if (created == null) {
+            // Nothing was written -- no title, or the category was the "add" entry. Stay put, with
+            // what was typed still on screen.
+            return;
+        }
+        // The editor is now on top. Move the pager underneath it so backing out of the editor
+        // lands on the Tree with the new entry in place, rather than on the capture form that has
+        // just been cleared. Writing a note and then seeing where it went is the loop; being
+        // returned to a blank form is not.
+        // Switch first: the pager creates the Tree fragment on demand, so _tree may not exist
+        // until this runs. The reveal is recorded afterwards and sits there unconsumed until the
+        // next reload -- which is the one onResume does when the editor is dismissed, by which
+        // point the note has whatever was typed into it.
+        _viewPager.setCurrentItem(tabIdToPos(R.id.nav_tree), false);
+        if (_tree != null) {
+            _tree.revealPathTo(created);
         }
     }
 
