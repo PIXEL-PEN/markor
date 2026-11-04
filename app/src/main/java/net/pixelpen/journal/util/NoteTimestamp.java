@@ -1,8 +1,13 @@
 package net.pixelpen.journal.util;
 
+import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 import java.util.TimeZone;
 
 /**
@@ -16,10 +21,9 @@ import java.util.TimeZone;
  * <p>
  * Localise what is shown on screen. Never localise what is written to disk.
  * <p>
- * TODO (Phase 2b): add {@code parse(String)} here, reading the stamp back off line 1 of a note
- * so creation order survives rename, move, reinstall and device migration. It must accept BOTH
- * {@link #STAMP_PATTERN} and {@link #LEGACY_STAMP_PATTERN} (see below), and must treat an
- * unparseable line as "no stamp" rather than as an error.
+ * This class also <em>reads</em> the stamp back ({@link #parseStamp}), which is what makes
+ * creation order survive rename, move, copy, reinstall and device migration: the evidence lives
+ * inside the note rather than in an index keyed on a file path that can change.
  */
 public final class NoteTimestamp {
     private NoteTimestamp() {
@@ -103,5 +107,106 @@ public final class NoteTimestamp {
         final SimpleDateFormat sdf = new SimpleDateFormat(pattern, Locale.ENGLISH);
         sdf.setTimeZone(c.getTimeZone() != null ? c.getTimeZone() : TimeZone.getDefault());
         return sdf.format(c.getTime());
+    }
+
+    // ---------------------------------------------------------------- parsing
+
+    /**
+     * Weekday tokens we accept and discard. The weekday is redundant — the date determines it —
+     * and it is the one part that differs between the stamp formats this archive may contain
+     * ({@code Wed.} from the current writer, {@code Tues.} / {@code Thurs.} from the earlier
+     * one). Rather than try to teach SimpleDateFormat all the spellings, we drop it.
+     */
+    private static final Set<String> WEEKDAY_TOKENS = new HashSet<>(Arrays.asList(
+            "mon", "monday",
+            "tue", "tues", "tuesday",
+            "wed", "weds", "wednesday",
+            "thu", "thur", "thurs", "thursday",
+            "fri", "friday",
+            "sat", "saturday",
+            "sun", "sunday"
+    ));
+
+    /**
+     * Date patterns tried in order, after the weekday has been removed. {@code d} parses both
+     * "4" and "04", so one pattern covers the padded and unpadded forms.
+     */
+    private static final String[] PARSE_PATTERNS = {
+            "MMMM d, yyyy | h:mm a",   // the stamp as written, e.g. "November 04, 2026 | 3:45 pm"
+            "MMMM d, yyyy | H:mm",     // tolerated: 24-hour, in case a device ever produced it
+            "MMMM d, yyyy",            // tolerated: date with no time; sorts to midnight
+    };
+
+    /**
+     * Reads a creation instant back out of line 1 of a note.
+     * <p>
+     * Returns {@code null} for anything it does not recognise — a heading, body text, an empty
+     * line, a note written before stamping existed. "No stamp" is a normal outcome, not an
+     * error, and the caller falls back to the next source of truth.
+     * <p>
+     * The stamp carries no timezone, so it is interpreted in the device's current zone, the same
+     * zone it was written in. Moving timezones shifts every note equally, so relative ordering —
+     * the thing that actually matters here — is unaffected.
+     *
+     * @param line the first line of a note, or null
+     * @return epoch millis, or null if the line carries no recognisable stamp
+     */
+    public static Long parseStamp(final String line) {
+        if (line == null) {
+            return null;
+        }
+        String s = line.trim();
+        if (s.isEmpty()) {
+            return null;
+        }
+
+        // Strip a leading weekday token if there is one. Matching against an explicit set
+        // matters: a naive "drop the first word" would eat the month from "November 04, 2026".
+        final int firstSpace = s.indexOf(' ');
+        if (firstSpace > 0) {
+            final String head = s.substring(0, firstSpace).replace(".", "").replace(",", "")
+                    .toLowerCase(Locale.ROOT);
+            if (WEEKDAY_TOKENS.contains(head)) {
+                s = s.substring(firstSpace + 1).trim();
+            }
+        }
+
+        // SimpleDateFormat with Locale.ENGLISH expects "PM"; we write "pm".
+        s = s.replace(" am", " AM").replace(" pm", " PM");
+        // Be forgiving about spacing around the separator and between fields.
+        s = s.replaceAll("\\s+", " ");
+
+        for (final String pattern : PARSE_PATTERNS) {
+            final Long parsed = tryParse(s, pattern);
+            if (parsed != null) {
+                return parsed;
+            }
+        }
+        return null;
+    }
+
+    private static Long tryParse(final String s, final String pattern) {
+        final SimpleDateFormat sdf = new SimpleDateFormat(pattern, Locale.ENGLISH);
+        sdf.setTimeZone(TimeZone.getDefault());
+        // Strict: without this, "February 31" silently becomes March 3rd, and junk lines
+        // parse into plausible-looking dates.
+        sdf.setLenient(false);
+
+        final ParsePosition pos = new ParsePosition(0);
+        final Date d = sdf.parse(s, pos);
+        if (d == null) {
+            return null;
+        }
+        // Require the whole line to be consumed. Otherwise a body line that merely *starts*
+        // with something date-shaped would be accepted as a stamp.
+        if (s.substring(pos.getIndex()).trim().length() > 0) {
+            return null;
+        }
+        return d.getTime();
+    }
+
+    /** True if this line is a stamp we can read. Convenience for callers that only need a test. */
+    public static boolean isStamp(final String line) {
+        return parseStamp(line) != null;
     }
 }

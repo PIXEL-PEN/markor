@@ -1,8 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
   Debug-build overrides. Replaces the old pixelpenDebug flavour source set.
-  A distinct launcher name so the preview install is obvious next to the real app.
+
+  The marker goes at the FRONT of the label on purpose. Launchers truncate the end, so
+  "Markor+(dev)" rendered as "Markor+(d…" next to the real "Markor Plus" — nearly identical
+  at a glance, and adjacent in an alphabetical app list. A leading "DEV" differs in the first
+  character and sorts under D, well away from the real install.
 -->
 <resources>
-    <string name="app_name">Markor+(dev)</string>
+    <string name="app_name">DEV Markor+</string>
 </resources>

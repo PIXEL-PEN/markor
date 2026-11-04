@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Debug-only adaptive-icon background.
+
+  mipmap-anydpi-v26/ic_launcher.xml draws @color/ic_launcher_background behind the foreground,
+  so overriding just this colour in the debug source set gives the preview install a visibly
+  different launcher icon on Android 8+ without duplicating a single bitmap.
+
+  Release stays white (#FFFFFF). Debug is dark teal: the foreground is a light notepad with a
+  dark blue "M" and a red badge, so a dark background makes it pop, and teal does not clash
+  with either colour already in the artwork.
+-->
+<resources>
+    <color name="ic_launcher_background">#00695C</color>
+</resources>
