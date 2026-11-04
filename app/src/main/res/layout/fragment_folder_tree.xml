@@ -6,8 +6,10 @@
   title, because it was a standalone Activity. As a fragment inside MainActivity it inherits the
   toolbar and the bottom nav, so the header is gone and back is handled by the pager.
 
-  The WebView is kept for now: it renders the accordion the way you want it to look. Swapping
-  its internals for a native RecyclerView is a separate change that will not touch navigation.
+  The WebView is gone too. It rendered the accordion well but reloaded a freshly generated
+  document on every visit, after walking the whole archive to build it, so the tab got slower
+  as the archive grew, which is backwards for something meant to fill up over years. These rows
+  are the same design drawn natively, reading one directory at a time.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -16,10 +18,24 @@
     android:layout_height="match_parent"
     tools:context=".activity.FolderTreeFragment">
 
-    <WebView
-        android:id="@+id/folder_browser_webview"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/folder_tree_list"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="88dp"
+        android:scrollbars="vertical" />
+
+    <TextView
+        android:id="@+id/folder_tree_empty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="24dp"
+        android:textColor="@color/tree_meta"
+        android:textSize="15sp"
+        android:visibility="gone" />
 
     <ProgressBar
         android:id="@+id/folder_tree_progress"

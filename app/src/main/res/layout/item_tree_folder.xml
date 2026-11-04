@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A folder row in the tree: year, month or category.
+
+  Mirrors `.folder` from the stylesheet the tree used to generate: 10px of vertical breathing
+  room, the arrow in the accent colour ahead of the label. Indentation and text size depend on
+  depth, so the adapter sets the start padding and the label's size and weight; everything that
+  does not vary lives here.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    android:paddingEnd="16dp">
+
+    <!--
+      The arrow is rotated rather than swapped for a different glyph, so it turns the way it did
+      in the WebView. Its box is square and the rotation pivots at the centre, otherwise the
+      glyph drifts sideways as it turns.
+    -->
+    <TextView
+        android:id="@+id/tree_arrow"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_marginEnd="6dp"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:text="▶"
+        android:textColor="@color/tree_accent"
+        android:textSize="11sp" />
+
+    <TextView
+        android:id="@+id/tree_label"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/tree_title" />
+
+</LinearLayout>

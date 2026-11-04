@@ -509,4 +509,7 @@
             <item>Affirmations</item>
             <item>Emails</item>
         </string-array>
+
+    <!-- Shown on the Tree tab when the archive has nothing in it yet. -->
+    <string name="tree_empty">Nothing here yet.\nCapture a note on the Calendar tab and it will appear here.</string>
     </resources>

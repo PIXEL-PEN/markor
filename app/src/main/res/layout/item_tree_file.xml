@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A note row in the tree.
+
+  Mirrors `.file` from the stylesheet the tree used to generate: a fixed-width icon column with
+  the badge pinned to the icon's bottom-right corner, the title and its date line stacked beside
+  it, and a hairline underneath separating one note from the next.
+
+  The icon sits slightly low on purpose: the glyph's own bearing leaves it high against the
+  cap height of the title next to it, which the WebView compensated for the same way.
+
+  The adapter sets the row's start padding from depth.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:orientation="vertical"
+    android:paddingTop="8dp"
+    android:paddingEnd="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingBottom="6dp">
+
+        <FrameLayout
+            android:layout_width="28dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:layout_marginTop="3dp">
+
+            <TextView
+                android:id="@+id/tree_file_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal|top"
+                android:includeFontPadding="false"
+                android:text="📄"
+                android:textColor="@color/tree_icon"
+                android:textSize="22sp" />
+
+            <View
+                android:id="@+id/tree_file_badge"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:layout_gravity="bottom|end"
+                android:visibility="gone" />
+
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!--
+              No maxLines. A long title IS the entry in this app, so it wraps and the row grows;
+              truncating it would hide the content itself rather than a label for it.
+            -->
+            <TextView
+                android:id="@+id/tree_file_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/tree_title"
+                android:textSize="17sp"
+                android:textStyle="normal" />
+
+            <TextView
+                android:id="@+id/tree_file_meta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:textColor="@color/tree_meta"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/tree_divider" />
+
+</LinearLayout>

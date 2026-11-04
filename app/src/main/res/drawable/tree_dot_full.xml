@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Badge on a long-titled note that has been written into: filled.
+  Was `.dot-flag.full { background:#d35400 }` in the generated stylesheet.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/tree_accent" />
+</shape>

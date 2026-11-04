@@ -78,5 +78,14 @@
     <color name="transparent">#00FFFFFF</color>
     <color name="dark_green">#006400</color>
 
+    <!--
+      Folder tree. These were literals in the stylesheet the tree used to generate; they are named
+      here so the native rows and any later theming read from one place.
+    -->
+    <color name="tree_accent">#D35400</color>
+    <color name="tree_title">#222222</color>
+    <color name="tree_icon">#1C1C1C</color>
+    <color name="tree_meta">#6E6E6E</color>
+    <color name="tree_divider">#DDDDDD</color>
 
 </resources>
