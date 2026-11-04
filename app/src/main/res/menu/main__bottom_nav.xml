@@ -22,11 +22,6 @@
         android:title="@string/tree" />
 
     <item
-        android:id="@+id/nav_notebook"
-        android:icon="@drawable/ic_folder_white_24dp"
-        android:title="@string/files" />
-
-    <item
         android:id="@+id/nav_more"
         android:icon="@drawable/ic_favorite_black_24dp"
         android:title="@string/more" />

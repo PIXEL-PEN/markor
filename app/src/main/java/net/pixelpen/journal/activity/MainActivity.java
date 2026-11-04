@@ -15,7 +15,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -35,14 +34,10 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import net.pixelpen.journal.BuildConfig;
 import net.pixelpen.journal.R;
 import net.pixelpen.journal.frontend.NewFileDialog;
-import net.pixelpen.journal.frontend.filebrowser.AutumnFileBrowserFactory;
 import net.pixelpen.journal.model.Document;
 import net.pixelpen.journal.util.AutumnContextUtils;
 import net.gsantner.opoc.format.GsSimpleMarkdownParser;
 import net.gsantner.opoc.frontend.base.GsFragmentBase;
-import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserFragment;
-import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserListAdapter;
-import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserOptions;
 import net.gsantner.opoc.util.GsContextUtils;
 import net.gsantner.opoc.util.GsFileUtils;
 
@@ -58,21 +53,18 @@ import android.widget.Toast;
 import net.pixelpen.journal.util.AutumnContextUtils;
 
 
-public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFragment.FilesystemFragmentOptionsListener {
+public class MainActivity extends AutumnBaseActivity {
 
     public static boolean IS_DEBUG_ENABLED = false;
 
     private BottomNavigationView _bottomNav;
     private ViewPager2 _viewPager;
-    private GsFileBrowserFragment _notebook;
     private CalendarFragment _journal;
     private FolderTreeFragment _tree;
     private MoreFragment _more;
     private FloatingActionButton _fab;
 
     private AutumnContextUtils _cu;
-    private File _quickSwitchPrevFolder = null;
-    private File _startFolder = null, _showFile = null;
 
     @SuppressLint("SdCardPath")
     @Override
@@ -93,7 +85,6 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
         _viewPager = findViewById(R.id.main__view_pager_container);
         _fab = findViewById(R.id.fab_add_new_item);
         _fab.setOnClickListener(this::onClickFab);
-        _fab.setOnLongClickListener(this::onLongClickFab);
 
 
 
@@ -137,7 +128,7 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
 
         // Setup viewpager
         _viewPager.setAdapter(new SectionsPagerAdapter(getSupportFragmentManager()));
-        _viewPager.setOffscreenPageLimit(4);
+        _viewPager.setOffscreenPageLimit(3);
         _bottomNav.setOnItemSelectedListener((item) -> {
             _viewPager.setCurrentItem(tabIdToPos(item.getItemId()));
             return true;
@@ -152,16 +143,6 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
 
         _cu.applySpecialLaunchersVisibility(this, _appSettings.isSpecialFileLaunchersEnabled());
 
-        // Determine start folder
-        final File fallback = _appSettings.getFolderToLoadByMenuId(_appSettings.getAppStartupFolderMenuId());
-        _startFolder = AutumnContextUtils.getValidIntentFile(getIntent(), fallback);
-        if (!GsFileUtils.isDirectory(_startFolder)) {
-            _showFile = _startFolder;
-            _startFolder = _startFolder.getParentFile();
-        }
-        if (!GsFileUtils.isDirectory(_startFolder)) {
-            _startFolder = _appSettings.getNotebookDirectory();
-        }
     }
 
     @Override
@@ -170,9 +151,6 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
         // The pager already rests on position 0, which is Journal, so only move if the user
         // wants a different tab AND no specific file/folder was passed in by an intent.
         //
-        // This used to compare against nav_notebook because Notebook was position 0. It is
-        // position 2 now, so leaving that check in place would have jumped to the file browser
-        // on every launch -- the opposite of opening on the calendar.
         final int startTab = _appSettings.getAppStartupTab();
         if (startTab != R.id.nav_journal && AutumnContextUtils.getValidIntentFile(getIntent(), null) == null) {
             _viewPager.postDelayed(() -> _viewPager.setCurrentItem(tabIdToPos(startTab)), 100);
@@ -187,7 +165,6 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
         try {
             final FragmentManager manager = getSupportFragmentManager();
             // Put and get notebook first. Most important for correct operation.
-            manager.putFragment(outState, Integer.toString(R.id.nav_notebook), _notebook);
             manager.putFragment(outState, Integer.toString(R.id.nav_journal), _journal);
             manager.putFragment(outState, Integer.toString(R.id.nav_tree), _tree);
             manager.putFragment(outState, Integer.toString(R.id.nav_more), _more);
@@ -207,7 +184,6 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
         // Get back references to fragments
         try {
             final FragmentManager manager = getSupportFragmentManager();
-            _notebook = (GsFileBrowserFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_notebook));
             _journal = (CalendarFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_journal));
             _tree = (FolderTreeFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_tree));
             _more = (MoreFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_more));
@@ -244,16 +220,6 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
     @Override
     protected void onNewIntent(final Intent intent) {
         super.onNewIntent(intent);
-        final File file = AutumnContextUtils.getValidIntentFile(intent, null);
-        if (_notebook != null && file != null) {
-            _viewPager.setCurrentItem(tabIdToPos(R.id.nav_notebook), false);
-            if (GsFileUtils.isDirectory(file)) {
-                _notebook.getAdapter().setCurrentFolder(file);
-            } else {
-                _notebook.getAdapter().showFile(file);
-            }
-            _notebook.setReloadRequiredOnResume(false);
-        }
     }
 
     public static void launch(final Activity activity, final File file, final boolean finishfromActivity) {
@@ -337,54 +303,30 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
         }
     }
 
-    // Cycle between recent, favourite, and current
-    public boolean onLongClickFab(View view) {
-        if (_notebook != null) {
-            final File current = _notebook.getCurrentFolder();
-            final File dest;
-            if (GsFileBrowserListAdapter.VIRTUAL_STORAGE_RECENTS.equals(current)) {
-                dest = GsFileBrowserListAdapter.VIRTUAL_STORAGE_FAVOURITE;
-            } else if (GsFileBrowserListAdapter.VIRTUAL_STORAGE_FAVOURITE.equals(current)) {
-                if (_quickSwitchPrevFolder != null) {
-                    dest = _quickSwitchPrevFolder;
-                } else {
-                    dest = GsFileBrowserListAdapter.VIRTUAL_STORAGE_RECENTS;
-                }
-            } else {
-                _quickSwitchPrevFolder = current;
-                dest = GsFileBrowserListAdapter.VIRTUAL_STORAGE_FAVOURITE;
-            }
-            _notebook.getAdapter().setCurrentFolder(dest);
-        }
-        return true;
-    }
 
+    /**
+     * The new-file FAB.
+     * <p>
+     * It used to create into "whatever folder the file browser is showing". With Notebook gone
+     * there is no such folder, so it creates into the home folder. Kept rather than deleted
+     * because it is the obvious place to hang a repurposed action.
+     */
     public void onClickFab(final View view) {
-        if (_notebook == null || _notebook.getAdapter() == null) {
+        final File dir = _appSettings.getNotebookDirectory();
+        //noinspection ResultOfMethodCallIgnored
+        dir.mkdirs();
+        if (_cu.isUnderStorageAccessFolder(this, dir, true) && _cu.getStorageAccessFrameworkTreeUri(this) == null) {
+            _cu.showMountSdDialog(this);
             return;
         }
-
-        if (!_notebook.getAdapter().isCurrentFolderWriteable()) {
-            _notebook.getAdapter().setCurrentFolder(_appSettings.getNotebookDirectory());
-            return;
-        }
-
-        if (view.getId() == R.id.fab_add_new_item) {
-            if (_cu.isUnderStorageAccessFolder(this, _notebook.getCurrentFolder(), true) && _cu.getStorageAccessFrameworkTreeUri(this) == null) {
-                _cu.showMountSdDialog(this);
-                return;
-            }
-
-            NewFileDialog.newInstance(_notebook.getCurrentFolder(), true, this::newItemCallback)
-                    .show(getSupportFragmentManager(), NewFileDialog.FRAGMENT_TAG);
-        }
+        NewFileDialog.newInstance(dir, true, this::newItemCallback)
+                .show(getSupportFragmentManager(), NewFileDialog.FRAGMENT_TAG);
     }
 
     private void newItemCallback(final File file) {
         if (file.isFile()) {
             DocumentActivity.launch(MainActivity.this, file, false, null);
         }
-        _notebook.getAdapter().showFile(file);
     }
 
     @Override
@@ -396,24 +338,15 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
         }
     }
 
-    public String getFileBrowserTitle() {
-        final File file = _notebook != null ? _notebook.getCurrentFolder() : null;
-        if (file != null && !_appSettings.getNotebookDirectory().equals(file)) {
-            return "> " + file.getName();
-        } else {
-            return getString(R.string.app_name);
-        }
-    }
-
-    // Tabs are Notebook, More. QuickNote and ToDo were removed: this is a journalling and
-    // archiving app, and a scratch pad and a task list were neither used nor wanted here.
-    // Phase 4 adds Journal and Tree in their place.
-    // Order must match main__bottom_nav.xml. Journal first: the app opens on capture.
+    // Tabs: Journal, Tree, More. Order must match main__bottom_nav.xml.
+    //
+    // Notebook (Markor's file browser) was removed on request. Note that it was the only
+    // way to rename, move or delete a note -- the Tree is tap-to-open only -- so that
+    // capability is currently absent and wants replacing with actions on the Tree.
     public int tabIdToPos(final int id) {
         if (id == R.id.nav_journal) return 0;
         if (id == R.id.nav_tree) return 1;
-        if (id == R.id.nav_notebook) return 2;
-        if (id == R.id.nav_more) return 3;
+        if (id == R.id.nav_more) return 2;
         return 0;
     }
 
@@ -428,43 +361,26 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
     public String getPosTitle(final int pos) {
         if (pos == 0) return getString(R.string.calendar);
         if (pos == 1) return getString(R.string.tree);
-        if (pos == 2) return getFileBrowserTitle();
-        if (pos == 3) return getString(R.string.more);
+        if (pos == 2) return getString(R.string.more);
         return "";
     }
 
     public GsFragmentBase<?, ?> getPosFragment(final int pos) {
         if (pos == 0) return _journal;
         if (pos == 1) return _tree;
-        if (pos == 2) return _notebook;
-        if (pos == 3) return _more;
+        if (pos == 2) return _more;
         return null;
     }
 
-    /**
-     * Restores the default toolbar. Used when changing the tab or moving to another activity
-     * while {@link GsFileBrowserFragment} action mode is active (e.g. when renaming a file)
-     */
-    private void restoreDefaultToolbar() {
-        GsFileBrowserFragment wrFragment = getNotebook();
-        if (wrFragment != null) {
-            wrFragment.clearSelection();
-        }
-    }
 
     public void onViewPagerPageSelected(final int pos) {
         _bottomNav.getMenu().getItem(pos).setChecked(true);
 
-        // The new-file FAB belongs to the Files tab. Journal has its own Submit button and the
-        // Tree is read-only, so showing it there was just a second way to do the wrong thing.
-        if (pos == tabIdToPos(R.id.nav_notebook)) {
+        // FAB sits on Journal for now. The Tree is read-only, and More is settings.
+        if (pos == tabIdToPos(R.id.nav_journal)) {
             _fab.show();
-            if (_notebook != null) {
-                _cu.showSoftKeyboard(this, false, _notebook.getView());
-            }
         } else {
             _fab.hide();
-            restoreDefaultToolbar();
         }
 
         // Rescan the Tree each time it is shown. The pager keeps fragments alive, so without
@@ -477,45 +393,6 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
         setTitle(getPosTitle(pos));
     }
 
-    private GsFileBrowserOptions.Options _filesystemDialogOptions = null;
-
-    @Override
-    public GsFileBrowserOptions.Options getFilesystemFragmentOptions(GsFileBrowserOptions.Options existingOptions) {
-        if (_filesystemDialogOptions == null) {
-            _filesystemDialogOptions = AutumnFileBrowserFactory.prepareFsViewerOpts(this, false, new GsFileBrowserOptions.SelectionListenerAdapter() {
-
-                @Override
-                public void onFsViewerConfig(GsFileBrowserOptions.Options dopt) {
-                    dopt.descModtimeInsteadOfParent = true;
-                    dopt.rootFolder = _appSettings.getNotebookDirectory();
-                    dopt.startFolder = _startFolder;
-                    dopt.doSelectMultiple = dopt.doSelectFolder = dopt.doSelectFile = true;
-                    dopt.mountedStorageFolder = _cu.getStorageAccessFolder(MainActivity.this);
-                }
-
-                @Override
-                public void onFsViewerDoUiUpdate(final GsFileBrowserListAdapter adapter) {
-                    if (adapter != null && adapter.getCurrentFolder() != null && !TextUtils.isEmpty(adapter.getCurrentFolder().getName())) {
-                        _appSettings.setFileBrowserLastBrowsedFolder(adapter.getCurrentFolder());
-                        if (getCurrentPos() == tabIdToPos(R.id.nav_notebook)) {
-                            setTitle(getFileBrowserTitle());
-                        }
-                    }
-
-                    if (_showFile != null && adapter != null) {
-                        adapter.showFile(_showFile);
-                        _showFile = null;
-                    }
-                }
-
-                @Override
-                public void onFsViewerSelected(String request, File file, final Integer lineNumber) {
-                    DocumentActivity.launch(MainActivity.this, file, null, lineNumber);
-                }
-            });
-        }
-        return _filesystemDialogOptions;
-    }
 
     class SectionsPagerAdapter extends FragmentStateAdapter {
 
@@ -535,7 +412,7 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
             } else if (id == R.id.nav_more) {
                 frag = _more = MoreFragment.newInstance();
             } else {
-                frag = _notebook = GsFileBrowserFragment.newInstance();
+                frag = _more = MoreFragment.newInstance();
             }
             frag.setMenuVisibility(false);
             return frag;
@@ -547,10 +424,6 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
         }
     }
 
-    public GsFileBrowserFragment getNotebook() {
-        return _notebook;
-    }
-
     @Override
     protected void onPause() {
         super.onPause();
@@ -558,9 +431,9 @@ public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFra
     }
 
     @Override
+    @Override
     protected void onStop() {
         super.onStop();
-        restoreDefaultToolbar();
     }
 
     @Override

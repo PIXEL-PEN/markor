@@ -456,7 +456,7 @@ public class CalendarFragment extends AutumnBaseFragment
         }
 
         long createdMillis = calendar.getTimeInMillis();
-        CreationIndex cidx = new CreationIndex(this);
+        CreationIndex cidx = new CreationIndex(requireContext());
         cidx.put(noteFile, createdMillis);
         cidx.save();
 

@@ -78,7 +78,7 @@ public class FolderTreeFragment extends AutumnBaseFragment {
         }
 
 
-        net.pixelpen.journal.model.CreationIndex cidx = new net.pixelpen.journal.model.CreationIndex(this);
+        net.pixelpen.journal.model.CreationIndex cidx = new net.pixelpen.journal.model.CreationIndex(requireContext());
         net.pixelpen.journal.model.FolderTreeScanner.setCreationIndex(cidx);
 
         webView = view.findViewById(R.id.folder_browser_webview);

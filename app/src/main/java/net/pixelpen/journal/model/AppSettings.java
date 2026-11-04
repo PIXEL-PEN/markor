@@ -813,9 +813,6 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         if (i == R.id.nav_tree) {
             return R.id.nav_tree;
         }
-        if (i == R.id.nav_notebook) {
-            return R.id.nav_notebook;
-        }
         if (i == R.id.nav_more) {
             return R.id.nav_more;
         }
