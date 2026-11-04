@@ -48,16 +48,16 @@ build:
 lint:
 	rm -Rf $(DIST_DIR)/lint
 	mkdir -p $(DIST_DIR)/lint/
-	$(MAKE) A="lintFlavorDefaultDebug" gradle
+	$(MAKE) A="lintDebug" gradle
 	find app -type f -iname 'lint-results-*' | grep -v 'intermediates' | xargs cp -R -t $(DIST_DIR)/lint
 	$(MAKE) A="-lint" gradle-analyze-log
 
 test:
 	rm -Rf $(DIST_DIR)/tests
-	$(MAKE) A="testFlavorDefaultDebugUnitTest -x lint" gradle
-	mkdir -p app/build/test-results/testFlavorDefaultDebugUnitTest && echo 'PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHRlc3RzdWl0ZSBuYW1lPSJkdW1teSIgdGVzdHM9IjEiIHNraXBwZWQ9IjAiIGZhaWx1cmVzPSIwIiBlcnJvcnM9IjAiIHRpbWVzdGFtcD0iMjAyMC0xMi0wOFQwMDowMDowMCIgaG9zdG5hbWU9ImxvY2FsaG9zdCIgdGltZT0iMC4wMSI+CiAgPHByb3BlcnRpZXMvPgogIDx0ZXN0Y2FzZSBuYW1lPSJkdW1teSIgY2xhc3NuYW1lPSJkdW1teSIgdGltZT0iMC4wMSIvPgogIDxzeXN0ZW0tb3V0PjwhW0NEQVRBW11dPjwvc3lzdGVtLW91dD4KICA8c3lzdGVtLWVycj48IVtDREFUQVtdXT48L3N5c3RlbS1lcnI+CjwvdGVzdHN1aXRlPgo=' | base64 -d > 'app/build/test-results/testFlavorDefaultDebugUnitTest/TEST-dummy.xml'
-	find app -type d -iname 'testFlavorDefaultDebugUnitTest' | xargs cp -R -t $(DIST_DIR)/
-	mv ${DIST_DIR}/testFlavorDefaultDebugUnitTest $(DIST_DIR)/tests
+	$(MAKE) A="testDebugUnitTest -x lint" gradle
+	mkdir -p app/build/test-results/testDebugUnitTest && echo 'PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHRlc3RzdWl0ZSBuYW1lPSJkdW1teSIgdGVzdHM9IjEiIHNraXBwZWQ9IjAiIGZhaWx1cmVzPSIwIiBlcnJvcnM9IjAiIHRpbWVzdGFtcD0iMjAyMC0xMi0wOFQwMDowMDowMCIgaG9zdG5hbWU9ImxvY2FsaG9zdCIgdGltZT0iMC4wMSI+CiAgPHByb3BlcnRpZXMvPgogIDx0ZXN0Y2FzZSBuYW1lPSJkdW1teSIgY2xhc3NuYW1lPSJkdW1teSIgdGltZT0iMC4wMSIvPgogIDxzeXN0ZW0tb3V0PjwhW0NEQVRBW11dPjwvc3lzdGVtLW91dD4KICA8c3lzdGVtLWVycj48IVtDREFUQVtdXT48L3N5c3RlbS1lcnI+CjwvdGVzdHN1aXRlPgo=' | base64 -d > 'app/build/test-results/testDebugUnitTest/TEST-dummy.xml'
+	find app -type d -iname 'testDebugUnitTest' | xargs cp -R -t $(DIST_DIR)/
+	mv ${DIST_DIR}/testDebugUnitTest $(DIST_DIR)/tests
 	$(MAKE) A="-test" gradle-analyze-log
 
 deptree:

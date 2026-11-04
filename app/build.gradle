@@ -31,7 +31,9 @@ android {
 
         resValue "string", "manifest_package_id", "net.pixelpen.markorplus"
 
+        // Was set per-flavour; now per-build-type (true in debug, false in release).
         buildConfigField "boolean", "IS_TEST_BUILD", "false"
+        // Kept defined though nothing reads it, so a future Play-specific branch has a hook.
         buildConfigField "boolean", "IS_GPLAY_BUILD", "false"
         // Name of the archive folder under /Documents. Debug builds override this
         // so a side-by-side preview install can never touch the live archive.
@@ -44,37 +46,15 @@ android {
         setProperty("archivesBaseName", applicationId + "-v" + versionCode + "-" + versionName)
     }
 
-    flavorDimensions "default"
-
-    productFlavors {
-        flavorAtest {
-            dimension "default"
-            applicationId "net.gsantner.markor_test"
-            versionName "${defaultConfig.versionName}-${new Date().format('HHmm')}"
-            buildConfigField "boolean", "IS_TEST_BUILD", "true"
-            buildConfigField "boolean", "IS_PIXELPEN_BUILD", "false"
-        }
-        flavorDefault {
-            dimension "default"
-            versionName "${defaultConfig.versionName}-${new Date().format('HHmm')}"
-            buildConfigField "boolean", "IS_TEST_BUILD", "true"
-            buildConfigField "boolean", "IS_PIXELPEN_BUILD", "true"
-            // no app_name override here
-        }
-        pixelpen {
-            dimension "default"
-            applicationIdSuffix ".pp"   // → pixelpenDebug = net.pixelpen.markorplus.pp.dev
-            versionName "${defaultConfig.versionName}-${new Date().format('HHmm')}"
-            buildConfigField "boolean", "IS_TEST_BUILD", "true"
-            buildConfigField "boolean", "IS_PIXELPEN_BUILD", "true"
-        }
-
-        flavorGplay {
-            dimension "default"
-            buildConfigField "boolean", "IS_GPLAY_BUILD", "true"
-            buildConfigField "boolean", "IS_PIXELPEN_BUILD", "false"
-        }
-    }
+    // No product flavors.
+    //
+    // There used to be four (flavorAtest, flavorDefault, pixelpen, flavorGplay), which meant
+    // eight build variants for the IDE to index and four icon source sets to keep in step. They
+    // also carried real hazards: flavorAtest shipped upstream's applicationId
+    // (net.gsantner.markor_test), and the IDE defaulted to it because it sorted first.
+    //
+    // The two variants that remain are debug (side-by-side preview) and release.
+    // The pixelpen flavour's launcher icons were promoted into src/main/res.
 
     lintOptions {
         abortOnError false
@@ -95,7 +75,7 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix ".dev"    // <-- ensures pixelpenDebug installs as *.dev
+            applicationIdSuffix ".dev"    // installs as net.pixelpen.markorplus.dev, beside the real app
             versionNameSuffix "-dev"
             buildConfigField "boolean", "IS_TEST_BUILD", "true"
             // Debug builds read and write /Documents/Markor Plus (dev), NOT the live

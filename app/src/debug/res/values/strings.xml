@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Debug-build overrides. Replaces the old pixelpenDebug flavour source set.
+  A distinct launcher name so the preview install is obvious next to the real app.
+-->
+<resources>
+    <string name="app_name">Markor+(dev)</string>
+</resources>
