@@ -78,8 +78,11 @@ public class MoreInfoFragment extends GsPreferenceFragmentBase<AppSettings> {
                     return true;
                 }
                 case R.string.pref_key__more_info__help: {
-                    _cu.openWebpageInExternalBrowser(getContext(),
-                            String.format("https://github.com/gsantner/%s#readme", getString(R.string.app_name_real).toLowerCase()));
+                    // Was String.format("https://github.com/gsantner/%s#readme", app_name
+                    // lower-cased) -- an upstream URL built from OUR app name, so renaming the
+                    // app pointed Help at a repository that does not exist. Same class of bug as
+                    // the home folder being derived from app_name.
+                    _cu.openWebpageInExternalBrowser(getContext(), getString(R.string.app_source_code_url));
                     return true;
                 }
                 case R.string.pref_key__more_info__bug_reports: {

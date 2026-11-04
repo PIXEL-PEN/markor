@@ -11,13 +11,15 @@ work. If not, see <https://creativecommons.org/publicdomain/zero/1.0/>.
 <resources>
 
     <string name="app_license_name" translatable="false">Apache 2.0</string>
-    <string name="app_community_url" translatable="false">https://github.com/gsantner/markor/discussions/2269#discussion_bucket</string>
-    <string name="app_bugreport_url" translatable="false">https://github.com/gsantner/markor/discussions/2269#discussion_bucket</string>
-    <string name="app_translate_url" translatable="false">https://github.com/gsantner/markor/discussions/2269#discussion_bucket</string>
+    <!-- Our project, not upstream's. These pointed at gsantner/markor's discussion board, which
+         sent this fork's bug reports to the Markor maintainer. -->
+    <string name="app_community_url" translatable="false">https://github.com/PIXEL-PEN/markor/discussions</string>
+    <string name="app_bugreport_url" translatable="false">https://github.com/PIXEL-PEN/markor/issues</string>
+    <string name="app_translate_url" translatable="false">https://github.com/PIXEL-PEN/markor/discussions</string>
 
-    <string name="app_web_url" translatable="false">https://github.com/gsantner/markor</string>
+    <string name="app_web_url" translatable="false">https://github.com/PIXEL-PEN/markor</string>
     <string name="sync_client_support_issue_url" translatable="false">https://github.com/gsantner/markor/discussions/1381</string>
-    <string name="app_source_code_url" translatable="false">https://github.com/gsantner/markor</string>
+    <string name="app_source_code_url" translatable="false">https://github.com/PIXEL-PEN/markor</string>
     <string name="huuid" translatable="false">hUUID</string>
     <string name="embed_binary" translatable="false">Embed binary</string>
     <string name="actionbutton" translatable="false">ActionButton</string>

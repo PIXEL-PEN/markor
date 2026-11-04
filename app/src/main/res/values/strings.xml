@@ -491,7 +491,7 @@
         <string name="invalid_action">Invalid action</string>
         <string name="items">Items</string>
 
-        <string name="app_name">Markor Plus</string>
+        <string name="app_name">Autumn</string>
         <string name="app_name_real" translatable="false">@string/app_name</string>
 
         <string-array name="category_list">

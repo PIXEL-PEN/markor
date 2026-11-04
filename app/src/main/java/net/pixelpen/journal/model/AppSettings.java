@@ -91,10 +91,16 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
      * Compared lower-cased.
      */
     private static final java.util.List<String> MANAGED_ROOT_NAMES = java.util.Arrays.asList(
+            // Current.
+            "autumn", "autumn (dev)",
+            // Every folder name this app has ever defaulted to. The old getDefaultNotebookFile()
+            // derived the home folder from app_name, so each rename spawned another directory in
+            // /Documents and left the previous one orphaned. Listing them all here means a saved
+            // preference pointing at any of them is pulled back to the canonical root instead of
+            // creating yet another.
             "markor plus", "markor plus (dev)", "markor plus (pixelpen)", "markor default",
-            // Derived from app_name by the old getDefaultNotebookFile(). These are the folders
-            // that appeared in /Documents on their own and confused everyone.
-            "markor", "markor+", "markor+(dev)", "dev markor+", "my markor", "markorplus"
+            "markor", "markor+", "markor+(dev)", "dev markor+", "dev autumn",
+            "my markor", "markorplus", "markor plus dev"
     );
 
     /**
