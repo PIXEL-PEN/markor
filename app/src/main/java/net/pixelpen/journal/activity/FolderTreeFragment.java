@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import net.pixelpen.journal.ApplicationObject;
 import net.pixelpen.journal.R;
 import net.pixelpen.journal.adapter.FolderTreeAdapter;
+import net.pixelpen.journal.model.ArchiveSearch;
 import net.pixelpen.journal.model.CreationIndex;
 import net.pixelpen.journal.model.TreeStore;
 import net.pixelpen.journal.util.NoteTimestamp;
@@ -130,7 +131,7 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         // so whatever the user opened by hand stays open.
         seedExpansion(root);
         _store.invalidateAll();
-        rebuild();
+        redraw();
     }
 
     /**
@@ -179,6 +180,126 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
     }
 
     /**
+     * The current query, or null when not searching.
+     *
+     * <p>This is the one switch between the two things this list shows: the tree, read a directory
+     * at a time, and a flat set of search results from a walk of everything.
+     */
+    private String _query;
+
+    /** Debounce for typing. See {@link #setSearch}. */
+    private final android.os.Handler _searchDelay =
+            new android.os.Handler(android.os.Looper.getMainLooper());
+    private Runnable _pendingSearch;
+
+    /** How long to wait for typing to stop before walking the archive. */
+    private static final long SEARCH_DEBOUNCE_MS = 250L;
+
+    /**
+     * Set or clear the query. Called by the host as the toolbar's search field changes.
+     *
+     * <p>Debounced, and that is not a nicety: the field reports every keystroke, and each search
+     * walks the whole archive and opens the body of every note whose title did not match. Typing
+     * "project" unthrottled is seven of those walks, six of which nobody will ever see the result
+     * of. Waiting for a pause coalesces them into one.
+     *
+     * <p>Clearing it puts the tree back exactly as it was: expansion state lives in this fragment
+     * rather than in the rows, so searching and coming back does not collapse anything.
+     */
+    public void setSearch(final String query) {
+        final String trimmed = (query == null) ? null : query.trim();
+        final String next = (trimmed == null || trimmed.isEmpty()) ? null : trimmed;
+        if (next == null ? _query == null : next.equals(_query)) {
+            // The field also re-fires on submit, which would otherwise walk the archive again for
+            // an answer already on screen.
+            return;
+        }
+        _query = next;
+
+        if (_pendingSearch != null) {
+            _searchDelay.removeCallbacks(_pendingSearch);
+            _pendingSearch = null;
+        }
+        if (_query == null) {
+            // Going back to the tree is instant; there is nothing to wait for.
+            rebuild();
+            return;
+        }
+        _pendingSearch = this::runSearch;
+        _searchDelay.postDelayed(_pendingSearch, SEARCH_DEBOUNCE_MS);
+    }
+
+    @Override
+    public void onDestroyView() {
+        // A pending search firing after the views are gone would be drawing into a dead adapter.
+        if (_pendingSearch != null) {
+            _searchDelay.removeCallbacks(_pendingSearch);
+            _pendingSearch = null;
+        }
+        // Dropped rather than left dangling. A walk already running cannot be called back, and
+        // its completion checks these before touching anything -- isAdded() alone does not cover
+        // it, because a fragment whose view has been destroyed is still added.
+        _list = null;
+        _empty = null;
+        _progress = null;
+        _adapter = null;
+        super.onDestroyView();
+    }
+
+    /** Draw whichever of the two views is current. */
+    private void redraw() {
+        if (_query == null) {
+            rebuild();
+        } else {
+            runSearch();
+        }
+    }
+
+    /**
+     * Search the archive and show the matches as a flat list.
+     *
+     * <p>A full walk, which is the opposite of how the tree reads, and deliberately so: a note
+     * matches wherever it sits. It only happens because someone typed something.
+     */
+    private void runSearch() {
+        final File root = _root;
+        final String query = _query;
+        if (root == null || query == null) {
+            return;
+        }
+        new Thread(() -> {
+            final List<ArchiveSearch.Hit> hits = ArchiveSearch.run(root, query, _index);
+            final List<FolderTreeAdapter.Row> rows = new ArrayList<>(hits.size());
+            for (final ArchiveSearch.Hit h : hits) {
+                rows.add(new FolderTreeAdapter.Row(
+                        TreeStore.Entry.forNote(h.file, h.display, h.createdMillis),
+                        0, false, h.where));
+            }
+            final boolean capped = ArchiveSearch.wasCapped(hits);
+
+            final android.app.Activity host = getActivity();
+            if (host == null) {
+                return;
+            }
+            host.runOnUiThread(() -> {
+                // The query may have moved on while the walk was running; if it has, these rows
+                // are for a query nobody is asking about any more.
+                if (!isAdded() || _adapter == null || _list == null || !query.equals(_query)) {
+                    return;
+                }
+                _adapter.setRows(rows);
+                _list.scrollToPosition(0);
+                _progress.setVisibility(View.GONE);
+                _empty.setText(getString(R.string.tree_search_no_results, query));
+                _empty.setVisibility(rows.isEmpty() ? View.VISIBLE : View.GONE);
+                if (capped) {
+                    toast(R.string.tree_search_truncated);
+                }
+            });
+        }).start();
+    }
+
+    /**
      * Rebuild the visible rows.
      *
      * <p>Reading a directory touches the filesystem, and for long-titled notes it opens each one
@@ -222,6 +343,8 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
                     lm.onRestoreInstanceState(scroll);
                 }
                 _progress.setVisibility(View.GONE);
+                // Put the message back: a search leaves "nothing matched <query>" in here.
+                _empty.setText(R.string.tree_empty);
                 // Empty only counts when the root is open and still produced nothing. A closed
                 // root also leaves one row, and the list must stay visible either way -- hiding
                 // it would take away the only row there is to tap to open it again.
@@ -426,13 +549,19 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
                 .show();
     }
 
-    /** Forget the directories a change touched, then redraw. */
+    /**
+     * Forget the directories a change touched, then redraw.
+     *
+     * <p>Goes through redraw() rather than straight to the tree: rename, move and delete are all
+     * reachable from a search result, and finishing one should leave the results up with the
+     * change in them, not drop back to the tree.
+     */
     private void refreshAfterChange(final File a, final File b) {
         _store.invalidate(a);
         if (b != null) {
             _store.invalidate(b);
         }
-        rebuild();
+        redraw();
     }
 
     /** Every folder at or under {@code dir}, depth-capped so a stray deep tree cannot hang this. */

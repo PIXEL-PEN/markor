@@ -515,4 +515,10 @@
 
     <!-- Move was chosen on a note, but the archive has no other folder to move it into. -->
     <string name="tree_no_move_targets">No other folder to move it to.</string>
+
+    <!-- Search found nothing. %1$s is what was typed. -->
+    <string name="tree_search_no_results">Nothing matches “%1$s”.</string>
+
+    <!-- Search stopped at its result cap, so what is shown may not be all of it. -->
+    <string name="tree_search_truncated">Showing the first 500 matches.</string>
     </resources>

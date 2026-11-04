@@ -73,6 +73,18 @@ public class TreeStore {
         public final boolean substantial;
 
         /**
+         * A note row the store did not produce itself -- a search hit, which is found by walking
+         * the archive rather than by listing one directory.
+         *
+         * <p>No badge: the dot distinguishes a long-titled note that has been written into from
+         * one that has not, which is a thing to notice while reading down a month. In a list of
+         * search results it would only be noise, and deciding it means opening every hit.
+         */
+        public static Entry forNote(final File f, final String display, final long createdMillis) {
+            return new Entry(f, false, display, createdMillis, false, false);
+        }
+
+        /**
          * A directory row the store did not produce itself -- the archive root, which has no
          * parent listing to come from.
          */

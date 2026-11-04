@@ -55,11 +55,22 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         public final int depth;
         /** Folders only: whether this folder is currently open. */
         public boolean expanded;
+        /**
+         * Extra context appended to a note's date line. Null in the tree, where the row's position
+         * already says where it sits; set for a search result, where it does not.
+         */
+        public final String subtitle;
 
         public Row(final TreeStore.Entry entry, final int depth, final boolean expanded) {
+            this(entry, depth, expanded, null);
+        }
+
+        public Row(final TreeStore.Entry entry, final int depth, final boolean expanded,
+                   final String subtitle) {
             this.entry = entry;
             this.depth = depth;
             this.expanded = expanded;
+            this.subtitle = subtitle;
         }
     }
 
@@ -172,7 +183,11 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private void bindFile(final FileHolder h, final Row row) {
         final TreeStore.Entry e = row.entry;
         h.title.setText(e.display);
-        h.meta.setText(_dateFormat.format(new Date(e.createdMillis)));
+        final String date = _dateFormat.format(new Date(e.createdMillis));
+        // A search result has to say where it lives; a row in the tree is already standing there.
+        h.meta.setText((row.subtitle == null || row.subtitle.isEmpty())
+                ? date
+                : date + "  ·  " + row.subtitle);
 
         // The badge marks a note whose title is the whole entry: filled once there is something
         // written past the date stamp, hollow while there is not.

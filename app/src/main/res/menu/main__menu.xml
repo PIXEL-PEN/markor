@@ -13,6 +13,22 @@
     tools:context="net.pixelpen.journal.activity.MainActivity"
     tools:ignore="AlwaysShowAction">
 
+    <!--
+      Search lived in the file browser's own menu and went with it. It searches the archive, so
+      it belongs to the Tree, and MainActivity only shows it while that tab is up.
+
+      collapseActionView so the field expands over the bar when opened and gives the query back
+      when closed, which is what clears the results.
+    -->
+    <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/ic_search_black_24dp"
+        android:orderInCategory="10"
+        android:title="@string/search"
+        android:visible="false"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="always|collapseActionView" />
+
     <item
         android:id="@+id/action_settings"
         android:icon="@drawable/ic_settings_black_24dp"

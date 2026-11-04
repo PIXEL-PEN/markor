@@ -62,6 +62,8 @@ public class MainActivity extends AutumnBaseActivity {
     private FolderTreeFragment _tree;
     private MoreFragment _more;
     private FloatingActionButton _fab;
+    /** The toolbar's search item, kept so its visibility can follow the tab. */
+    private MenuItem _searchItem;
 
     private AutumnContextUtils _cu;
 
@@ -250,9 +252,68 @@ public class MainActivity extends AutumnBaseActivity {
         getMenuInflater().inflate(R.menu.main__menu, menu);
         menu.findItem(R.id.action_settings).setVisible(_appSettings.isShowSettingsOptionInMainToolbar());
 
+        _searchItem = menu.findItem(R.id.action_search);
+        final androidx.appcompat.widget.SearchView search =
+                (androidx.appcompat.widget.SearchView) _searchItem.getActionView();
+        if (search != null) {
+            search.setQueryHint(getString(R.string.search));
+            search.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(final String query) {
+                    // The field already searched as it was typed; swallowing submit just closes
+                    // the keyboard instead of re-running the same walk.
+                    return true;
+                }
+
+                @Override
+                public boolean onQueryTextChange(final String text) {
+                    if (_tree != null) {
+                        _tree.setSearch(text);
+                    }
+                    return true;
+                }
+            });
+            _searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+                @Override
+                public boolean onMenuItemActionExpand(@NonNull final MenuItem item) {
+                    return true;
+                }
+
+                @Override
+                public boolean onMenuItemActionCollapse(@NonNull final MenuItem item) {
+                    // Closing the field is how the results are dismissed and the tree comes back.
+                    if (_tree != null) {
+                        _tree.setSearch(null);
+                    }
+                    return true;
+                }
+            });
+        }
+        // Visibility follows the tab, and the menu is created before the first page callback runs.
+        applySearchVisibility(getCurrentPos());
+
         _cu.tintMenuItems(menu, true, Color.WHITE);
         _cu.setSubMenuIconsVisibility(menu, true);
         return true;
+    }
+
+    /**
+     * Search belongs to the Tree, so it is only offered there.
+     *
+     * <p>It searches the archive and shows the matches in place of the tree, which means it has
+     * nowhere to put results on the Calendar or More tabs. Collapsing it on the way out also
+     * clears the query, so switching tabs mid-search does not leave the Tree holding results
+     * nobody can see the field for.
+     */
+    private void applySearchVisibility(final int pos) {
+        if (_searchItem == null) {
+            return;
+        }
+        final boolean onTree = pos == tabIdToPos(R.id.nav_tree);
+        if (!onTree && _searchItem.isActionViewExpanded()) {
+            _searchItem.collapseActionView();
+        }
+        _searchItem.setVisible(onTree);
     }
 
     @Override
@@ -386,6 +447,8 @@ public class MainActivity extends AutumnBaseActivity {
             }
             _tree.reload();
         }
+
+        applySearchVisibility(pos);
 
         setTitle(getPosTitle(pos));
     }

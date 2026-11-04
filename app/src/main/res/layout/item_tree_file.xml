@@ -68,10 +68,16 @@
                 android:textSize="17sp"
                 android:textStyle="normal" />
 
+            <!--
+              Ellipsized, not just single-line: a search result appends the folder it lives in to
+              this line, and a deep path would otherwise be cut off mid-character with no sign
+              that anything was missing.
+            -->
             <TextView
                 android:id="@+id/tree_file_meta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
                 android:singleLine="true"
                 android:textColor="@color/tree_meta"
                 android:textSize="12sp" />
