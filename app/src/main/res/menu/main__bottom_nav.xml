@@ -16,15 +16,9 @@
         android:icon="@drawable/ic_folder_white_24dp"
         android:title="@string/files" />
 
-    <item
-        android:id="@+id/nav_todo"
-        android:icon="@drawable/ic_assignment_turned_in_black_24dp"
-        android:title="@string/todo" />
-
-    <item
-        android:id="@+id/nav_quicknote"
-        android:icon="@drawable/ic_lightning_black_24dp"
-        android:title="@string/quicknote" />
+    <!-- QuickNote and ToDo removed. getItemCount() on the pager adapter is driven by this
+         menu's size, and MainActivity's tab index maps follow this order, so adding or
+         removing an item here means updating tabIdToPos/getPosTitle/getPosFragment too. -->
 
     <item
         android:id="@+id/nav_more"

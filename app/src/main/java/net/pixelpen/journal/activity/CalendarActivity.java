@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import net.pixelpen.journal.util.StorageRoots;
+import net.pixelpen.journal.ApplicationObject;
 import net.pixelpen.journal.util.NoteTimestamp;
 
 
@@ -149,8 +149,9 @@ public class CalendarActivity extends AppCompatActivity
     }
 
     // === PixelPen canonical root ===
+    /** The single home folder, shared with the file browser and the Folder Tree. */
     private java.io.File getAppRoot() {
-        return StorageRoots.getWorkingRoot(this);
+        return ApplicationObject.settings().getNotebookDirectory();
     }
 
     /**

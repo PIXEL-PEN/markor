@@ -83,15 +83,75 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         setString(R.string.pref_key__notebook_directory, GsFileUtils.getPath(file));
     }
 
+    /**
+     * Folder names this app has defaulted to at some point. A saved preference pointing at one of
+     * these is treated as "the app chose this", not "the user chose this", and is re-pointed at
+     * the current canonical root. Anything else is respected as a deliberate choice.
+     * <p>
+     * Compared lower-cased.
+     */
+    private static final java.util.List<String> MANAGED_ROOT_NAMES = java.util.Arrays.asList(
+            "markor plus", "markor plus (dev)", "markor plus (pixelpen)", "markor default",
+            // Derived from app_name by the old getDefaultNotebookFile(). These are the folders
+            // that appeared in /Documents on their own and confused everyone.
+            "markor", "markor+", "markor+(dev)", "dev markor+", "my markor", "markorplus"
+    );
+
+    /**
+     * THE home folder. Everything — the file browser, the Calendar screen, the Folder Tree —
+     * resolves here and nowhere else.
+     * <p>
+     * There used to be two independent roots: this one, defaulting to a folder named after
+     * app_name lower-cased, and StorageRoots' own preference defaulting to BuildConfig's
+     * STORAGE_ROOT_NAME. So the Notes tab browsed /Documents/dev markor+ while notes were being
+     * written to /Documents/Markor Plus (dev), and a note you had just created was nowhere to be
+     * seen. Renaming the app also silently moved the browser to a new empty folder.
+     */
     public File getNotebookDirectory() {
-        return new File(getString(R.string.pref_key__notebook_directory, getDefaultNotebookFile().getAbsolutePath()));
+        final String savedPath = getString(R.string.pref_key__notebook_directory, "");
+        final File canonical = getDefaultNotebookFile();
+
+        if (savedPath == null || savedPath.trim().isEmpty()) {
+            setNotebookDirectory(canonical);
+            return canonical;
+        }
+        final File saved = new File(savedPath);
+        if (isManagedRootName(saved.getName())) {
+            // One of ours, possibly from an older build or an older app name. Re-point it so the
+            // whole app follows the current root rather than stranding data in an orphan folder.
+            if (!saved.equals(canonical)) {
+                setNotebookDirectory(canonical);
+            }
+            return canonical;
+        }
+        return saved;
     }
 
+    /**
+     * /Documents/&lt;BuildConfig.STORAGE_ROOT_NAME&gt; — "Markor Plus", or "Markor Plus (dev)" in
+     * a debug build so a preview install cannot touch the live archive.
+     * <p>
+     * This used to be derived from app_name lower-cased, which meant the home folder moved every
+     * time the app was renamed, and differed in case from the folder the Calendar screen used.
+     */
     public File getDefaultNotebookFile() {
         return GsFileUtils.join(
                 Environment.getExternalStorageDirectory(),
                 "Documents",
-                rstr(R.string.app_name).toLowerCase(Locale.ROOT));
+                net.pixelpen.journal.BuildConfig.STORAGE_ROOT_NAME);
+    }
+
+    private static boolean isManagedRootName(final String name) {
+        if (name == null) {
+            return false;
+        }
+        final String needle = name.trim().toLowerCase(Locale.ROOT);
+        for (final String candidate : MANAGED_ROOT_NAMES) {
+            if (candidate.equals(needle)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public File getQuickNoteFile() {
@@ -734,14 +794,18 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return Arrays.asList(pref.replace("\r", "").replace("\n\n", "\n").split("\n"));
     }
 
+    /**
+     * Which tab the app opens on.
+     * <p>
+     * The stored value is a legacy index: 1 meant ToDo and 2 meant QuickNote, both of which no
+     * longer exist. Anyone whose preference still holds one of those falls through to Notebook
+     * rather than crashing on a missing resource id.
+     */
     public @IdRes
     int getAppStartupTab() {
-        int i = getIntOfStringPref(R.string.pref_key__app_start_tab_v2, R.id.nav_notebook);
-        switch (i) {
-            case 1:
-                return R.id.nav_todo;
-            case 2:
-                return R.id.nav_quicknote;
+        final int i = getIntOfStringPref(R.string.pref_key__app_start_tab_v2, R.id.nav_notebook);
+        if (i == R.id.nav_more) {
+            return R.id.nav_more;
         }
         return R.id.nav_notebook;
     }

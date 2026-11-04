@@ -20,7 +20,7 @@ import net.pixelpen.journal.model.FolderNode;
 import net.pixelpen.journal.model.FolderTreeScanner;
 import net.pixelpen.journal.util.NoteTimestamp;
 import net.pixelpen.journal.util.ShortcutUtils;
-import net.pixelpen.journal.util.StorageRoots;
+import net.pixelpen.journal.ApplicationObject;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -191,7 +191,9 @@ public class FolderBrowserActivity extends Activity {
         String selectedCategory = getIntent().getStringExtra("selectedCategory");
         String selectedMonth = getIntent().getStringExtra("selectedMonth");
 
-        rootFolder = StorageRoots.getWorkingRoot(this);
+        // The single home folder. Was StorageRoots.getWorkingRoot(), a second independent
+        // root that could and did disagree with the one the file browser used.
+        rootFolder = ApplicationObject.settings().getNotebookDirectory();
         final java.io.File rf = rootFolder;
         final String cat = selectedCategory;
         final String mon = selectedMonth;
