@@ -22,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import net.gsantner.markor.BuildConfig;
 import net.gsantner.markor.R;
 import net.gsantner.markor.activity.openeditor.OpenEditorQuickNoteActivity;
 import net.gsantner.markor.activity.openeditor.OpenEditorTodoActivity;
@@ -46,8 +47,27 @@ public class MarkorContextUtils extends GsContextUtils {
         setLauncherActivityEnabled(context, OpenEditorQuickNoteActivity.class, extraLaunchersEnabled);
         setLauncherActivityEnabled(context, OpenEditorTodoActivity.class, extraLaunchersEnabled);
         setLauncherActivityEnabled(context, OpenShareIntoActivity.class, extraLaunchersEnabled);
-        setLauncherActivityEnabledFromString(context, "net.gsantner.markor.AliasDocumentProcessText", extraLaunchersEnabled);
+        setLauncherActivityEnabledFromString(context, aliasDocumentProcessTextName(), extraLaunchersEnabled);
         return thisp();
+    }
+
+    /**
+     * Component name of the PROCESS_TEXT activity-alias declared in AndroidManifest.xml.
+     * <p>
+     * The manifest declares it as ".AliasDocumentProcessText", which the manifest merger
+     * qualifies with the manifest namespace — currently net.gsantner.markor, which is NOT the
+     * applicationId (net.pixelpen.markorplus). Hardcoding either one is a trap: the previous
+     * literal happened to match today's namespace, and would have silently stopped matching the
+     * moment the namespace moved in the rebrand.
+     * <p>
+     * BuildConfig is generated into the namespace, so deriving the prefix from it keeps the two
+     * sides in step automatically.
+     */
+    private static String aliasDocumentProcessTextName() {
+        final String simpleName = "AliasDocumentProcessText";
+        final Package pkg = BuildConfig.class.getPackage();
+        final String prefix = (pkg != null) ? pkg.getName() : null;
+        return (prefix == null || prefix.isEmpty()) ? simpleName : prefix + "." + simpleName;
     }
 
     private static int getIconResForFile(final @NonNull File file) {

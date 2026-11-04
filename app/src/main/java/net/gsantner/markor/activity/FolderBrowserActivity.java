@@ -18,6 +18,8 @@ import net.gsantner.markor.model.Document;
 import net.gsantner.markor.model.FileNode;
 import net.gsantner.markor.model.FolderNode;
 import net.gsantner.markor.model.FolderTreeScanner;
+import net.gsantner.markor.util.NoteTimestamp;
+import net.gsantner.markor.util.ShortcutUtils;
 import net.gsantner.markor.util.StorageRoots;
 
 import java.io.BufferedReader;
@@ -49,11 +51,14 @@ public class FolderBrowserActivity extends Activity {
             android.content.pm.ShortcutManager sm = getSystemService(android.content.pm.ShortcutManager.class);
             if (sm != null) sm.removeAllDynamicShortcuts();
         }
+        // Direct call. This used to go through Class.forName("net.gsantner.markor.util.ShortcutUtils")
+        // with a reflective invoke, for a class that lives in this very project — which meant the
+        // compiler could not see the dependency, and the hardcoded package name would have broken
+        // silently (inside a `catch (Throwable ignored)`) the moment the namespace moved.
         try {
-            Class<?> c = Class.forName("net.gsantner.markor.util.ShortcutUtils");
-            java.lang.reflect.Method m = c.getMethod("updateShortcuts", android.content.Context.class);
-            m.invoke(null, this);
-        } catch (Throwable ignored) {}
+            ShortcutUtils.updateShortcuts(this);
+        } catch (Exception ignored) {
+        }
 
         getWindow().setSoftInputMode(
                 WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN
@@ -198,20 +203,17 @@ public class FolderBrowserActivity extends Activity {
                 null
         );
 
-        new Thread(() -> {
-            FolderNode tree = FolderTreeScanner.scan(
-                    rf, cat,
-                    (mon != null && !mon.trim().isEmpty())
-                            ? mon
-                            : new java.text.SimpleDateFormat("MMMM", java.util.Locale.ENGLISH).format(new java.util.Date())
-            );
+        // Default to the current month's FOLDER name ("11_November"), produced by the same
+        // Locale.ENGLISH-pinned formatter that created the folder. This previously formatted
+        // "MMMM" here with Locale.ENGLISH while CalendarActivity created the folder with
+        // Locale.getDefault(), so on a non-English device nothing ever auto-expanded.
+        final String targetMonth = (mon != null && !mon.trim().isEmpty())
+                ? mon
+                : NoteTimestamp.currentMonthFolderName();
 
-            String html = buildHtml(
-                    tree, cat,
-                    (mon != null && !mon.trim().isEmpty())
-                            ? mon
-                            : new java.text.SimpleDateFormat("MMMM", java.util.Locale.ENGLISH).format(new java.util.Date())
-            );
+        new Thread(() -> {
+            FolderNode tree = FolderTreeScanner.scan(rf, cat, targetMonth);
+            String html = buildHtml(tree, cat, targetMonth);
 
             runOnUiThread(() -> {
                 if (!isFinishing()) {
@@ -285,7 +287,7 @@ public class FolderBrowserActivity extends Activity {
         sb.append("<div id='label_").append(id).append("' class='").append(labelClass)
                 .append("' style='").append(folderIndent).append("' onclick=\"toggle('").append(id).append("','label_").append(id).append("')\">")
                 .append("<span class='arrow'>▶</span>")
-                .append(displayName)
+                .append(esc(displayName))
                 .append("</div>");
 
         sb.append("<div id='").append(id).append("' style='display:").append(expandByDefault).append(";'>");
@@ -323,14 +325,42 @@ public class FolderBrowserActivity extends Activity {
             sb.append("<div class='file' style='").append(fileIndent).append("'>")
                     .append("<div class='icon'>").append(iconHtml).append("</div>")
                     .append("<div>")
-                    .append("<a href='note:").append(file.file.getAbsolutePath()).append("'>")
-                    .append("<span class='note-title'>").append(baseName).append("</span>")
+                    .append("<a href='note:").append(escHref(file.file.getAbsolutePath())).append("'>")
+                    .append("<span class='note-title'>").append(esc(baseName)).append("</span>")
                     .append("</a>")
                     .append(dateStr)
                     .append("</div>")
                     .append("</div>");
         }
         sb.append("</div>");
+    }
+
+    /**
+     * HTML-escape text that is interpolated into the generated page.
+     * <p>
+     * Note titles and folder names went in raw. CalendarActivity's filename sanitiser strips
+     * \ / : * ? " &lt; &gt; | but leaves apostrophes and ampersands alone, and the attributes
+     * here are single-quoted — so a note called "Dad's 80th" produced
+     * {@code <a href='note:/.../Dad's 80th.md'>}, where the attribute ends at the apostrophe.
+     * The link then pointed at a truncated path and the rest of the title was parsed as stray
+     * attributes.
+     * <p>
+     * This is also what findBestMatch() below has been quietly compensating for.
+     */
+    private static String esc(final String s) {
+        return (s == null) ? "" : android.text.TextUtils.htmlEncode(s);
+    }
+
+    /**
+     * Build the value of a {@code note:} href: percent-encode the path first (so the
+     * Uri.decode() in handleUrl() reverses it exactly), then HTML-escape the result so the
+     * attribute itself cannot be terminated early. Slashes are left readable.
+     */
+    private static String escHref(final String absolutePath) {
+        if (absolutePath == null) {
+            return "";
+        }
+        return esc(android.net.Uri.encode(absolutePath, "/"));
     }
 
     private boolean hasAnyContentBeyondSeed(File f) {

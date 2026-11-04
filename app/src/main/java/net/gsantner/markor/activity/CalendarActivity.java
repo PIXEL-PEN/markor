@@ -2,9 +2,7 @@ package net.gsantner.markor.activity;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.text.InputFilter;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,22 +18,20 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
 
 import net.gsantner.markor.R;
 import net.gsantner.markor.model.CreationIndex;
+import net.gsantner.markor.model.Document;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import net.gsantner.markor.util.StorageRoots;
 import net.gsantner.markor.util.NoteTimestamp;
@@ -136,8 +132,8 @@ public class CalendarActivity extends AppCompatActivity
             String selectedCategory = spinnerCategory.getSelectedItem() == null
                     ? DEFAULT_CATEGORY
                     : spinnerCategory.getSelectedItem().toString();
-            SimpleDateFormat monthFormat = new SimpleDateFormat("MM_MMMM", Locale.getDefault());
-            String selectedMonth = monthFormat.format(selectedCalendarDate.getTime());
+            // Pinned to Locale.ENGLISH: this has to match the folder names on disk.
+            String selectedMonth = NoteTimestamp.monthFolderName(selectedCalendarDate);
 
             Intent intent = new Intent(CalendarActivity.this, FolderBrowserActivity.class);
             intent.putExtra("selectedCategory", selectedCategory);
@@ -158,14 +154,17 @@ public class CalendarActivity extends AppCompatActivity
     }
 
     /**
-     * Builds/returns: /Documents/Markor Plus/<YYYY>/<MM_MMMM>/<Category>
-     * Uses selectedCalendarDate for year & month; creates folders if missing.
+     * Builds/returns: /Documents/&lt;root&gt;/&lt;YYYY&gt;/&lt;MM_MMMM&gt;/&lt;Category&gt;, creating
+     * folders if missing.
+     * <p>
+     * Folder names come from NoteTimestamp and are pinned to Locale.ENGLISH. They used to be
+     * formatted with the device locale, which meant a non-English phone wrote "05_Mai" and then
+     * failed to find it again, and changing the phone's language mid-year split one year across
+     * two differently-named month folders.
      */
-    private java.io.File ensureNoteParentDir(String categoryFolderName) {
-        Calendar cal = (Calendar) selectedCalendarDate.clone();
-
-        String yearStr = new SimpleDateFormat("yyyy", Locale.getDefault()).format(cal.getTime());
-        String monthFolderName = new SimpleDateFormat("MM_MMMM", Locale.getDefault()).format(cal.getTime());
+    private java.io.File ensureNoteParentDir(final String categoryFolderName, final Calendar when) {
+        final String yearStr = NoteTimestamp.yearFolderName(when);
+        final String monthFolderName = NoteTimestamp.monthFolderName(when);
 
         java.io.File appRoot  = getAppRoot();
         java.io.File yearDir  = new java.io.File(appRoot, yearStr);
@@ -465,43 +464,17 @@ public class CalendarActivity extends AppCompatActivity
             Toast.makeText(this, "Please choose a category.", Toast.LENGTH_SHORT).show();
             return;
         }
-// --- FIX: build stamp from selected local DATE + current local TIME ---
-        java.util.Calendar picked = (java.util.Calendar) selectedCalendarDate.clone(); // the day the user picked
-        java.util.TimeZone tz = java.util.TimeZone.getDefault();
-        java.util.Calendar now = java.util.Calendar.getInstance(tz);                  // current local time
+        // Stamp = the day the user picked, plus the current wall-clock time so that several
+        // entries backdated to the same day keep a stable order.
+        //
+        // The formatting lives in NoteTimestamp and is pinned to Locale.ENGLISH. This string is
+        // written to disk as line 1 of the note, which makes it data rather than presentation:
+        // formatting it with the device locale produced stamps that could not be read back.
+        final Calendar calendar = NoteTimestamp.combineSelectedDateWithCurrentTime(selectedCalendarDate);
+        final String timestamp = NoteTimestamp.format(calendar);
 
-// Combine: selected Y/M/D + current H:mm, seconds=0 (all in device TZ)
-        java.util.Calendar calendar = java.util.Calendar.getInstance(tz);
-        calendar.clear();
-        calendar.set(
-                picked.get(java.util.Calendar.YEAR),
-                picked.get(java.util.Calendar.MONTH),            // 0-based, OK
-                picked.get(java.util.Calendar.DAY_OF_MONTH),
-                now.get(java.util.Calendar.HOUR_OF_DAY),
-                now.get(java.util.Calendar.MINUTE),
-                0
-        );
-
-// Use the combined calendar for year/month folders and the stamped header
-        java.text.SimpleDateFormat yearFormat = new java.text.SimpleDateFormat("yyyy", java.util.Locale.getDefault());
-        java.text.SimpleDateFormat monthFormat = new java.text.SimpleDateFormat("MM_MMMM", java.util.Locale.getDefault());
-        java.text.SimpleDateFormat timestampFormat = new java.text.SimpleDateFormat("EEE. MMMM dd, yyyy | h:mm a", java.util.Locale.getDefault());
-        yearFormat.setTimeZone(tz);
-        monthFormat.setTimeZone(tz);
-        timestampFormat.setTimeZone(tz);
-
-        String year = yearFormat.format(calendar.getTime());
-        String month = monthFormat.format(calendar.getTime());
-        String timestamp = timestampFormat.format(calendar.getTime());
-// Optional: lowercase AM/PM
-// timestamp = timestamp.replace(" AM"," am").replace(" PM"," pm");
-
-// Optional: make AM/PM lowercase to match your style
-        timestamp = timestamp.replace(" AM", " am").replace(" PM", " pm");
-// --- /FIX ---
-
-        // === Use canonical PixelPen root (replaces old Environment/R.string-based root) ===
-        File categoryDir = ensureNoteParentDir(category);
+        // Year/month folders are derived from the same calendar inside ensureNoteParentDir().
+        File categoryDir = ensureNoteParentDir(category, calendar);
 
         if (!categoryDir.exists() && !categoryDir.mkdirs()) {
             Toast.makeText(this, "Failed to create folders.", Toast.LENGTH_SHORT).show();
@@ -523,18 +496,25 @@ public class CalendarActivity extends AppCompatActivity
 
         try (FileWriter writer = new FileWriter(noteFile)) {
             writer.write(timestamp + "\n\n");
-            Toast.makeText(this, "Note created: " + noteFile.getName(), Toast.LENGTH_SHORT).show();
-
-            Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".provider", noteFile);
-            Intent intent = new Intent(Intent.ACTION_EDIT);
-            intent.setDataAndType(uri, "text/markdown");
-            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-            intent.setPackage("net.gsantner.markor");
-            startActivity(intent);
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(this, "Failed to create note.", Toast.LENGTH_SHORT).show();
+            return;
         }
+
+        Toast.makeText(this, "Note created: " + noteFile.getName(), Toast.LENGTH_SHORT).show();
+
+        // Open the note in OUR editor.
+        //
+        // This previously built a FileProvider uri and fired ACTION_EDIT with
+        // setPackage("net.gsantner.markor"). Our applicationId is net.pixelpen.markorplus, so
+        // that opened the note in upstream Markor when it happened to be installed, and threw an
+        // uncaught ActivityNotFoundException when it was not — inside a try block that only
+        // caught IOException. Launching DocumentActivity directly is what FolderBrowserActivity
+        // already did, and needs no uri permissions at all.
+        final Intent intent = new Intent(this, DocumentActivity.class);
+        intent.putExtra(Document.EXTRA_FILE, noteFile);
+        startActivity(intent);
     }
 
     // UI list persistence + backup

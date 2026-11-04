@@ -33,6 +33,9 @@ android {
 
         buildConfigField "boolean", "IS_TEST_BUILD", "false"
         buildConfigField "boolean", "IS_GPLAY_BUILD", "false"
+        // Name of the archive folder under /Documents. Debug builds override this
+        // so a side-by-side preview install can never touch the live archive.
+        buildConfigField "String", "STORAGE_ROOT_NAME", "\"Markor Plus\""
         buildConfigField "String[]", "DETECTED_ANDROID_LOCALES", "${findUsedAndroidLocales()}"
         buildConfigField "String", "BUILD_DATE", "\"${getBuildDate()}\""
         buildConfigField "String", "GITHASH", "\"${getGitHash}\""
@@ -95,6 +98,9 @@ android {
             applicationIdSuffix ".dev"    // <-- ensures pixelpenDebug installs as *.dev
             versionNameSuffix "-dev"
             buildConfigField "boolean", "IS_TEST_BUILD", "true"
+            // Debug builds read and write /Documents/Markor Plus (dev), NOT the live
+            // archive. Copy real notes in by hand when you want realistic test data.
+            buildConfigField "String", "STORAGE_ROOT_NAME", "\"Markor Plus (dev)\""
             signingConfig signingConfigs.debug
         }
         release {

@@ -158,40 +158,20 @@
 
         <!-- Activities continued here… -->
 
-        <activity
-            android:name=".activity.FileOpenActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
+        <!-- REMOVED: .activity.FileOpenActivity was declared here with a broad VIEW
+             intent-filter, but no such class exists anywhere in the project. The manifest
+             merger does not verify that, so the build succeeded and the activity was
+             advertised to the whole system; any external app opening a .mdwn/.mkd file,
+             or the HTML branch in FolderTreeAdapter, hit a ClassNotFoundException.
+             Markdown/plaintext files are already handled by OpenFromShortcutOrWidgetActivity
+             and DocumentActivity. -->
 
-                <!-- Markdown extensions -->
-                <data android:mimeType="*/*" android:scheme="file" />
-                <data android:mimeType="*/*" android:scheme="content" />
-
-                <!-- .mdwn extensions -->
-                <data android:pathPattern=".*\\.mdwn" android:mimeType="*/*" />
-                <data android:pathPattern=".*\\..*\\.mdwn" android:mimeType="*/*" />
-                <data android:pathPattern=".*\\..*\\..*\\.mdwn" android:mimeType="*/*" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\.mdwn" android:mimeType="*/*" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.mdwn" android:mimeType="*/*" />
-
-                <!-- .mkd extensions -->
-                <data android:pathPattern=".*\\.mkd" android:mimeType="*/*" />
-                <data android:pathPattern=".*\\..*\\.mkd" android:mimeType="*/*" />
-                <data android:pathPattern=".*\\..*\\..*\\.mkd" android:mimeType="*/*" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\.mkd" android:mimeType="*/*" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.mkd" android:mimeType="*/*" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.mkd" android:mimeType="*/*" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.mkd" android:mimeType="*/*" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\.mkd" android:mimeType="*/*" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\..*\\.mkd" android:mimeType="*/*" />
-            </intent-filter>
-        </activity>
-
+        <!-- Leading dot: explicitly qualified against the manifest namespace, so the component
+             name is unambiguous and follows the namespace if it is renamed. The code side
+             derives the same string from BuildConfig's package. See
+             MarkorContextUtils.applySpecialLaunchersVisibility(). -->
         <activity-alias
-            android:name="AliasDocumentProcessText"
+            android:name=".AliasDocumentProcessText"
             android:label="@string/app_name"
             android:exported="true"
             android:targetActivity=".activity.DocumentActivity"
