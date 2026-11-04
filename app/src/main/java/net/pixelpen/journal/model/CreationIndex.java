@@ -41,6 +41,38 @@ public class CreationIndex {
         }
     }
 
+    /**
+     * Forget a note, after it is deleted.
+     *
+     * <p>Without this a deleted entry stays in the map under its path, and a new note later given
+     * the same title in the same folder would inherit the dead one's creation time and sort to
+     * where the old entry used to be.
+     */
+    public synchronized void remove(final File f) {
+        if (f != null) {
+            props.remove(f.getAbsolutePath());
+        }
+    }
+
+    /**
+     * Carry a note's creation time to its new path, after a rename or a move.
+     *
+     * <p>This map is keyed by absolute path, so moving a file otherwise orphans its entry: the
+     * note arrives at the new path with nothing recorded and falls back to its modified time,
+     * which the move itself may just have changed. Renaming an entry out of its folder would then
+     * quietly reorder it.
+     */
+    public synchronized void moved(final File from, final File to) {
+        if (from == null || to == null) {
+            return;
+        }
+        final String v = props.getProperty(from.getAbsolutePath());
+        if (v != null) {
+            props.remove(from.getAbsolutePath());
+            props.setProperty(to.getAbsolutePath(), v);
+        }
+    }
+
     /** Persist to disk; call after batching writes. */
     public synchronized void save() {
         try (FileOutputStream out = new FileOutputStream(storeFile)) {

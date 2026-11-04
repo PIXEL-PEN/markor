@@ -2,10 +2,13 @@ package net.pixelpen.journal.activity;
 
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.text.InputType;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -58,6 +61,8 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
     private View _progress;
     private FolderTreeAdapter _adapter;
     private TreeStore _store;
+    /** Held, not just handed to the store: rename, move and delete all have to update it. */
+    private CreationIndex _index;
 
     /** Absolute paths of the folders currently open. */
     private final Set<String> _expanded = new HashSet<>();
@@ -81,7 +86,8 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
             // Shortcuts are a convenience; the tree works without them.
         }
 
-        _store = new TreeStore(new CreationIndex(requireContext()));
+        _index = new CreationIndex(requireContext());
+        _store = new TreeStore(_index);
 
         _list = view.findViewById(R.id.folder_tree_list);
         _empty = view.findViewById(R.id.folder_tree_empty);
@@ -211,11 +217,200 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         rebuild();
     }
 
+    /**
+     * Rename, move and delete.
+     *
+     * <p>These used to live in the file browser's menu and act on its selection. With the browser
+     * gone they were not reachable anywhere in the app, so they are on the row itself.
+     *
+     * <p>Folders are deliberately not offered here. Renaming a year or a month folder would move
+     * every note inside it out of the structure the stamps describe, and there is no good reason
+     * to do it by hand.
+     */
     @Override
     public boolean onFileLongPressed(final File file) {
-        // Rename, move and delete used to live in the file browser, which this app no longer
-        // has. They belong here, on the row itself. Not wired up yet: returning false leaves the
-        // press to be handled as a normal tap rather than swallowing it silently.
-        return false;
+        if (file == null || !file.isFile()) {
+            return false;
+        }
+        final CharSequence[] actions = {
+                getString(R.string.rename),
+                getString(R.string.move),
+                getString(R.string.delete),
+        };
+        new AlertDialog.Builder(requireContext())
+                .setTitle(file.getName())
+                .setItems(actions, (d, which) -> {
+                    if (which == 0) {
+                        promptRename(file);
+                    } else if (which == 1) {
+                        promptMove(file);
+                    } else {
+                        confirmDelete(file);
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+        return true;
+    }
+
+    private void promptRename(final File file) {
+        final String name = file.getName();
+        final int dot = name.lastIndexOf('.');
+        final String stem = (dot > 0) ? name.substring(0, dot) : name;
+        final String ext = (dot > 0) ? name.substring(dot) : "";
+
+        final EditText input = new EditText(requireContext());
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        input.setText(stem);
+        input.setSelection(stem.length());
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.rename)
+                .setView(input)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(android.R.string.ok, (d, w) -> {
+                    // Same sanitising the capture screen applies, so a title typed here cannot
+                    // produce a name the capture screen would never have created.
+                    final String typed = input.getText().toString().trim()
+                            .replaceAll("[\\\\/:*?\"<>|]", "_");
+                    if (typed.isEmpty() || typed.equals(stem)) {
+                        return;
+                    }
+                    final File dest = new File(file.getParentFile(), typed + ext);
+                    if (dest.exists()) {
+                        toast(R.string.file_folder_already_exists_please_use_a_different_name);
+                        return;
+                    }
+                    if (file.renameTo(dest)) {
+                        _index.moved(file, dest);
+                        _index.save();
+                        refreshAfterChange(file.getParentFile(), null);
+                    } else {
+                        toast(R.string.error_could_not_open_file);
+                    }
+                })
+                .show();
+    }
+
+    /**
+     * Move a note to another folder in the archive.
+     *
+     * <p>The destination list is every folder under the home folder, shown by its path relative
+     * to it. A flat list rather than a folder picker: the realistic move here is a mis-filed
+     * category or a note put under the wrong month, and both are easier to spot in one list than
+     * by walking down into them.
+     */
+    private void promptMove(final File file) {
+        final File root = _root;
+        if (root == null) {
+            return;
+        }
+        final File source = file.getParentFile();
+
+        new Thread(() -> {
+            final List<File> dirs = new ArrayList<>();
+            collectDirs(root, dirs, 0);
+            dirs.remove(source);
+
+            final android.app.Activity host = getActivity();
+            if (host == null) {
+                return;
+            }
+            final CharSequence[] labels = new CharSequence[dirs.size()];
+            for (int i = 0; i < dirs.size(); i++) {
+                final String abs = dirs.get(i).getAbsolutePath();
+                final String rel = abs.startsWith(root.getAbsolutePath())
+                        ? abs.substring(root.getAbsolutePath().length()).replaceFirst("^/", "")
+                        : abs;
+                labels[i] = rel.isEmpty() ? root.getName() : rel;
+            }
+
+            host.runOnUiThread(() -> {
+                if (!isAdded()) {
+                    return;
+                }
+                if (dirs.isEmpty()) {
+                    toast(R.string.tree_no_move_targets);
+                    return;
+                }
+                new AlertDialog.Builder(requireContext())
+                        .setTitle(R.string.move)
+                        .setItems(labels, (d, which) -> doMove(file, dirs.get(which)))
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show();
+            });
+        }).start();
+    }
+
+    private void doMove(final File file, final File targetDir) {
+        final File dest = new File(targetDir, file.getName());
+        if (dest.exists()) {
+            toast(R.string.file_folder_already_exists_please_use_a_different_name);
+            return;
+        }
+        final File source = file.getParentFile();
+        if (file.renameTo(dest)) {
+            _index.moved(file, dest);
+            _index.save();
+            refreshAfterChange(source, targetDir);
+        } else {
+            // renameTo fails across filesystems rather than falling back to copy-and-delete.
+            // Within one archive under Documents that should not arise; if it does, it needs a
+            // stream copy rather than a retry.
+            toast(R.string.error_could_not_open_file);
+        }
+    }
+
+    private void confirmDelete(final File file) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.delete)
+                .setMessage(file.getName())
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.delete, (d, w) -> {
+                    final File parent = file.getParentFile();
+                    if (file.delete()) {
+                        // Drop the index entry too, or a later note given the same title in the
+                        // same folder inherits this one's creation time.
+                        _index.remove(file);
+                        _index.save();
+                        refreshAfterChange(parent, null);
+                    } else {
+                        toast(R.string.error_could_not_open_file);
+                    }
+                })
+                .show();
+    }
+
+    /** Forget the directories a change touched, then redraw. */
+    private void refreshAfterChange(final File a, final File b) {
+        _store.invalidate(a);
+        if (b != null) {
+            _store.invalidate(b);
+        }
+        rebuild();
+    }
+
+    /** Every folder at or under {@code dir}, depth-capped so a stray deep tree cannot hang this. */
+    private void collectDirs(final File dir, final List<File> out, final int depth) {
+        if (depth > 6 || out.size() > 2000) {
+            return;
+        }
+        out.add(dir);
+        final File[] kids = dir.listFiles();
+        if (kids == null) {
+            return;
+        }
+        for (final File k : kids) {
+            if (k.isDirectory() && !k.getName().startsWith(".")) {
+                collectDirs(k, out, depth + 1);
+            }
+        }
+    }
+
+    private void toast(final int stringRes) {
+        if (isAdded()) {
+            android.widget.Toast.makeText(requireContext(), stringRes,
+                    android.widget.Toast.LENGTH_SHORT).show();
+        }
     }
 }
