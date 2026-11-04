@@ -374,7 +374,16 @@ public class MainActivity extends AutumnBaseActivity {
         // Rescan the Tree each time it is shown. The pager keeps fragments alive, so without
         // this a note just captured on the Journal tab would not appear here until the fragment
         // was recreated -- breaking capture-then-see-it, which is the whole loop.
+        //
+        // The Tree is also told which folder the Calendar screen currently points at, so it opens
+        // on the category being worked in instead of leaving it collapsed under the month. The
+        // Calendar screen is asked for this rather than the Tree guessing, because only it knows
+        // the selected date and category -- and a backdated entry should open the month it was
+        // filed under, not today's.
         if (pos == tabIdToPos(R.id.nav_tree) && _tree != null) {
+            if (_journal != null) {
+                _tree.focusOn(_journal.currentTargetDir());
+            }
             _tree.reload();
         }
 

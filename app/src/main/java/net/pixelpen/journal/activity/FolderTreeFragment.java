@@ -120,23 +120,62 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
 
         final File root = ApplicationObject.settings().getNotebookDirectory();
         if (_root == null || !_root.equals(root)) {
-            // First draw, or the home folder moved underneath us. Open the path to this month so
-            // the tab lands on what was most likely just written.
+            // First draw, or the home folder moved underneath us. Paths from the old archive mean
+            // nothing in the new one.
             _root = root;
             _expanded.clear();
-            seedExpansion(root);
         }
+        // Every reload, not only the first: the folder being worked in changes as the Calendar
+        // screen's date and category change, and this is what opens it. Seeding only adds paths,
+        // so whatever the user opened by hand stays open.
+        seedExpansion(root);
         _store.invalidateAll();
         rebuild();
     }
 
-    /** Open the root, the current year and the current month. */
+    /**
+     * The folder to open on. Set by the host when the Calendar screen knows where the next entry
+     * would go; null falls back to the current month.
+     */
+    private File _focus;
+
+    /** Point the tree at a folder, so the next draw opens the path down to it. */
+    public void focusOn(final File dir) {
+        _focus = dir;
+    }
+
+    /**
+     * Open the path down to the folder being worked in.
+     *
+     * <p>This used to open the root, the current year and the current month and stop there, which
+     * left the category collapsed -- so landing on the Tree showed the month's categories as a
+     * list of closed folders rather than the notes just written. The focus folder comes from the
+     * Calendar screen and already accounts for a backdated entry: pick a day in March and the
+     * Tree opens March, not today.
+     */
     private void seedExpansion(final File root) {
-        final Calendar now = Calendar.getInstance();
         _expanded.add(root.getAbsolutePath());
-        final File year = new File(root, NoteTimestamp.yearFolderName(now));
-        _expanded.add(year.getAbsolutePath());
-        _expanded.add(new File(year, NoteTimestamp.monthFolderName(now)).getAbsolutePath());
+
+        File target = _focus;
+        if (target == null || !isUnder(root, target)) {
+            final Calendar now = Calendar.getInstance();
+            target = new File(new File(root, NoteTimestamp.yearFolderName(now)),
+                    NoteTimestamp.monthFolderName(now));
+        }
+
+        // Walk up rather than down: the target is a full path, and every folder between it and
+        // the root has to be open for it to be on screen at all. Folders that do not exist yet
+        // are harmless -- nothing will draw them.
+        for (File f = target; f != null && isUnder(root, f); f = f.getParentFile()) {
+            _expanded.add(f.getAbsolutePath());
+        }
+    }
+
+    /** True if {@code f} is {@code root} or sits beneath it. */
+    private static boolean isUnder(final File root, final File f) {
+        final String r = root.getAbsolutePath();
+        final String p = f.getAbsolutePath();
+        return p.equals(r) || p.startsWith(r.endsWith("/") ? r : r + "/");
     }
 
     /**
@@ -235,6 +274,7 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         final CharSequence[] actions = {
                 getString(R.string.rename),
                 getString(R.string.move),
+                getString(R.string.create_shortcut),
                 getString(R.string.delete),
         };
         new AlertDialog.Builder(requireContext())
@@ -244,6 +284,11 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
                         promptRename(file);
                     } else if (which == 1) {
                         promptMove(file);
+                    } else if (which == 2) {
+                        // Pins a launcher shortcut that opens this one note. The helper, the
+                        // activity it targets, its icon and the manifest permissions all survived
+                        // the trim; only the call site went with the file browser's menu.
+                        _cu.createLauncherDesktopShortcut(requireContext(), file);
                     } else {
                         confirmDelete(file);
                     }

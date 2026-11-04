@@ -156,19 +156,49 @@ public class CalendarFragment extends AutumnBaseFragment
      * two differently-named month folders.
      */
     private java.io.File ensureNoteParentDir(final String categoryFolderName, final Calendar when) {
-        final String yearStr = NoteTimestamp.yearFolderName(when);
-        final String monthFolderName = NoteTimestamp.monthFolderName(when);
-
-        java.io.File appRoot  = getAppRoot();
-        java.io.File yearDir  = new java.io.File(appRoot, yearStr);
-        java.io.File monthDir = new java.io.File(yearDir, monthFolderName);
-        java.io.File catDir   = new java.io.File(monthDir, categoryFolderName);
-
+        final java.io.File catDir = noteParentDir(categoryFolderName, when);
         if (!catDir.exists()) {
             //noinspection ResultOfMethodCallIgnored
             catDir.mkdirs();
         }
         return catDir;
+    }
+
+    /**
+     * The path a note would go to, without creating any of it.
+     *
+     * <p>Split out of {@link #ensureNoteParentDir} so the Tree can ask where the form currently
+     * points and open that folder. Asking the creating version would have had browsing to the
+     * Tree quietly litter the archive with empty category folders for dates the user only
+     * scrolled past.
+     */
+    private java.io.File noteParentDir(final String categoryFolderName, final Calendar when) {
+        final java.io.File yearDir = new java.io.File(getAppRoot(), NoteTimestamp.yearFolderName(when));
+        final java.io.File monthDir = new java.io.File(yearDir, NoteTimestamp.monthFolderName(when));
+        return new java.io.File(monthDir, categoryFolderName);
+    }
+
+    /**
+     * The folder the form as it stands would write into, or null if it does not point anywhere
+     * yet -- before the views exist, or while the category spinner is on its "add" entry.
+     *
+     * <p>The Tree uses this to open on the category being worked in rather than just on the
+     * current month.
+     */
+    public java.io.File currentTargetDir() {
+        if (spinnerCategory == null) {
+            return null;
+        }
+        final Object sel = spinnerCategory.getSelectedItem();
+        if (sel == null) {
+            return null;
+        }
+        final String category = sel.toString();
+        if (ADD_CATEGORY_ITEM.equals(category)) {
+            return null;
+        }
+        return noteParentDir(
+                category, NoteTimestamp.combineSelectedDateWithCurrentTime(selectedCalendarDate));
     }
 
     // Gear popup
