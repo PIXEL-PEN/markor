@@ -126,6 +126,7 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
             _root = root;
             _expanded.clear();
             _seededMonth = null;
+            _seededCategory = null;
         }
         // Opens the year and month if they are not the ones already opened. Does nothing on a
         // plain revisit, which is what lets a collapse stick.
@@ -150,6 +151,13 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
     private String _seededMonth;
 
     /**
+     * The category folder last opened because the dropdown pointed at it. Held so that choosing a
+     * different category closes this one: without that, cycling through categories would leave
+     * every one of them open, which is the behaviour this whole mechanism was cut back to avoid.
+     */
+    private String _seededCategory;
+
+    /**
      * Open the year and the month, and nothing below them.
      *
      * <p>The previous version opened the path all the way down to the category and ran on every
@@ -167,20 +175,40 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         _expanded.add(root.getAbsolutePath());
 
         final File month = targetMonthDir(root);
-        if (month == null) {
+        if (month != null) {
+            final String path = month.getAbsolutePath();
+            if (!path.equals(_seededMonth)) {
+                // Opened once per month. After that whatever state it is in is the user's doing.
+                _seededMonth = path;
+                final File year = month.getParentFile();
+                if (year != null) {
+                    _expanded.add(year.getAbsolutePath());
+                }
+                _expanded.add(path);
+            }
+        }
+
+        // And the category the dropdown points at. Choosing one is a deliberate act -- it says
+        // which part of the month is being worked in -- so it opens, with or without a note being
+        // written. That is not the same as the earlier version, which re-opened the current
+        // category on every single reload and so unfolded everything ever selected: this only
+        // acts when the selection actually changes, and closes the one it opened last. At most
+        // one category is ever open because of this, which is what keeps it from accumulating.
+        final File focus = _focus;
+        final String wanted = (focus != null && isUnder(root, focus)) ? focus.getAbsolutePath() : null;
+        final boolean changed = (wanted == null) ? (_seededCategory != null) : !wanted.equals(_seededCategory);
+        if (!changed) {
             return;
         }
-        final String path = month.getAbsolutePath();
-        if (path.equals(_seededMonth)) {
-            // Already opened once. Whatever state it is in now is the user's doing.
-            return;
+        if (_seededCategory != null) {
+            _expanded.remove(_seededCategory);
         }
-        _seededMonth = path;
-        final File year = month.getParentFile();
-        if (year != null) {
-            _expanded.add(year.getAbsolutePath());
+        _seededCategory = wanted;
+        if (wanted != null) {
+            for (File f = focus; f != null && isUnder(root, f); f = f.getParentFile()) {
+                _expanded.add(f.getAbsolutePath());
+            }
         }
-        _expanded.add(path);
     }
 
     /**
