@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ActionButtonSettingsActivity extends MarkorBaseActivity {
+public class ActionButtonSettingsActivity extends AutumnBaseActivity {
 
     public static final String EXTRA_FORMAT_KEY = "FORMAT_KEY";
 

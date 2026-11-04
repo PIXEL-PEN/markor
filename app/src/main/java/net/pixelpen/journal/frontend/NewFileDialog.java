@@ -43,7 +43,7 @@ import net.pixelpen.journal.frontend.textview.HighlightingEditor;
 import net.pixelpen.journal.frontend.textview.TextViewUtils;
 import net.pixelpen.journal.model.AppSettings;
 import net.pixelpen.journal.model.Document;
-import net.pixelpen.journal.util.MarkorContextUtils;
+import net.pixelpen.journal.util.AutumnContextUtils;
 import net.gsantner.opoc.util.GsCollectionUtils;
 import net.gsantner.opoc.util.GsContextUtils;
 import net.gsantner.opoc.util.GsFileUtils;
@@ -254,7 +254,7 @@ public class NewFileDialog extends DialogFragment {
             }
         });
 
-        final MarkorContextUtils cu = new MarkorContextUtils(getContext());
+        final AutumnContextUtils cu = new AutumnContextUtils(getContext());
         dialogBuilder.setNegativeButton(R.string.cancel, (dialogInterface, i) -> dialogInterface.dismiss());
         dialogBuilder.setPositiveButton(getString(android.R.string.ok), (dialogInterface, i) -> {
             final FormatRegistry.Format fmt = formats.get(typeSpinner.getSelectedItemPosition());

@@ -11,11 +11,11 @@ import net.gsantner.opoc.util.GsContextUtils;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class StoragePermissionActivity extends MarkorBaseActivity {
+public class StoragePermissionActivity extends AutumnBaseActivity {
     private final AtomicBoolean _responseProcessed = new AtomicBoolean(false);
 
     // Check whether we require permissions and setup appropriate conditions
-    public static void requestPermissions(final MarkorBaseActivity activity) {
+    public static void requestPermissions(final AutumnBaseActivity activity) {
         if (!GsContextUtils.instance.checkExternalStoragePermission(activity)) {
             activity.startActivity(new Intent(activity, StoragePermissionActivity.class));
             activity.finish();

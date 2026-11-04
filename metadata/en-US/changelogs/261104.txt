@@ -1,0 +1,2 @@
+Autumn: renamed from Markor Plus. One home folder at /Documents/Autumn.
+Creation-order browsing, calendar capture, Markdown editing.

@@ -73,7 +73,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-public class MarkorDialogFactory {
+public class AutumnDialogFactory {
     public static AppSettings as() {
         return ApplicationObject.settings();
     }

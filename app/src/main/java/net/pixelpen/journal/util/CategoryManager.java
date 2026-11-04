@@ -27,7 +27,18 @@ import java.util.Map;
 import java.util.Set;
 
 public class CategoryManager {
-    private static String ROOT = "/storage/emulated/0/Documents/markor default";
+    /**
+     * Optional override, for tests. Null means "use the app's home folder", which is what
+     * production always wants.
+     * <p>
+     * This used to be a hardcoded "/storage/emulated/0/Documents/markor default" with a
+     * setRoot() that nothing ever called — so category scanning read a folder that had no
+     * relation to where notes were actually stored, and silently found nothing. It was a
+     * third independent idea of where home was, alongside the two that AppSettings now
+     * replaces.
+     */
+    private static String ROOT = null;
+
     private static final String PREFS = "category_prefs";
     private static final String PREF_KEY = "custom_categories";
     private static final String UNDO_FILE = ".category_undo.json";
@@ -48,8 +59,15 @@ public class CategoryManager {
     }
 
     // ---------- Public config ----------
-    public static void setRoot(@NonNull String path) { ROOT = path; }
-    private static File root() { return new File(ROOT); }
+    /** Test seam only. Pass null to go back to the app's home folder. */
+    public static void setRoot(String path) { ROOT = path; }
+
+    /** The app's home folder, unless a test has overridden it. */
+    private static File root() {
+        return (ROOT != null)
+                ? new File(ROOT)
+                : net.pixelpen.journal.ApplicationObject.settings().getNotebookDirectory();
+    }
 
     // ---------- Public API ----------
     @NonNull

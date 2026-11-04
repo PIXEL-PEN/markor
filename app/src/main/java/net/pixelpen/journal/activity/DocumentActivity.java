@@ -31,7 +31,7 @@ import net.pixelpen.journal.format.FormatRegistry;
 import net.pixelpen.journal.frontend.textview.TextViewUtils;
 import net.pixelpen.journal.model.AppSettings;
 import net.pixelpen.journal.model.Document;
-import net.pixelpen.journal.util.MarkorContextUtils;
+import net.pixelpen.journal.util.AutumnContextUtils;
 import net.gsantner.opoc.format.GsTextUtils;
 import net.gsantner.opoc.frontend.base.GsFragmentBase;
 import net.gsantner.opoc.util.GsContextUtils;
@@ -41,14 +41,14 @@ import java.io.File;
 
 import other.so.AndroidBug5497Workaround;
 
-public class DocumentActivity extends MarkorBaseActivity {
+public class DocumentActivity extends AutumnBaseActivity {
 
     private Toolbar _toolbar;
     private FragmentManager _fragManager;
     private Document _document = null;
 
     public static void launch(final Activity activity, final Intent intent) {
-        final File file = MarkorContextUtils.getIntentFile(intent);
+        final File file = AutumnContextUtils.getIntentFile(intent);
         final Integer lineNumber = intent.hasExtra(Document.EXTRA_FILE_LINE_NUMBER) ? intent.getIntExtra(Document.EXTRA_FILE_LINE_NUMBER, -1) : null;
         final Boolean doPreview = intent.hasExtra(Document.EXTRA_DO_PREVIEW) ? intent.getBooleanExtra(Document.EXTRA_DO_PREVIEW, false) : null;
         launch(activity, file, doPreview, lineNumber);
@@ -128,11 +128,11 @@ public class DocumentActivity extends MarkorBaseActivity {
                     .setMessage(R.string.selected_file_may_be_a_textfile_want_to_open_in_editor)
                     .setIcon(R.drawable.ic_open_in_browser_black_24dp)
                     .setPositiveButton(R.string.app_name, (dialog1, which) -> DocumentActivity.launch(activity, file, null, null, true))
-                    .setNegativeButton(R.string.other, (dialog1, which) -> new MarkorContextUtils(activity).viewFileInOtherApp(activity, file, null))
+                    .setNegativeButton(R.string.other, (dialog1, which) -> new AutumnContextUtils(activity).viewFileInOtherApp(activity, file, null))
                     .create()
                     .show();
         } else {
-            new MarkorContextUtils(activity).viewFileInOtherApp(activity, file, null);
+            new AutumnContextUtils(activity).viewFileInOtherApp(activity, file, null);
         }
     }
 
@@ -169,7 +169,7 @@ public class DocumentActivity extends MarkorBaseActivity {
 
         // Pull the file from the intent
         // -----------------------------------------------------------------------
-        final File file = MarkorContextUtils.getIntentFile(intent, this);
+        final File file = AutumnContextUtils.getIntentFile(intent, this);
 
         final boolean intentIsView = Intent.ACTION_VIEW.equals(intentAction);
         final boolean intentIsSend = Intent.ACTION_SEND.equals(intentAction) || Intent.ACTION_SEND_MULTIPLE.equals(intentAction);

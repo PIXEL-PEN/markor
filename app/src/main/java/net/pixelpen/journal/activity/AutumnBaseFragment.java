@@ -6,10 +6,10 @@ import androidx.annotation.Nullable;
 
 import net.pixelpen.journal.ApplicationObject;
 import net.pixelpen.journal.model.AppSettings;
-import net.pixelpen.journal.util.MarkorContextUtils;
+import net.pixelpen.journal.util.AutumnContextUtils;
 import net.gsantner.opoc.frontend.base.GsFragmentBase;
 
-public abstract class MarkorBaseFragment extends GsFragmentBase<AppSettings, MarkorContextUtils> {
+public abstract class AutumnBaseFragment extends GsFragmentBase<AppSettings, AutumnContextUtils> {
     @Nullable
     @Override
     public AppSettings createAppSettingsInstance(Context applicationContext) {
@@ -18,7 +18,7 @@ public abstract class MarkorBaseFragment extends GsFragmentBase<AppSettings, Mar
 
     @Nullable
     @Override
-    public MarkorContextUtils createContextUtilsInstance(Context applicationContext) {
-        return new MarkorContextUtils(applicationContext);
+    public AutumnContextUtils createContextUtilsInstance(Context applicationContext) {
+        return new AutumnContextUtils(applicationContext);
     }
 }

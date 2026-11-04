@@ -25,7 +25,7 @@ import androidx.annotation.StringRes;
 import net.pixelpen.journal.BuildConfig;
 import net.pixelpen.journal.R;
 import net.pixelpen.journal.format.FormatRegistry;
-import net.pixelpen.journal.util.MarkorContextUtils;
+import net.pixelpen.journal.util.AutumnContextUtils;
 import net.pixelpen.journal.util.ShortcutUtils;
 import net.gsantner.opoc.format.GsTextUtils;
 import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserListAdapter;
@@ -54,14 +54,14 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
     private SharedPreferences _prefCache;
     private SharedPreferences _prefHistory;
     public static Boolean _isDeviceGoodHardware = null;
-    private MarkorContextUtils _cu;
+    private AutumnContextUtils _cu;
 
     @Override
     public AppSettings init(final Context context) {
         super.init(context);
         _prefCache = context.getSharedPreferences("cache", Context.MODE_PRIVATE);
         _prefHistory = context.getSharedPreferences("history", Context.MODE_PRIVATE);
-        _cu = new MarkorContextUtils(context);
+        _cu = new AutumnContextUtils(context);
         _isDeviceGoodHardware = _cu.isDeviceGoodHardware(context);
 
         if (getInt(R.string.pref_key__basic_color_scheme__bg_light, -999) == -999) {
@@ -134,7 +134,7 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
     }
 
     /**
-     * /Documents/&lt;BuildConfig.STORAGE_ROOT_NAME&gt; — "Markor Plus", or "Markor Plus (dev)" in
+     * /Documents/&lt;BuildConfig.STORAGE_ROOT_NAME&gt; — "Autumn", or "Autumn (dev)" in
      * a debug build so a preview install cannot touch the live archive.
      * <p>
      * This used to be derived from app_name lower-cased, which meant the home folder moved every

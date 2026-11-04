@@ -78,7 +78,7 @@ android {
             applicationIdSuffix ".dev"    // installs as net.pixelpen.journal.dev, beside the real app
             versionNameSuffix "-dev"
             buildConfigField "boolean", "IS_TEST_BUILD", "true"
-            // Debug builds read and write /Documents/Markor Plus (dev), NOT the live
+            // Debug builds read and write /Documents/Autumn (dev), NOT the live
             // archive. Copy real notes in by hand when you want realistic test data.
             buildConfigField "String", "STORAGE_ROOT_NAME", "\"Autumn (dev)\""
             signingConfig signingConfigs.debug

@@ -20,7 +20,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 
 import net.pixelpen.journal.R;
-import net.pixelpen.journal.frontend.MarkorDialogFactory;
+import net.pixelpen.journal.frontend.AutumnDialogFactory;
 import net.pixelpen.journal.frontend.filesearch.FileSearchEngine.FitFile;
 import net.gsantner.opoc.frontend.GsSearchOrCustomTextDialog;
 import net.gsantner.opoc.wrapper.GsCallback;
@@ -54,7 +54,7 @@ public class FileSearchResultSelectorDialog {
 
         final ExpandableListView expandableListView = new ExpandableListView(activity);
 
-        final GsSearchOrCustomTextDialog.DialogOptions opts = MarkorDialogFactory.baseConf(activity);
+        final GsSearchOrCustomTextDialog.DialogOptions opts = AutumnDialogFactory.baseConf(activity);
         opts.searchHintText = R.string.search;
         final View searchLayout = GsSearchOrCustomTextDialog.makeSearchView(activity, opts);
         final EditText searchEditText = searchLayout.findViewWithTag("EDIT");

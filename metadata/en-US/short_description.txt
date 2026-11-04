@@ -1,1 +1,1 @@
-Text editor - Notes & ToDo. Lightweight. Markdown and todo.txt support.
+Journal and archive. Capture an entry in seconds, find it years later by when.

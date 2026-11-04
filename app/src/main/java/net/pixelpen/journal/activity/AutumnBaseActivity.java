@@ -12,11 +12,11 @@ import androidx.annotation.Nullable;
 import net.pixelpen.journal.ApplicationObject;
 import net.pixelpen.journal.R;
 import net.pixelpen.journal.model.AppSettings;
-import net.pixelpen.journal.util.MarkorContextUtils;
+import net.pixelpen.journal.util.AutumnContextUtils;
 import net.gsantner.opoc.frontend.base.GsActivityBase;
 import net.gsantner.opoc.frontend.base.GsFragmentBase;
 
-public abstract class MarkorBaseActivity extends GsActivityBase<AppSettings, MarkorContextUtils> {
+public abstract class AutumnBaseActivity extends GsActivityBase<AppSettings, AutumnContextUtils> {
 
     @Override
     protected void onPreCreate(@Nullable Bundle savedInstanceState) {
@@ -53,8 +53,8 @@ public abstract class MarkorBaseActivity extends GsActivityBase<AppSettings, Mar
     }
 
     @Override
-    public MarkorContextUtils createContextUtilsInstance(Context applicationContext) {
-        return new MarkorContextUtils(applicationContext);
+    public AutumnContextUtils createContextUtilsInstance(Context applicationContext) {
+        return new AutumnContextUtils(applicationContext);
     }
 
     @Override

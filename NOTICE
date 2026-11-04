@@ -1,4 +1,4 @@
-Markor Plus
+Autumn
 Copyright 2025-2026 PIXEL-PEN
 
 This product includes software developed as part of the Markor project.
@@ -14,7 +14,7 @@ This is a MODIFIED FORK of Markor, an open-source text editor for Android.
     https://github.com/gsantner/markor
     Licensed under the Apache License, Version 2.0
 
-Markor Plus is NOT affiliated with, endorsed by, or supported by the Markor
+Autumn is NOT affiliated with, endorsed by, or supported by the Markor
 project or Gregor Santner. Please do not report issues with this fork to the
 upstream project.
 
@@ -30,8 +30,11 @@ Changes made to the original Markor source by PIXEL-PEN include:
   - Added creation-time tracking (CreationIndex, NoteTimestamp) so that notes
     sort by when they were created rather than when they were last modified.
   - Added category management.
-  - Changed the application id and Java package from net.gsantner.markor to
-    net.pixelpen.journal.
+  - Renamed the application to Autumn; changed the application id and Java package
+    from net.gsantner.markor to net.pixelpen.journal.
+  - Renamed this fork's own classes from Markor* to Autumn*. Upstream's
+    net.gsantner.opoc package and the MIT-licensed other.writeily code keep their
+    original names and are unchanged in substance.
   - Removed all product flavors.
   - Various bug fixes to the above and to inherited code.
 

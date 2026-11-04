@@ -40,13 +40,13 @@ import net.pixelpen.journal.format.FormatRegistry;
 import net.pixelpen.journal.format.plaintext.PlaintextSyntaxHighlighter;
 import net.pixelpen.journal.format.todotxt.TodoTxtTask;
 import net.pixelpen.journal.frontend.AttachLinkOrFileDialog;
-import net.pixelpen.journal.frontend.MarkorDialogFactory;
+import net.pixelpen.journal.frontend.AutumnDialogFactory;
 import net.pixelpen.journal.frontend.NewFileDialog;
-import net.pixelpen.journal.frontend.filebrowser.MarkorFileBrowserFactory;
+import net.pixelpen.journal.frontend.filebrowser.AutumnFileBrowserFactory;
 import net.pixelpen.journal.frontend.textview.HighlightingEditor;
 import net.pixelpen.journal.model.AppSettings;
 import net.pixelpen.journal.model.Document;
-import net.pixelpen.journal.util.MarkorContextUtils;
+import net.pixelpen.journal.util.AutumnContextUtils;
 import net.gsantner.opoc.format.GsTextUtils;
 import net.gsantner.opoc.frontend.base.GsPreferenceFragmentBase;
 import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserListAdapter;
@@ -62,7 +62,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DocumentShareIntoFragment extends MarkorBaseFragment {
+public class DocumentShareIntoFragment extends AutumnBaseFragment {
     public static final String FRAGMENT_TAG = "DocumentShareIntoFragment";
     public static final String TEXT_TOKEN = "{{text}}";
 
@@ -71,7 +71,7 @@ public class DocumentShareIntoFragment extends MarkorBaseFragment {
     public static DocumentShareIntoFragment newInstance(final Intent intent, final Context context) {
         final DocumentShareIntoFragment f = new DocumentShareIntoFragment();
         f.sharedText = extractShareText(intent);
-        f.attachment = MarkorContextUtils.getIntentFile(intent, context);
+        f.attachment = AutumnContextUtils.getIntentFile(intent, context);
         return f;
     }
 
@@ -427,7 +427,7 @@ public class DocumentShareIntoFragment extends MarkorBaseFragment {
         }
 
         private void selectOrCreateDestination(final @Nullable File startFolder) {
-            MarkorFileBrowserFactory.showFileDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
+            AutumnFileBrowserFactory.showFileDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
                 GsFileBrowserOptions.Options _dopt = null;
 
                 @Override
@@ -466,7 +466,7 @@ public class DocumentShareIntoFragment extends MarkorBaseFragment {
                 public void onFsViewerNeutralButtonPressed(final File currentFolder) {
                     attachOrCopyAndClose(currentFolder, true);
                 }
-            }, getParentFragmentManager(), getActivity(), MarkorFileBrowserFactory.IsMimeText);
+            }, getParentFragmentManager(), getActivity(), AutumnFileBrowserFactory.IsMimeText);
         }
 
         private void searchForTarget() {
@@ -477,7 +477,7 @@ public class DocumentShareIntoFragment extends MarkorBaseFragment {
 
             final GsCallback.b1<File> filter = f -> (attachment != null && f.isDirectory()) || GsFileUtils.isTextFile(f);
 
-            MarkorDialogFactory.showNotebookFilterDialog(getActivity(), null, filter, (file, isLong) -> {
+            AutumnDialogFactory.showNotebookFilterDialog(getActivity(), null, filter, (file, isLong) -> {
                 if (isLong) {
                     final File parent = file.getParentFile();
                     if (parent != null) {
@@ -495,7 +495,7 @@ public class DocumentShareIntoFragment extends MarkorBaseFragment {
         public Boolean onPreferenceClicked(Preference preference, String key, int keyId) {
             final Activity activity = getActivity();
             final String text = _editor.getText().toString();
-            final MarkorContextUtils shu = new MarkorContextUtils(activity);
+            final AutumnContextUtils shu = new AutumnContextUtils(activity);
             String tmps;
 
             boolean close = false;

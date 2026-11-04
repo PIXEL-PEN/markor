@@ -49,15 +49,15 @@ import net.pixelpen.journal.format.FormatRegistry;
 import net.pixelpen.journal.format.TextConverterBase;
 import net.pixelpen.journal.frontend.DraggableScrollbarScrollView;
 import net.pixelpen.journal.frontend.FileInfoDialog;
-import net.pixelpen.journal.frontend.MarkorDialogFactory;
-import net.pixelpen.journal.frontend.filebrowser.MarkorFileBrowserFactory;
+import net.pixelpen.journal.frontend.AutumnDialogFactory;
+import net.pixelpen.journal.frontend.filebrowser.AutumnFileBrowserFactory;
 import net.pixelpen.journal.frontend.textview.HighlightingEditor;
 import net.pixelpen.journal.frontend.textview.LineNumbersTextView;
 import net.pixelpen.journal.frontend.textview.TextViewUtils;
 import net.pixelpen.journal.model.AppSettings;
 import net.pixelpen.journal.model.Document;
-import net.pixelpen.journal.util.MarkorContextUtils;
-import net.pixelpen.journal.web.MarkorWebViewClient;
+import net.pixelpen.journal.util.AutumnContextUtils;
+import net.pixelpen.journal.web.AutumnWebViewClient;
 import net.pixelpen.journal.widget.TodoWidgetProvider;
 import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserOptions;
 import net.gsantner.opoc.frontend.settings.GsFontPreferenceCompat;
@@ -71,7 +71,7 @@ import java.io.File;
 
 @SuppressWarnings({"UnusedReturnValue"})
 @SuppressLint("NonConstantResourceId")
-public class DocumentEditAndViewFragment extends MarkorBaseFragment implements FormatRegistry.TextFormatApplier {
+public class DocumentEditAndViewFragment extends AutumnBaseFragment implements FormatRegistry.TextFormatApplier {
     public static final String FRAGMENT_TAG = "DocumentEditAndViewFragment";
     public static final String SAVESTATE_DOCUMENT = "DOCUMENT";
     public static final String START_PREVIEW = "START_PREVIEW";
@@ -92,7 +92,7 @@ public class DocumentEditAndViewFragment extends MarkorBaseFragment implements F
 
     private HighlightingEditor _hlEditor;
     private WebView _webView;
-    private MarkorWebViewClient _webViewClient;
+    private AutumnWebViewClient _webViewClient;
     private ViewGroup _editorHolder;
     private ViewGroup _textActionsBar;
 
@@ -102,7 +102,7 @@ public class DocumentEditAndViewFragment extends MarkorBaseFragment implements F
     private SearchView _menuSearchViewForViewMode;
     private Document _document;
     private FormatRegistry _format;
-    private MarkorContextUtils _cu;
+    private AutumnContextUtils _cu;
     private TextViewUndoRedo _editTextUndoRedoHelper;
     private MenuItem _saveMenuItem, _undoMenuItem, _redoMenuItem;
     private boolean _isPreviewVisible;
@@ -140,7 +140,7 @@ public class DocumentEditAndViewFragment extends MarkorBaseFragment implements F
         _webView = view.findViewById(R.id.document__fragment_view_webview);
         _verticalScrollView = view.findViewById(R.id.document__fragment__edit__content_editor__scrolling_parent);
         _lineNumbersView = view.findViewById(R.id.document__fragment__edit__line_numbers_view);
-        _cu = new MarkorContextUtils(activity);
+        _cu = new AutumnContextUtils(activity);
         _editTextUndoRedoHelper = new TextViewUndoRedo();
 
         // Using `if (_document != null)` everywhere is dangerous
@@ -161,7 +161,7 @@ public class DocumentEditAndViewFragment extends MarkorBaseFragment implements F
             WebView.enableSlowWholeDocumentDraw();
         }
 
-        _webViewClient = new MarkorWebViewClient(_webView, activity);
+        _webViewClient = new AutumnWebViewClient(_webView, activity);
         _webView.setWebChromeClient(new GsWebViewChromeClient(_webView, activity, view.findViewById(R.id.document__fragment_fullscreen_overlay)));
         _webView.setWebViewClient(_webViewClient);
         _webView.addJavascriptInterface(this, "Android");
@@ -587,7 +587,7 @@ public class DocumentEditAndViewFragment extends MarkorBaseFragment implements F
                 return true;
             }
             case R.id.action_load_epub: {
-                MarkorFileBrowserFactory.showFileDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
+                AutumnFileBrowserFactory.showFileDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
                                                             @Override
                                                             public void onFsViewerSelected(String request, File file, final Integer lineNumber) {
                                                                 _hlEditor.setText(GsCoolExperimentalStuff.convertEpubToText(file, getString(R.string.page)));
@@ -641,7 +641,7 @@ public class DocumentEditAndViewFragment extends MarkorBaseFragment implements F
                 return true;
             }
             case R.id.action_set_font_size: {
-                MarkorDialogFactory.showFontSizeDialog(activity, _appSettings.getDocumentFontSize(_document.path), (newSize) -> {
+                AutumnDialogFactory.showFontSizeDialog(activity, _appSettings.getDocumentFontSize(_document.path), (newSize) -> {
                     _hlEditor.setTextSize(TypedValue.COMPLEX_UNIT_SP, (float) newSize);
                     _appSettings.setDocumentFontSize(_document.path, newSize);
                 });
@@ -810,7 +810,7 @@ public class DocumentEditAndViewFragment extends MarkorBaseFragment implements F
         if (!TextUtils.isEmpty(text)) {
             Context context = getContext();
             context = context == null ? ApplicationObject.get().getApplicationContext() : context;
-            new MarkorContextUtils(context).setClipboard(getContext(), text);
+            new AutumnContextUtils(context).setClipboard(getContext(), text);
         }
         // Always show error message
         Toast.makeText(getContext(), R.string.error_could_not_open_file, Toast.LENGTH_LONG).show();

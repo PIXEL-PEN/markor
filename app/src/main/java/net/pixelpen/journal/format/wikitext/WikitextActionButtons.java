@@ -17,7 +17,7 @@ import androidx.annotation.StringRes;
 import net.pixelpen.journal.R;
 import net.pixelpen.journal.activity.DocumentActivity;
 import net.pixelpen.journal.format.ActionButtonBase;
-import net.pixelpen.journal.frontend.MarkorDialogFactory;
+import net.pixelpen.journal.frontend.AutumnDialogFactory;
 import net.pixelpen.journal.frontend.textview.AutoTextFormatter;
 import net.pixelpen.journal.frontend.textview.TextViewUtils;
 import net.pixelpen.journal.model.Document;
@@ -258,7 +258,7 @@ public class WikitextActionButtons extends ActionButtonBase {
     @Override
     public boolean runTitleClick() {
         final Matcher m = WikitextSyntaxHighlighter.HEADING.matcher("");
-        MarkorDialogFactory.showHeadlineDialog(getActivity(), _hlEditor, _webView, _headlineDialogState, (text, start, end) -> {
+        AutumnDialogFactory.showHeadlineDialog(getActivity(), _hlEditor, _webView, _headlineDialogState, (text, start, end) -> {
             if (m.reset(text.subSequence(start, end)).find()) {
                 return 7 - (m.end(2) - m.start(2));
             }

@@ -18,7 +18,7 @@ import androidx.annotation.StringRes;
 import net.pixelpen.journal.R;
 import net.pixelpen.journal.activity.DocumentActivity;
 import net.pixelpen.journal.format.ActionButtonBase;
-import net.pixelpen.journal.frontend.MarkorDialogFactory;
+import net.pixelpen.journal.frontend.AutumnDialogFactory;
 import net.pixelpen.journal.frontend.textview.AutoTextFormatter;
 import net.pixelpen.journal.frontend.textview.TextViewUtils;
 import net.pixelpen.journal.model.Document;
@@ -140,7 +140,7 @@ public class MarkdownActionButtons extends ActionButtonBase {
                 return true;
             }
             case R.string.abid_markdown_table_insert_columns: {
-                MarkorDialogFactory.showInsertTableRowDialog(getActivity(), false, this::insertTableRow);
+                AutumnDialogFactory.showInsertTableRowDialog(getActivity(), false, this::insertTableRow);
                 return true;
             }
             case R.string.abid_common_open_link_browser: {
@@ -193,7 +193,7 @@ public class MarkdownActionButtons extends ActionButtonBase {
     public boolean onActionLongClick(final @StringRes int action) {
         switch (action) {
             case R.string.abid_markdown_table_insert_columns: {
-                MarkorDialogFactory.showInsertTableRowDialog(getActivity(), true, this::insertTableRow);
+                AutumnDialogFactory.showInsertTableRowDialog(getActivity(), true, this::insertTableRow);
                 return true;
             }
             case R.string.abid_markdown_code_inline: {
@@ -213,7 +213,7 @@ public class MarkdownActionButtons extends ActionButtonBase {
                 return true;
             }
             case R.string.abid_common_checkbox_list: {
-                MarkorDialogFactory.showDocumentChecklistDialog(
+                AutumnDialogFactory.showDocumentChecklistDialog(
                         getActivity(), _hlEditor.getText(), CHECKED_LIST_LINE, 4, "xX", " ",
                         pos -> TextViewUtils.setSelectionAndShow(_hlEditor, pos));
                 return true;
@@ -319,7 +319,7 @@ public class MarkdownActionButtons extends ActionButtonBase {
     @Override
     public boolean runTitleClick() {
         final Matcher m = MarkdownReplacePatternGenerator.PREFIX_ATX_HEADING.matcher("");
-        MarkorDialogFactory.showHeadlineDialog(getActivity(), _hlEditor, _webView, _headlineDialogState, (text, start, end) -> {
+        AutumnDialogFactory.showHeadlineDialog(getActivity(), _hlEditor, _webView, _headlineDialogState, (text, start, end) -> {
             if (m.reset(text.subSequence(start, end)).find()) {
                 return m.end(2) - m.start(2) - 1;
             }

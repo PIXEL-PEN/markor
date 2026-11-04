@@ -35,9 +35,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import net.pixelpen.journal.BuildConfig;
 import net.pixelpen.journal.R;
 import net.pixelpen.journal.frontend.NewFileDialog;
-import net.pixelpen.journal.frontend.filebrowser.MarkorFileBrowserFactory;
+import net.pixelpen.journal.frontend.filebrowser.AutumnFileBrowserFactory;
 import net.pixelpen.journal.model.Document;
-import net.pixelpen.journal.util.MarkorContextUtils;
+import net.pixelpen.journal.util.AutumnContextUtils;
 import net.gsantner.opoc.format.GsSimpleMarkdownParser;
 import net.gsantner.opoc.frontend.base.GsFragmentBase;
 import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserFragment;
@@ -55,10 +55,10 @@ import other.writeily.widget.WrMarkorWidgetProvider;
 
 import android.widget.Toast;
 
-import net.pixelpen.journal.util.MarkorContextUtils;
+import net.pixelpen.journal.util.AutumnContextUtils;
 
 
-public class MainActivity extends MarkorBaseActivity implements GsFileBrowserFragment.FilesystemFragmentOptionsListener {
+public class MainActivity extends AutumnBaseActivity implements GsFileBrowserFragment.FilesystemFragmentOptionsListener {
 
     public static boolean IS_DEBUG_ENABLED = false;
 
@@ -68,7 +68,7 @@ public class MainActivity extends MarkorBaseActivity implements GsFileBrowserFra
     private MoreFragment _more;
     private FloatingActionButton _fab;
 
-    private MarkorContextUtils _cu;
+    private AutumnContextUtils _cu;
     private File _quickSwitchPrevFolder = null;
     private File _startFolder = null, _showFile = null;
 
@@ -84,7 +84,7 @@ public class MainActivity extends MarkorBaseActivity implements GsFileBrowserFra
         } catch (Exception ignored) {
         }
 
-        _cu = new MarkorContextUtils(this);
+        _cu = new AutumnContextUtils(this);
         setContentView(R.layout.main__activity);
 
         _bottomNav = findViewById(R.id.bottom_navigation_bar);
@@ -157,7 +157,7 @@ public class MainActivity extends MarkorBaseActivity implements GsFileBrowserFra
 
         // Determine start folder
         final File fallback = _appSettings.getFolderToLoadByMenuId(_appSettings.getAppStartupFolderMenuId());
-        _startFolder = MarkorContextUtils.getValidIntentFile(getIntent(), fallback);
+        _startFolder = AutumnContextUtils.getValidIntentFile(getIntent(), fallback);
         if (!GsFileUtils.isDirectory(_startFolder)) {
             _showFile = _startFolder;
             _startFolder = _startFolder.getParentFile();
@@ -172,7 +172,7 @@ public class MainActivity extends MarkorBaseActivity implements GsFileBrowserFra
         super.onActivityFirstTimeVisible();
         // Switch to tab if specific folder _not_ requested, and not recreating from saved instance
         final int startTab = _appSettings.getAppStartupTab();
-        if (startTab != R.id.nav_notebook && MarkorContextUtils.getValidIntentFile(getIntent(), null) == null) {
+        if (startTab != R.id.nav_notebook && AutumnContextUtils.getValidIntentFile(getIntent(), null) == null) {
             _viewPager.postDelayed(() -> _viewPager.setCurrentItem(tabIdToPos(startTab)), 100);
         }
     }
@@ -238,7 +238,7 @@ public class MainActivity extends MarkorBaseActivity implements GsFileBrowserFra
     @Override
     protected void onNewIntent(final Intent intent) {
         super.onNewIntent(intent);
-        final File file = MarkorContextUtils.getValidIntentFile(intent, null);
+        final File file = AutumnContextUtils.getValidIntentFile(intent, null);
         if (_notebook != null && file != null) {
             _viewPager.setCurrentItem(tabIdToPos(R.id.nav_notebook), false);
             if (GsFileUtils.isDirectory(file)) {
@@ -307,7 +307,7 @@ public class MainActivity extends MarkorBaseActivity implements GsFileBrowserFra
             startActivity(intent);
         }
 
-        if (_cu == null) { _cu = new net.pixelpen.journal.util.MarkorContextUtils(this); }
+        if (_cu == null) { _cu = new net.pixelpen.journal.util.AutumnContextUtils(this); }
 
 
         _cu.setKeepScreenOn(this, _appSettings.isKeepScreenOn());
@@ -458,7 +458,7 @@ public class MainActivity extends MarkorBaseActivity implements GsFileBrowserFra
     @Override
     public GsFileBrowserOptions.Options getFilesystemFragmentOptions(GsFileBrowserOptions.Options existingOptions) {
         if (_filesystemDialogOptions == null) {
-            _filesystemDialogOptions = MarkorFileBrowserFactory.prepareFsViewerOpts(this, false, new GsFileBrowserOptions.SelectionListenerAdapter() {
+            _filesystemDialogOptions = AutumnFileBrowserFactory.prepareFsViewerOpts(this, false, new GsFileBrowserOptions.SelectionListenerAdapter() {
 
                 @Override
                 public void onFsViewerConfig(GsFileBrowserOptions.Options dopt) {

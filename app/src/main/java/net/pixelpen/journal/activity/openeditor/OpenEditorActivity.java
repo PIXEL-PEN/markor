@@ -12,13 +12,13 @@ import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 
-import net.pixelpen.journal.activity.MarkorBaseActivity;
+import net.pixelpen.journal.activity.AutumnBaseActivity;
 import net.pixelpen.journal.activity.StoragePermissionActivity;
 import net.pixelpen.journal.model.Document;
 
 import java.io.File;
 
-public class OpenEditorActivity extends MarkorBaseActivity {
+public class OpenEditorActivity extends AutumnBaseActivity {
 
     @Override
     protected void onCreate(@Nullable final Bundle savedInstanceState) {

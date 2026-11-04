@@ -42,11 +42,11 @@ import net.pixelpen.journal.ApplicationObject;
 import net.pixelpen.journal.R;
 import net.pixelpen.journal.format.FormatRegistry;
 import net.pixelpen.journal.frontend.FileInfoDialog;
-import net.pixelpen.journal.frontend.MarkorDialogFactory;
-import net.pixelpen.journal.frontend.filebrowser.MarkorFileBrowserFactory;
+import net.pixelpen.journal.frontend.AutumnDialogFactory;
+import net.pixelpen.journal.frontend.filebrowser.AutumnFileBrowserFactory;
 import net.pixelpen.journal.frontend.filesearch.FileSearchEngine;
 import net.pixelpen.journal.model.AppSettings;
-import net.pixelpen.journal.util.MarkorContextUtils;
+import net.pixelpen.journal.util.AutumnContextUtils;
 import net.gsantner.opoc.frontend.GsSearchOrCustomTextDialog;
 import net.gsantner.opoc.frontend.base.GsFragmentBase;
 import net.gsantner.opoc.model.GsSharedPreferencesPropertyBackend;
@@ -89,7 +89,7 @@ public class GsFileBrowserFragment extends GsFragmentBase<GsSharedPreferencesPro
     private GsFileBrowserOptions.SelectionListener _callback;
     private AppSettings _appSettings;
     private Menu _fragmentMenu;
-    private MarkorContextUtils _cu;
+    private AutumnContextUtils _cu;
     private Toolbar _toolbar;
     private boolean _reloadRequiredOnResume = true;
 
@@ -110,7 +110,7 @@ public class GsFileBrowserFragment extends GsFragmentBase<GsSharedPreferencesPro
         _emptyHint = root.findViewById(R.id.empty_hint);
 
         _appSettings = ApplicationObject.settings();
-        _cu = new MarkorContextUtils(root.getContext());
+        _cu = new AutumnContextUtils(root.getContext());
         final Activity activity = getActivity();
 
         if (!(getActivity() instanceof FilesystemFragmentOptionsListener)) {
@@ -422,7 +422,7 @@ public class GsFileBrowserFragment extends GsFragmentBase<GsSharedPreferencesPro
                 return true;
             }
             case R.id.action_delete_selected_items: {
-                MarkorDialogFactory.showConfirmDialog(
+                AutumnDialogFactory.showConfirmDialog(
                         getActivity(),
                         R.string.confirm_delete,
                         null,
@@ -448,7 +448,7 @@ public class GsFileBrowserFragment extends GsFragmentBase<GsSharedPreferencesPro
                 return true;
             }
             case R.id.action_share_files: {
-                MarkorContextUtils s = new MarkorContextUtils(getContext());
+                AutumnContextUtils s = new AutumnContextUtils(getContext());
                 s.shareStreamMultiple(getContext(), currentSelection, "*/*");
                 _filesystemViewerAdapter.reloadCurrentFolder();
                 return true;
@@ -496,13 +496,13 @@ public class GsFileBrowserFragment extends GsFragmentBase<GsSharedPreferencesPro
     }
 
     private void executeSearchAction() {
-        MarkorDialogFactory.showSearchFilesDialog(getActivity(), getCurrentFolder(), this::searchCallback);
+        AutumnDialogFactory.showSearchFilesDialog(getActivity(), getCurrentFolder(), this::searchCallback);
     }
 
     final GsSearchOrCustomTextDialog.DialogState _filterDialogState = new GsSearchOrCustomTextDialog.DialogState();
 
     private void executeFilterNotebookAction() {
-        MarkorDialogFactory.showNotebookFilterDialog(getActivity(), _filterDialogState, null,
+        AutumnDialogFactory.showNotebookFilterDialog(getActivity(), _filterDialogState, null,
                 (file, show) -> {
                     if (show) {
                         _filesystemViewerAdapter.showFile(file);
@@ -523,7 +523,7 @@ public class GsFileBrowserFragment extends GsFragmentBase<GsSharedPreferencesPro
 
     private void askForMoveOrCopy(final boolean isMove) {
         final List<File> files = new ArrayList<>(_filesystemViewerAdapter.getCurrentSelection());
-        MarkorFileBrowserFactory.showFolderDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
+        AutumnFileBrowserFactory.showFolderDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
 
             @Override
             public void onFsViewerSelected(String request, File file, Integer lineNumber) {
@@ -555,7 +555,7 @@ public class GsFileBrowserFragment extends GsFragmentBase<GsSharedPreferencesPro
     }
 
     private void showImportDialog() {
-        MarkorFileBrowserFactory.showFileDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
+        AutumnFileBrowserFactory.showFileDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
             @Override
             public void onFsViewerSelected(String request, File file, final Integer lineNumber) {
                 importFile(file);
@@ -584,7 +584,7 @@ public class GsFileBrowserFragment extends GsFragmentBase<GsSharedPreferencesPro
         final Activity activity = getActivity();
         if (new File(getCurrentFolder().getAbsolutePath(), file.getName()).exists()) {
             // Ask if overwriting is okay
-            MarkorDialogFactory.showConfirmDialog(
+            AutumnDialogFactory.showConfirmDialog(
                     activity,
                     R.string.confirm_overwrite,
                     getString(R.string.file_already_exists_overwerite) + "\n[" + file.getName() + "]",
@@ -608,7 +608,7 @@ public class GsFileBrowserFragment extends GsFragmentBase<GsSharedPreferencesPro
 
     private void updateSortSettings() {
         final GsFileUtils.SortOrder globalOrder = _appSettings.getFolderSortOrder(null);
-        MarkorDialogFactory.showFolderSortDialog(getActivity(), _dopt.sortOrder, globalOrder,
+        AutumnDialogFactory.showFolderSortDialog(getActivity(), _dopt.sortOrder, globalOrder,
                 (order) -> {
                     // Erase local sort order if local is unset
                     final File currentFolder = getCurrentFolder();

@@ -14,7 +14,7 @@ import androidx.annotation.StringRes;
 
 import net.pixelpen.journal.R;
 import net.pixelpen.journal.format.ActionButtonBase;
-import net.pixelpen.journal.frontend.MarkorDialogFactory;
+import net.pixelpen.journal.frontend.AutumnDialogFactory;
 import net.pixelpen.journal.model.Document;
 
 import java.util.Arrays;
@@ -242,7 +242,7 @@ public class AsciidocActionButtons extends ActionButtonBase {
     private void runAsciidocSpecialKeyAction() {
 
         // showAsciidocSpecialKeyDialog is used instead of showSpecialKeyDialog
-        MarkorDialogFactory.showAsciidocSpecialKeyDialog(getActivity(), (callbackPayload) -> {
+        AutumnDialogFactory.showAsciidocSpecialKeyDialog(getActivity(), (callbackPayload) -> {
             if (!_hlEditor.hasSelection() && _hlEditor.length() > 0) {
                 _hlEditor.requestFocus();
             }

@@ -4,13 +4,13 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import net.pixelpen.journal.activity.DocumentActivity;
-import net.pixelpen.journal.activity.MarkorBaseActivity;
+import net.pixelpen.journal.activity.AutumnBaseActivity;
 
 /**
  * This Activity exists solely to launch DocumentActivity with the correct intent
  * it is necessary as widget and shortcut intents do not respect MultipleTask etc
  */
-public class OpenFromShortcutOrWidgetActivity extends MarkorBaseActivity {
+public class OpenFromShortcutOrWidgetActivity extends AutumnBaseActivity {
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {

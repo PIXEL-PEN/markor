@@ -1,7 +1,7 @@
-﻿# Markor Plus Changelog (branch: markor-plus-v1.2.6)
+# Autumn Changelog
 
-This changelog is specific to the **Markor Plus** module on this branch.
-For the full module history, see: [docs/markor-plus/CHANGELOG.md](docs/markor-plus/CHANGELOG.md)
+Autumn is a fork of Markor. This changelog covers Autumn's own changes.
+Earlier history, from when this was called Markor Plus: [docs/autumn/CHANGELOG.md](docs/autumn/CHANGELOG.md)
 
 ## [1.2.6] - 2025-08-30
 ### Added

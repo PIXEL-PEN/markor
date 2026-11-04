@@ -14,16 +14,16 @@ import android.webkit.WebView;
 import net.pixelpen.journal.ApplicationObject;
 import net.pixelpen.journal.activity.DocumentActivity;
 import net.pixelpen.journal.model.AppSettings;
-import net.pixelpen.journal.util.MarkorContextUtils;
+import net.pixelpen.journal.util.AutumnContextUtils;
 import net.gsantner.opoc.web.GsWebViewClient;
 
 import java.io.File;
 import java.net.URLDecoder;
 
-public class MarkorWebViewClient extends GsWebViewClient {
+public class AutumnWebViewClient extends GsWebViewClient {
     protected final Activity _activity;
 
-    public MarkorWebViewClient(final WebView webView, final Activity activity) {
+    public AutumnWebViewClient(final WebView webView, final Activity activity) {
         super(webView);
         _activity = activity;
     }
@@ -40,7 +40,7 @@ public class MarkorWebViewClient extends GsWebViewClient {
             if (url.startsWith("file:///android_asset/")) {
                 return false;
             } else if (url.startsWith("file://")) {
-                MarkorContextUtils su = new MarkorContextUtils(view.getContext());
+                AutumnContextUtils su = new AutumnContextUtils(view.getContext());
                 File file = new File(URLDecoder.decode(url.replace("file://", "").replace("+", "%2B")));
                 for (String str : new String[]{file.getAbsolutePath(), file.getAbsolutePath().replaceFirst("[#].*$", ""), file.getAbsolutePath() + ".md", file.getAbsolutePath() + ".txt"}) {
                     File f = new File(str);
@@ -51,7 +51,7 @@ public class MarkorWebViewClient extends GsWebViewClient {
                 }
                 DocumentActivity.launch(_activity, file, null, null);
             } else {
-                MarkorContextUtils su = new MarkorContextUtils(_activity);
+                AutumnContextUtils su = new AutumnContextUtils(_activity);
                 AppSettings settings = ApplicationObject.settings();
                 if (!settings.isOpenLinksWithChromeCustomTabs() || (settings.isOpenLinksWithChromeCustomTabs() && !su.openWebpageInChromeCustomTab(context, url))) {
                     su.openWebpageInExternalBrowser(context, url);

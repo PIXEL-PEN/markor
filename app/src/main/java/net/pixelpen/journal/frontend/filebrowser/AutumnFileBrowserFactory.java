@@ -15,7 +15,7 @@ import androidx.fragment.app.FragmentManager;
 import net.pixelpen.journal.ApplicationObject;
 import net.pixelpen.journal.R;
 import net.pixelpen.journal.model.AppSettings;
-import net.pixelpen.journal.util.MarkorContextUtils;
+import net.pixelpen.journal.util.AutumnContextUtils;
 import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserDialog;
 import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserListAdapter;
 import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserOptions;
@@ -24,7 +24,7 @@ import net.gsantner.opoc.wrapper.GsCallback;
 
 import java.io.File;
 
-public class MarkorFileBrowserFactory {
+public class AutumnFileBrowserFactory {
     public static GsCallback.b2<Context, File> IsMimeText = (context, file) -> file != null && GsContextUtils.instance.getMimeType(context, file).startsWith("text/");
     public static GsCallback.b2<Context, File> IsMimeImage = (context, file) -> file != null && GsContextUtils.instance.getMimeType(context, file).startsWith("image/");
     public static GsCallback.b2<Context, File> IsMimeAudio = (context, file) -> file != null && GsContextUtils.instance.getMimeType(context, file).startsWith("audio/");
@@ -36,7 +36,7 @@ public class MarkorFileBrowserFactory {
             final GsFileBrowserOptions.SelectionListener listener
     ) {
         final GsFileBrowserOptions.Options opts = new GsFileBrowserOptions.Options();
-        final MarkorContextUtils cu = new MarkorContextUtils(context);
+        final AutumnContextUtils cu = new AutumnContextUtils(context);
         final AppSettings appSettings = ApplicationObject.settings();
 
         if (listener != null) {

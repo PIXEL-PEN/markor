@@ -44,7 +44,7 @@ public class CreationIndex {
     /** Persist to disk; call after batching writes. */
     public synchronized void save() {
         try (FileOutputStream out = new FileOutputStream(storeFile)) {
-            props.store(out, "Markor Creation Index");
+            props.store(out, "Autumn creation index: absolute path -> creation time (epoch millis)");
         } catch (Exception ignored) { }
     }
 }

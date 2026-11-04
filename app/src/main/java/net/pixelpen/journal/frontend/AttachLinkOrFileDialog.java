@@ -31,10 +31,10 @@ import net.pixelpen.journal.R;
 import net.pixelpen.journal.format.FormatRegistry;
 import net.pixelpen.journal.format.markdown.MarkdownActionButtons;
 import net.pixelpen.journal.format.wikitext.WikitextLinkResolver;
-import net.pixelpen.journal.frontend.filebrowser.MarkorFileBrowserFactory;
+import net.pixelpen.journal.frontend.filebrowser.AutumnFileBrowserFactory;
 import net.pixelpen.journal.frontend.textview.TextViewUtils;
 import net.pixelpen.journal.model.AppSettings;
-import net.pixelpen.journal.util.MarkorContextUtils;
+import net.pixelpen.journal.util.AutumnContextUtils;
 import net.gsantner.opoc.format.GsTextUtils;
 import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserListAdapter;
 import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserOptions;
@@ -222,12 +222,12 @@ public class AttachLinkOrFileDialog {
             case IMAGE_EDIT:
             case IMAGE_DIALOG:
             case IMAGE_BROWSE: {
-                return MarkorFileBrowserFactory.IsMimeImage;
+                return AutumnFileBrowserFactory.IsMimeImage;
             }
             case AUDIO_RECORDING:
             case AUDIO_DIALOG:
             case AUDIO_BROWSE: {
-                return MarkorFileBrowserFactory.IsMimeAudio;
+                return AutumnFileBrowserFactory.IsMimeAudio;
             }
             case LINK_DIALOG:
             case LINK_BROWSE:
@@ -420,7 +420,7 @@ public class AttachLinkOrFileDialog {
             insertLink.callback(title, localPath);
         };
 
-        final MarkorContextUtils cu = new MarkorContextUtils(activity);
+        final AutumnContextUtils cu = new AutumnContextUtils(activity);
 
         final GsCallback.a1<File> setFields = file -> {
             if (textFormatId == FormatRegistry.FORMAT_WIKITEXT) {
@@ -506,16 +506,16 @@ public class AttachLinkOrFileDialog {
                     };
 
                     final FragmentManager f = ((AppCompatActivity) activity).getSupportFragmentManager();
-                    MarkorFileBrowserFactory.showFileDialog(fsListener, f, activity, getFilterForAction(action));
+                    AutumnFileBrowserFactory.showFileDialog(fsListener, f, activity, getFilterForAction(action));
                 }
                 break;
             }
             case LINK_SPECIAL: {
-                MarkorDialogFactory.showSelectSpecialFileDialog(activity, setFields);
+                AutumnDialogFactory.showSelectSpecialFileDialog(activity, setFields);
                 break;
             }
             case LINK_SEARCH: {
-                MarkorDialogFactory.showNotebookFilterDialog(activity, null, null, (file, l) -> {
+                AutumnDialogFactory.showNotebookFilterDialog(activity, null, null, (file, l) -> {
                     setFields.callback(file);
                 });
             }

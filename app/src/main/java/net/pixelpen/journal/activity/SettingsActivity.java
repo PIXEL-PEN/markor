@@ -27,11 +27,11 @@ import androidx.preference.PreferenceScreen;
 
 import net.pixelpen.journal.ApplicationObject;
 import net.pixelpen.journal.R;
-import net.pixelpen.journal.frontend.MarkorDialogFactory;
-import net.pixelpen.journal.frontend.filebrowser.MarkorFileBrowserFactory;
+import net.pixelpen.journal.frontend.AutumnDialogFactory;
+import net.pixelpen.journal.frontend.filebrowser.AutumnFileBrowserFactory;
 import net.pixelpen.journal.model.AppSettings;
 import net.pixelpen.journal.util.BackupUtils;
-import net.pixelpen.journal.util.MarkorContextUtils;
+import net.pixelpen.journal.util.AutumnContextUtils;
 import net.pixelpen.journal.widget.TodoWidgetProvider;
 import net.gsantner.opoc.frontend.base.GsActivityBase;
 import net.gsantner.opoc.frontend.base.GsPreferenceFragmentBase;
@@ -45,7 +45,7 @@ import java.util.Locale;
 
 import other.writeily.widget.WrMarkorWidgetProvider;
 
-public class SettingsActivity extends MarkorBaseActivity {
+public class SettingsActivity extends AutumnBaseActivity {
 
     @SuppressWarnings("WeakerAccess")
     public static class RESULT {
@@ -217,7 +217,7 @@ public class SettingsActivity extends MarkorBaseActivity {
                 _appSettings.setRecreateMainRequired(true);
             } else if (eq(key, R.string.pref_key__is_launcher_for_special_files_enabled)) {
                 boolean extraLaunchersEnabled = prefs.getBoolean(key, false);
-                new MarkorContextUtils(getActivity()).applySpecialLaunchersVisibility(getActivity(), extraLaunchersEnabled);
+                new AutumnContextUtils(getActivity()).applySpecialLaunchersVisibility(getActivity(), extraLaunchersEnabled);
             } else if (eq(key, R.string.pref_key__file_description_format)) {
                 try {
                     new SimpleDateFormat(prefs.getString(key, ""), Locale.getDefault());
@@ -243,7 +243,7 @@ public class SettingsActivity extends MarkorBaseActivity {
             final FragmentManager fragManager = getActivity().getSupportFragmentManager();
             switch (keyResId) {
                 case R.string.pref_key__snippet_directory_path: {
-                    MarkorFileBrowserFactory.showFolderDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
+                    AutumnFileBrowserFactory.showFolderDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
                         @Override
                         public void onFsViewerSelected(String request, File file, final Integer lineNumber) {
                             _appSettings.setSnippetDirectory(file);
@@ -260,7 +260,7 @@ public class SettingsActivity extends MarkorBaseActivity {
                 }
 
                 case R.string.pref_key__notebook_directory: {
-                    MarkorFileBrowserFactory.showFolderDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
+                    AutumnFileBrowserFactory.showFolderDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
                         @Override
                         public void onFsViewerSelected(String request, File file, final Integer lineNumber) {
                             _appSettings.setNotebookDirectory(file);
@@ -277,7 +277,7 @@ public class SettingsActivity extends MarkorBaseActivity {
                     return true;
                 }
                 case R.string.pref_key__quicknote_filepath: {
-                    MarkorFileBrowserFactory.showFileDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
+                    AutumnFileBrowserFactory.showFileDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
                         @Override
                         public void onFsViewerSelected(String request, File file, final Integer lineNumber) {
                             _appSettings.setQuickNoteFile(file);
@@ -291,11 +291,11 @@ public class SettingsActivity extends MarkorBaseActivity {
                             dopt.rootFolder = _appSettings.getNotebookDirectory();
                             dopt.newDirButtonEnable = false;
                         }
-                    }, fragManager, getActivity(), MarkorFileBrowserFactory.IsMimeText);
+                    }, fragManager, getActivity(), AutumnFileBrowserFactory.IsMimeText);
                     return true;
                 }
                 case R.string.pref_key__todo_filepath: {
-                    MarkorFileBrowserFactory.showFileDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
+                    AutumnFileBrowserFactory.showFileDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
                         @Override
                         public void onFsViewerSelected(String request, File file, final Integer lineNumber) {
                             _appSettings.setTodoFile(file);
@@ -309,7 +309,7 @@ public class SettingsActivity extends MarkorBaseActivity {
                             dopt.rootFolder = _appSettings.getNotebookDirectory();
                             dopt.newDirButtonEnable = false;
                         }
-                    }, fragManager, getActivity(), MarkorFileBrowserFactory.IsMimeText);
+                    }, fragManager, getActivity(), AutumnFileBrowserFactory.IsMimeText);
                     return true;
                 }
                 case R.string.pref_key__basic_color_scheme_markor: {
@@ -357,7 +357,7 @@ public class SettingsActivity extends MarkorBaseActivity {
                     break;
                 }
                 case R.string.pref_key__set_encryption_password: {
-                    MarkorDialogFactory.showSetPasswordDialog(getActivity());
+                    AutumnDialogFactory.showSetPasswordDialog(getActivity());
                     break;
                 }
                 case R.string.pref_key__backup_settings: {

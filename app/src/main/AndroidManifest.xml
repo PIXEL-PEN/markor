@@ -128,7 +128,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/markor_widget" />
+                android:resource="@xml/autumn_widget" />
         </receiver>
         <service
             android:name="other.writeily.widget.WrFilesWidgetService"
@@ -169,7 +169,7 @@
         <!-- Leading dot: explicitly qualified against the manifest namespace, so the component
              name is unambiguous and follows the namespace if it is renamed. The code side
              derives the same string from BuildConfig's package. See
-             MarkorContextUtils.applySpecialLaunchersVisibility(). -->
+             AutumnContextUtils.applySpecialLaunchersVisibility(). -->
         <activity-alias
             android:name=".AliasDocumentProcessText"
             android:label="@string/app_name"

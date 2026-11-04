@@ -39,12 +39,12 @@ import net.pixelpen.journal.R;
 import net.pixelpen.journal.activity.DocumentActivity;
 import net.pixelpen.journal.frontend.AttachLinkOrFileDialog;
 import net.pixelpen.journal.frontend.DatetimeFormatDialog;
-import net.pixelpen.journal.frontend.MarkorDialogFactory;
+import net.pixelpen.journal.frontend.AutumnDialogFactory;
 import net.pixelpen.journal.frontend.textview.HighlightingEditor;
 import net.pixelpen.journal.frontend.textview.TextViewUtils;
 import net.pixelpen.journal.model.AppSettings;
 import net.pixelpen.journal.model.Document;
-import net.pixelpen.journal.util.MarkorContextUtils;
+import net.pixelpen.journal.util.AutumnContextUtils;
 import net.gsantner.opoc.format.GsTextUtils;
 import net.gsantner.opoc.frontend.GsSearchOrCustomTextDialog;
 import net.gsantner.opoc.util.GsCollectionUtils;
@@ -68,7 +68,7 @@ import java.util.regex.Pattern;
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
 public abstract class ActionButtonBase {
     private Activity _activity;
-    private MarkorContextUtils _cu;
+    private AutumnContextUtils _cu;
     private final int _buttonHorizontalMargin;
     private String _lastSnip;
 
@@ -105,7 +105,7 @@ public abstract class ActionButtonBase {
 
     // Override to implement custom search action
     public boolean onSearch() {
-        MarkorDialogFactory.showSearchDialog(_activity, _hlEditor);
+        AutumnDialogFactory.showSearchDialog(_activity, _hlEditor);
         return true;
     }
 
@@ -581,7 +581,7 @@ public abstract class ActionButtonBase {
         _activity = activity;
         _hlEditor = hlEditor;
         _webView = webview;
-        _cu = new MarkorContextUtils(_activity);
+        _cu = new AutumnContextUtils(_activity);
         return this;
     }
 
@@ -602,7 +602,7 @@ public abstract class ActionButtonBase {
         return _activity != null ? _activity : _appSettings.getContext();
     }
 
-    public MarkorContextUtils getCu() {
+    public AutumnContextUtils getCu() {
         return _cu;
     }
 
@@ -677,7 +677,7 @@ public abstract class ActionButtonBase {
                 return true;
             }
             case R.string.abid_common_insert_snippet: {
-                MarkorDialogFactory.showInsertSnippetDialog(_activity, (snip) -> {
+                AutumnDialogFactory.showInsertSnippetDialog(_activity, (snip) -> {
                     _hlEditor.insertOrReplaceTextOnCursor(TextViewUtils.interpolateSnippet(snip, _document.title, TextViewUtils.getSelectedText(_hlEditor)));
                     _lastSnip = snip;
                 });
@@ -776,7 +776,7 @@ public abstract class ActionButtonBase {
         switch (action) {
             case R.string.abid_common_deindent:
             case R.string.abid_common_indent: {
-                MarkorDialogFactory.showIndentSizeDialog(_activity, _indent, (size) -> {
+                AutumnDialogFactory.showIndentSizeDialog(_activity, _indent, (size) -> {
                     _indent = Integer.parseInt(size);
                     _appSettings.setDocumentIndentSize(_document.path, _indent);
                 });
@@ -951,7 +951,7 @@ public abstract class ActionButtonBase {
     }
 
     public void runSpecialKeyAction() {
-        MarkorDialogFactory.showSpecialKeyDialog(getActivity(), _specialKeyDialogState, (callbackPayload) -> {
+        AutumnDialogFactory.showSpecialKeyDialog(getActivity(), _specialKeyDialogState, (callbackPayload) -> {
             if (!_hlEditor.hasSelection() && _hlEditor.length() > 0) {
                 _hlEditor.requestFocus();
             }

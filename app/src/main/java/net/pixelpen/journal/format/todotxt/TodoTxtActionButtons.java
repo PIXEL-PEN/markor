@@ -21,7 +21,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import net.pixelpen.journal.R;
 import net.pixelpen.journal.format.ActionButtonBase;
-import net.pixelpen.journal.frontend.MarkorDialogFactory;
+import net.pixelpen.journal.frontend.AutumnDialogFactory;
 import net.pixelpen.journal.frontend.textview.TextViewUtils;
 import net.pixelpen.journal.model.Document;
 import net.gsantner.opoc.util.GsCollectionUtils;
@@ -105,7 +105,7 @@ public class TodoTxtActionButtons extends ActionButtonBase {
                 return true;
             }
             case R.string.abid_todotxt_priority: {
-                MarkorDialogFactory.showPriorityDialog(getActivity(), selTasks.get(0).getPriority(), (priority) -> {
+                AutumnDialogFactory.showPriorityDialog(getActivity(), selTasks.get(0).getPriority(), (priority) -> {
                     setPriority(priority.length() == 1 ? priority.charAt(0) : TodoTxtTask.PRIORITY_NONE);
                 });
                 return true;
@@ -119,7 +119,7 @@ public class TodoTxtActionButtons extends ActionButtonBase {
                 return true;
             }
             case R.string.abid_todotxt_sort_todo: {
-                MarkorDialogFactory.showSttSortDialogue(getActivity(), (orderBy, descending) -> new Thread() {
+                AutumnDialogFactory.showSttSortDialogue(getActivity(), (orderBy, descending) -> new Thread() {
                     @Override
                     public void run() {
                         final List<TodoTxtTask> tasks = TodoTxtTask.getAllTasks(_hlEditor.getText());
@@ -141,11 +141,11 @@ public class TodoTxtActionButtons extends ActionButtonBase {
 
         switch (action) {
             case R.string.abid_todotxt_add_context: {
-                MarkorDialogFactory.showSttKeySearchDialog(getActivity(), _hlEditor, R.string.browse_by_context, true, true, TodoTxtFilter.TYPE.CONTEXT);
+                AutumnDialogFactory.showSttKeySearchDialog(getActivity(), _hlEditor, R.string.browse_by_context, true, true, TodoTxtFilter.TYPE.CONTEXT);
                 return true;
             }
             case R.string.abid_todotxt_add_project: {
-                MarkorDialogFactory.showSttKeySearchDialog(getActivity(), _hlEditor, R.string.browse_by_project, true, true, TodoTxtFilter.TYPE.PROJECT);
+                AutumnDialogFactory.showSttKeySearchDialog(getActivity(), _hlEditor, R.string.browse_by_project, true, true, TodoTxtFilter.TYPE.PROJECT);
                 return true;
             }
             case R.string.abid_todotxt_sort_todo: {
@@ -212,7 +212,7 @@ public class TodoTxtActionButtons extends ActionButtonBase {
 
     public void archiveDoneTasks() {
         final String lastDoneName = _appSettings.getLastTodoDoneName(_document.path);
-        MarkorDialogFactory.showSttArchiveDialog(getActivity(), lastDoneName, callbackPayload -> {
+        AutumnDialogFactory.showSttArchiveDialog(getActivity(), lastDoneName, callbackPayload -> {
             final String doneName = Document.normalizeFilename(callbackPayload);
             final CharSequence text = _hlEditor.getText();
             final int[] sel = TextViewUtils.getSelection(text);
@@ -254,13 +254,13 @@ public class TodoTxtActionButtons extends ActionButtonBase {
 
     @Override
     public boolean runTitleClick() {
-        MarkorDialogFactory.showSttFilteringDialog(getActivity(), _hlEditor);
+        AutumnDialogFactory.showSttFilteringDialog(getActivity(), _hlEditor);
         return true;
     }
 
     @Override
     public boolean onSearch() {
-        MarkorDialogFactory.showSttSearchDialog(getActivity(), _hlEditor);
+        AutumnDialogFactory.showSttSearchDialog(getActivity(), _hlEditor);
         return true;
     }
 
@@ -277,7 +277,7 @@ public class TodoTxtActionButtons extends ActionButtonBase {
 
         final boolean append = _appSettings.isTodoAppendProConOnEndEnabled();
 
-        MarkorDialogFactory.showUpdateItemsDialog(getActivity(), titleResId, all, current,
+        AutumnDialogFactory.showUpdateItemsDialog(getActivity(), titleResId, all, current,
                 updated -> {
                     final TextViewUtils.ChunkedEditable chunk = TextViewUtils.ChunkedEditable.wrap(_hlEditor.getText());
                     for (final String item : GsCollectionUtils.setDiff(current, updated)) {

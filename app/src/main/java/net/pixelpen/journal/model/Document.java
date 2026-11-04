@@ -26,7 +26,7 @@ import net.pixelpen.journal.R;
 import net.pixelpen.journal.activity.MainActivity;
 import net.pixelpen.journal.format.FormatRegistry;
 import net.pixelpen.journal.format.markdown.MarkdownTextConverter;
-import net.pixelpen.journal.util.MarkorContextUtils;
+import net.pixelpen.journal.util.AutumnContextUtils;
 import net.gsantner.opoc.util.GsContextUtils;
 import net.gsantner.opoc.util.GsFileUtils;
 
@@ -280,7 +280,7 @@ public class Document implements Serializable {
     }
 
     @SuppressWarnings("ConstantConditions")
-    public synchronized boolean saveContent(final Activity context, final CharSequence content, MarkorContextUtils cu, final boolean isManualSave) {
+    public synchronized boolean saveContent(final Activity context, final CharSequence content, AutumnContextUtils cu, final boolean isManualSave) {
         if (isBinaryFileNoTextLoading()) {
             return true;
         }
@@ -308,7 +308,7 @@ public class Document implements Serializable {
                 contentAsBytes = content.toString().getBytes();
             }
 
-            cu = cu != null ? cu : new MarkorContextUtils(context);
+            cu = cu != null ? cu : new AutumnContextUtils(context);
             final boolean isContentResolverProxyFile = cu.isContentResolverProxyFile(file);
             if (cu.isUnderStorageAccessFolder(context, file, false) || isContentResolverProxyFile) {
                 cu.writeFile(context, file, false, (fileOpened, fos) -> {
