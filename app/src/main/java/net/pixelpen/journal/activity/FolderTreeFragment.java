@@ -191,11 +191,6 @@ public class FolderTreeFragment extends AutumnBaseFragment {
             }
         });
 
-        // Was passed as Intent extras by the Calendar screen. As a tab the Tree simply opens
-        // on the current month; a later change can let the Journal tab drive this selection.
-        final String selectedCategory = null;
-        final String selectedMonth = null;
-
         reload();
     }
 
@@ -218,8 +213,11 @@ public class FolderTreeFragment extends AutumnBaseFragment {
         // root that could and did disagree with the one the file browser used.
         rootFolder = ApplicationObject.settings().getNotebookDirectory();
         final java.io.File rf = rootFolder;
-        final String cat = selectedCategory;
-        final String mon = selectedMonth;
+        // These were Intent extras from the Calendar screen when the Tree was its own Activity.
+        // As a tab it simply opens on the current month; a later change can let the Journal tab
+        // drive the selection, at which point these become fields set by the host.
+        final String cat = null;
+        final String mon = null;
 
         webView.loadDataWithBaseURL(
                 null,

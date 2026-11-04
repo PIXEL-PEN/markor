@@ -431,7 +431,6 @@ public class MainActivity extends AutumnBaseActivity {
     }
 
     @Override
-    @Override
     protected void onStop() {
         super.onStop();
     }
