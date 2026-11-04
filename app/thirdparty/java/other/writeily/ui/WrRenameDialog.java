@@ -26,7 +26,7 @@ import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.DialogFragment;
 
 import net.pixelpen.journal.R;
-import net.pixelpen.journal.util.MarkorContextUtils;
+import net.pixelpen.journal.util.AutumnContextUtils;
 import net.gsantner.opoc.util.GsContextUtils;
 import net.gsantner.opoc.util.GsFileUtils;
 import net.gsantner.opoc.wrapper.GsCallback;
@@ -72,7 +72,7 @@ public class WrRenameDialog extends DialogFragment {
         _dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
             View root = inflater.inflate(R.layout.rename__dialog, null);
             String newFileName = newNameField.getText().toString();
-            MarkorContextUtils cu = new MarkorContextUtils(root.getContext());
+            AutumnContextUtils cu = new AutumnContextUtils(root.getContext());
             boolean renamed = false;
             boolean filenameChanged = !file.getName().equals(newFileName);
             if (filenameChanged) {

@@ -18,14 +18,14 @@ import androidx.fragment.app.FragmentManager;
 
 import net.pixelpen.journal.ApplicationObject;
 import net.pixelpen.journal.R;
-import net.pixelpen.journal.activity.MarkorBaseActivity;
-import net.pixelpen.journal.frontend.filebrowser.MarkorFileBrowserFactory;
+import net.pixelpen.journal.activity.AutumnBaseActivity;
+import net.pixelpen.journal.frontend.filebrowser.AutumnFileBrowserFactory;
 import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserListAdapter;
 import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserOptions;
 
 import java.io.File;
 
-public class WrWidgetConfigure extends MarkorBaseActivity {
+public class WrWidgetConfigure extends AutumnBaseActivity {
     private int _appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
 
     private static final String WIDGET_PREF_NAME = "MARKOR_WIDGET_PREF";
@@ -55,7 +55,7 @@ public class WrWidgetConfigure extends MarkorBaseActivity {
     // only runs for a valid id
     private void showWidgetSelectFolderDialog() {
         final FragmentManager fragManager = getSupportFragmentManager();
-        MarkorFileBrowserFactory.showFolderDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
+        AutumnFileBrowserFactory.showFolderDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
             @Override
             public void onFsViewerSelected(String request, File file, final Integer lineNumber) {
                 setWidgetDirectory(WrWidgetConfigure.this, _appWidgetId, file);

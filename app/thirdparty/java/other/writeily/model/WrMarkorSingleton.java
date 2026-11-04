@@ -14,8 +14,8 @@ import android.content.Context;
 
 import androidx.documentfile.provider.DocumentFile;
 
-import net.pixelpen.journal.frontend.MarkorDialogFactory;
-import net.pixelpen.journal.util.MarkorContextUtils;
+import net.pixelpen.journal.frontend.AutumnDialogFactory;
+import net.pixelpen.journal.util.AutumnContextUtils;
 import net.gsantner.opoc.util.GsFileUtils;
 
 import java.io.File;
@@ -95,7 +95,7 @@ public class WrMarkorSingleton {
             }
         }
 
-        final MarkorContextUtils cu = new MarkorContextUtils(context);
+        final AutumnContextUtils cu = new AutumnContextUtils(context);
         if (context != null && cu.isUnderStorageAccessFolder(context, file, file.isDirectory())) {
             final DocumentFile dof = cu.getDocumentFile(context, file, file.isDirectory());
             return dof == null ? false : (dof.delete() || !dof.exists());
@@ -145,7 +145,7 @@ public class WrMarkorSingleton {
                 } else if (resolution == ConflictResolution.ASK) {
                     // Put the file back in
                     files.push(file);
-                    MarkorDialogFactory.showCopyMoveConflictDialog(activity, file.getName(), destDir.getName(), files.size() > 1, (option) -> {
+                    AutumnDialogFactory.showCopyMoveConflictDialog(activity, file.getName(), destDir.getName(), files.size() > 1, (option) -> {
                         ConflictResolution res = ConflictResolution.ASK;
                         if (option == 0 || option == 3) {
                             res = ConflictResolution.KEEP_BOTH;
