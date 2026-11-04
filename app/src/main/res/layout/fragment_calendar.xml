@@ -62,55 +62,25 @@
 
         </LinearLayout>
 
-        <!-- Button + Spinner row -->
+        <!--
+          Category row.
+
+          Reset and Submit sat to the left of this spinner, taking 22 of the row's 100 weight
+          each. Submit is the FAB now, and the form resets itself after a save, so the spinner
+          has the row to itself: the weights are gone with the buttons rather than left behind,
+          which would have held the spinner to 56% of the width with the rest blank.
+        -->
         <LinearLayout
             android:id="@+id/button_line"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:weightSum="100">
-
-            <Button
-                android:id="@+id/btn_reset"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="22"
-                android:text="Reset"
-                android:textAllCaps="false"
-                android:textSize="14sp"
-                android:textColor="#FFFFFF"
-                android:includeFontPadding="false"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="6dp"
-                android:layout_marginEnd="2dp"
-                android:background="@drawable/btn_reset_style" />
-
-            <Button
-                android:id="@+id/btn_submit"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="22"
-                android:text="Submit"
-                android:textAllCaps="false"
-                android:textSize="14sp"
-                android:textColor="#FFFFFF"
-                android:includeFontPadding="false"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="6dp"
-                android:layout_marginStart="2dp"
-                android:layout_marginEnd="2dp"
-                android:background="@drawable/btn_submit_style" />
+            android:orientation="horizontal">
 
             <Spinner
                 android:id="@+id/spinner_category"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="56"
                 android:layout_marginStart="2dp"
                 android:layout_marginEnd="2dp" />
         </LinearLayout>

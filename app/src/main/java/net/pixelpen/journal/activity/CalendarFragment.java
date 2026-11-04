@@ -9,7 +9,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -68,7 +67,6 @@ public class CalendarFragment extends AutumnBaseFragment
     private static final String KEY_UI_LIST_BACKUP = "ui_category_list_backup"; // StringSet
 
     private EditText inputNoteTitle;
-    private Button btnReset, btnSubmit;
     private Spinner spinnerCategory;
     private CalendarView calendarView;
     private final Calendar selectedCalendarDate = Calendar.getInstance();
@@ -81,8 +79,6 @@ public class CalendarFragment extends AutumnBaseFragment
 
         // Views
         inputNoteTitle = view.findViewById(R.id.input_note_title);
-        btnReset = view.findViewById(R.id.btn_reset);
-        btnSubmit = view.findViewById(R.id.btn_submit);
         spinnerCategory = view.findViewById(R.id.spinner_category);
         calendarView = view.findViewById(R.id.calendarView);
 
@@ -107,21 +103,35 @@ public class CalendarFragment extends AutumnBaseFragment
             selectedCalendarDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
         });
 
-        // Reset
-        btnReset.setOnClickListener(v -> {
-            inputNoteTitle.setText("");
-            List<String> cats = loadCategoriesForSpinner();
-            int idxDefault = indexOfIgnoreCase(cats, DEFAULT_CATEGORY);
-            spinnerCategory.setSelection(idxDefault >= 0 ? idxDefault : 0, false);
-            lastRealCategorySelection = spinnerCategory.getSelectedItemPosition();
-            calendarView.setDate(System.currentTimeMillis(), false, true);
-            selectedCalendarDate.setTimeInMillis(System.currentTimeMillis());
-            Toast.makeText(requireContext(), "Reset", Toast.LENGTH_SHORT).show();
-        });
+        // Reset and Submit used to be buttons in the form here. Submit is now the FAB, and reset
+        // happens on its own once a note has been written, which is the only moment the form was
+        // ever stale.
+    }
 
-        // Submit
-        btnSubmit.setOnClickListener(v -> createNoteFileAndSeedContent());
+    /**
+     * Write the entry the form currently describes.
+     *
+     * <p>Called by MainActivity's FAB, which is the primary action for the Calendar tab.
+     */
+    public void captureNote() {
+        createNoteFileAndSeedContent();
+    }
 
+    /**
+     * Put the form back to a blank entry for today.
+     *
+     * <p>Runs after a note is written rather than on a button, so the next capture does not start
+     * out holding the previous one's title, category and date -- which, on a screen whose whole
+     * job is a dated entry, is a way to misfile the next one.
+     */
+    private void resetForm() {
+        inputNoteTitle.setText("");
+        final List<String> cats = loadCategoriesForSpinner();
+        final int idxDefault = indexOfIgnoreCase(cats, DEFAULT_CATEGORY);
+        spinnerCategory.setSelection(idxDefault >= 0 ? idxDefault : 0, false);
+        lastRealCategorySelection = spinnerCategory.getSelectedItemPosition();
+        calendarView.setDate(System.currentTimeMillis(), false, true);
+        selectedCalendarDate.setTimeInMillis(System.currentTimeMillis());
     }
 
     @Override
@@ -469,6 +479,11 @@ public class CalendarFragment extends AutumnBaseFragment
         }
 
         Toast.makeText(requireContext(), "Note created: " + noteFile.getName(), Toast.LENGTH_SHORT).show();
+
+        // Clear the form now, while the write is known to have succeeded. Every early return
+        // above leaves it untouched on purpose: those are cases where nothing was saved, and
+        // wiping what the user typed would lose it.
+        resetForm();
 
         // Open the note in OUR editor.
         //

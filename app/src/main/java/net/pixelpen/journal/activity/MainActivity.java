@@ -33,7 +33,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import net.pixelpen.journal.BuildConfig;
 import net.pixelpen.journal.R;
-import net.pixelpen.journal.frontend.NewFileDialog;
 import net.pixelpen.journal.model.Document;
 import net.pixelpen.journal.util.AutumnContextUtils;
 import net.gsantner.opoc.format.GsSimpleMarkdownParser;
@@ -187,12 +186,6 @@ public class MainActivity extends AutumnBaseActivity {
             _journal = (CalendarFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_journal));
             _tree = (FolderTreeFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_tree));
             _more = (MoreFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_more));
-
-            final NewFileDialog nf = (NewFileDialog) manager.findFragmentByTag(NewFileDialog.FRAGMENT_TAG);
-            if (nf != null) {
-                nf.setCallback(this::newItemCallback);
-            }
-
         } catch (NullPointerException | IllegalStateException ignored) {
             Log.d(MainActivity.class.getName(), "Child fragment not found in onRestoreInstanceState()");
         }
@@ -305,27 +298,22 @@ public class MainActivity extends AutumnBaseActivity {
 
 
     /**
-     * The new-file FAB.
-     * <p>
-     * It used to create into "whatever folder the file browser is showing". With Notebook gone
-     * there is no such folder, so it creates into the home folder. Kept rather than deleted
-     * because it is the obvious place to hang a repurposed action.
+     * The capture FAB.
+     *
+     * <p>This is the one action the app is for, so it sits where Android puts a primary action
+     * instead of as a button inside the form. The Calendar screen owns what capturing means --
+     * the picked date, the category, the title, the stamp written as line 1 -- so the FAB only
+     * asks it to go ahead.
+     *
+     * <p>It used to open Markor's new-file dialog into the home folder, which wrote an undated
+     * file straight into the archive root: no year, no month, no category and, more to the point,
+     * no stamp. That stamp is the durable record of when an entry was made, so a note created
+     * that way had nothing for creation order to read. The FAB is only shown on the Calendar tab,
+     * which is why there is no per-tab branch here.
      */
     public void onClickFab(final View view) {
-        final File dir = _appSettings.getNotebookDirectory();
-        //noinspection ResultOfMethodCallIgnored
-        dir.mkdirs();
-        if (_cu.isUnderStorageAccessFolder(this, dir, true) && _cu.getStorageAccessFrameworkTreeUri(this) == null) {
-            _cu.showMountSdDialog(this);
-            return;
-        }
-        NewFileDialog.newInstance(dir, true, this::newItemCallback)
-                .show(getSupportFragmentManager(), NewFileDialog.FRAGMENT_TAG);
-    }
-
-    private void newItemCallback(final File file) {
-        if (file.isFile()) {
-            DocumentActivity.launch(MainActivity.this, file, false, null);
+        if (_journal != null) {
+            _journal.captureNote();
         }
     }
 
