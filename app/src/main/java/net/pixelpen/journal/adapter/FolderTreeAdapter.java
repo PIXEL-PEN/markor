@@ -252,13 +252,11 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             } else {
                 final Intent i = new Intent(context, DocumentActivity.class);
                 i.putExtra(Document.EXTRA_FILE, target);
-                if (line >= 0) {
-                    // Preview is not asked for here on purpose: the line is what matters, and
-                    // DocumentActivity switches to edit mode to show it.
-                    i.putExtra(Document.EXTRA_FILE_LINE_NUMBER, line);
-                } else {
-                    i.putExtra(Document.EXTRA_DO_PREVIEW, true);
-                }
+                i.putExtra(Document.EXTRA_DO_PREVIEW, true);
+                // The line number is deliberately not passed. Sending it was the only thing that
+                // differed between a search result and a tree row, and search results stopped
+                // opening at all -- so jumping to the match is parked until that path is
+                // understood, rather than left in the way of opening the note.
                 context.startActivity(i);
             }
         } catch (final Exception e) {
