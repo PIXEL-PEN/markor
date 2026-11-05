@@ -204,7 +204,16 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
 
             if (i < hl.size()) {
                 final YearOverview.Event e = hl.get(i);
-                slot.setText("\uD83D\uDCCC  " + e.title);
+                // The month alongside the title, so the order the strip is in is visible rather
+                // than something the reader has to take on trust.
+                final java.util.Calendar when = java.util.Calendar.getInstance();
+                String label = "\uD83D\uDCCC  " + e.title;
+                if (e.aboutMillis > 0L) {
+                    when.setTimeInMillis(e.aboutMillis);
+                    label = label + "   \u00B7   " + new java.text.SimpleDateFormat(
+                            "MMM", java.util.Locale.getDefault()).format(when.getTime());
+                }
+                slot.setText(label);
                 slot.setBackgroundResource(R.drawable.year_slot_filled);
                 slot.setTextColor(androidx.core.content.ContextCompat.getColor(
                         requireContext(), R.color.tree_title));
@@ -253,44 +262,48 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
                     if (title.isEmpty()) {
                         return;
                     }
-                    promptHighlightDate(overview, title);
+                    promptHighlightMonth(overview, title);
                 })
                 .show();
     }
 
     /**
-     * Ask when the highlight happened, which is not when it is being written.
+     * Ask which month the highlight belongs to.
      *
-     * <p>This is the whole difficulty with highlights: they are a year-end exercise, written once
-     * the year has a shape, so the order they are typed in has nothing to do with the order things
-     * happened. Stamping them with "now" would pile a December writing session on top of a year of
-     * events and call it chronological.
+     * <p>A month, not a date. This is the whole difficulty with highlights: they are a year-end
+     * exercise, written once the year has a shape, so the order they are typed in has nothing to
+     * do with the order things happened -- but you do not remember the day either. You remember
+     * that the new app was late in the year and not in January. A date picker would force a day to
+     * be invented, and that day then sits in the file reading as fact.
      *
-     * <p>So the date is asked for and written as the stamp, which is the same thing a backdated
-     * entry on the Calendar screen does, and the strip is ordered by reading it back.
-     *
-     * <p>Defaults to the middle of the year rather than today: at year end, today is the one date
-     * a highlight is least likely to be about, and starting in June costs at most a few months of
-     * scrolling either way.
+     * <p>So: twelve choices, and the month is what gets written. Sequence without false precision,
+     * and it matches how the archive is already laid out.
      */
-    private void promptHighlightDate(final YearOverview overview, final String title) {
-        final java.util.Calendar start = java.util.Calendar.getInstance();
+    private void promptHighlightMonth(final YearOverview overview, final String title) {
         int year;
         try {
             year = Integer.parseInt(overview.year);
         } catch (final NumberFormatException e) {
-            year = start.get(java.util.Calendar.YEAR);
+            year = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR);
         }
-        if (year != start.get(java.util.Calendar.YEAR)) {
-            start.set(year, java.util.Calendar.JUNE, 15);
+        final int pickedYear = year;
+
+        final CharSequence[] months = new CharSequence[12];
+        final java.util.Calendar c = java.util.Calendar.getInstance();
+        for (int m = 0; m < 12; m++) {
+            c.set(pickedYear, m, 1);
+            months[m] = NoteTimestamp.formatMonth(c);
         }
 
-        new android.app.DatePickerDialog(requireContext(), (view, y, m, d) -> {
-            final java.util.Calendar picked = java.util.Calendar.getInstance();
-            picked.set(y, m, d);
-            createHighlight(overview, title, picked);
-        }, start.get(java.util.Calendar.YEAR), start.get(java.util.Calendar.MONTH),
-                start.get(java.util.Calendar.DAY_OF_MONTH)).show();
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.year_highlight_when)
+                .setItems(months, (d, which) -> {
+                    final java.util.Calendar about = java.util.Calendar.getInstance();
+                    about.set(pickedYear, which, 1);
+                    createHighlight(overview, title, about);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     private void createHighlight(final YearOverview overview, final String title,
@@ -309,10 +322,9 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
             return;
         }
         try {
-            // The picked date with the current time, exactly as the Calendar screen stamps a
-            // backdated entry, so a highlight and a note written about the same day agree.
-            final String stamp = NoteTimestamp.format(
-                    NoteTimestamp.combineSelectedDateWithCurrentTime(about));
+            // A month stamp, not a full one. The day and time are not known and must not be
+            // invented: written down they would read as fact to anything that came along later.
+            final String stamp = NoteTimestamp.formatMonth(about);
             final java.io.FileOutputStream out = new java.io.FileOutputStream(note);
             try {
                 out.write((stamp + "\n\n").getBytes("UTF-8"));

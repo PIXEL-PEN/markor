@@ -524,6 +524,7 @@
     <!-- Creating a highlight from an empty slot. %1$s is the year. -->
     <string name="year_highlight_new">New highlight for %1$s</string>
     <string name="year_highlight_hint">What stood out?</string>
+    <string name="year_highlight_when">Roughly when?</string>
 
     <!-- Shown on the Tree tab when the archive has nothing in it yet. -->
     <string name="tree_empty">Nothing here yet.\nCapture a note on the Calendar tab and it will appear here.</string>

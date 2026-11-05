@@ -45,11 +45,22 @@ public final class YearOverview {
         public final File file;
         public final String title;
         public final String category;
+        /**
+         * When this is about, from its first line, or 0 when it carries no readable stamp. Only
+         * filled for highlights, where it decides the order and is worth showing: a strip sorted
+         * by something invisible looks arbitrary.
+         */
+        public final long aboutMillis;
 
         Event(final File file, final String title, final String category) {
+            this(file, title, category, 0L);
+        }
+
+        Event(final File file, final String title, final String category, final long aboutMillis) {
             this.file = file;
             this.title = title;
             this.category = category;
+            this.aboutMillis = aboutMillis;
         }
     }
 
@@ -230,18 +241,23 @@ public final class YearOverview {
             return a.getName().compareToIgnoreCase(b.getName());
         });
         for (final File f : notes) {
-            out.add(new Event(f, stripExtension(f.getName()), "Highlights"));
+            final Long about = stampOf(f);
+            out.add(new Event(f, stripExtension(f.getName()), "Highlights",
+                    (about != null) ? about : 0L));
         }
         return out;
     }
 
-    /** The date a note is about, from its first line, or null if it has no readable stamp. */
+    /**
+     * The date a note is about, from its first line, or null if it carries no readable stamp.
+     * Accepts a full stamp or a month-only one, so highlights and dated notes sort together.
+     */
     private static Long stampOf(final File f) {
         java.io.BufferedReader br = null;
         try {
             br = new java.io.BufferedReader(new java.io.InputStreamReader(
                     new java.io.FileInputStream(f), "UTF-8"));
-            return NoteTimestamp.parseStamp(br.readLine());
+            return NoteTimestamp.parseAboutDate(br.readLine());
         } catch (final Exception e) {
             return null;
         } finally {

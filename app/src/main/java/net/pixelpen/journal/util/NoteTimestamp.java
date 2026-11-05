@@ -44,6 +44,16 @@ public final class NoteTimestamp {
     public static final String LEGACY_STAMP_PATTERN = "EEE. MMMM d, yyyy | h:mm a";
 
     /** Year folder, e.g. {@code 2026}. */
+    /**
+     * A month, with no day and no time: {@code November 2026}.
+     *
+     * <p>For entries that are honestly only known to the month. A year-end highlight is the case
+     * this exists for: you know the new app happened late in the year and not in January, and you
+     * do not know the Tuesday. Writing a full stamp for one would record a day and a time that
+     * were never true, and a date that specific reads as fact to anything that comes along later.
+     */
+    public static final String MONTH_STAMP_PATTERN = "MMMM yyyy";
+
     public static final String YEAR_FOLDER_PATTERN = "yyyy";
 
     /** Month folder, e.g. {@code 11_November}. */
@@ -151,6 +161,49 @@ public final class NoteTimestamp {
      * @param line the first line of a note, or null
      * @return epoch millis, or null if the line carries no recognisable stamp
      */
+    /** A month stamp for the given date: {@code November 2026}. */
+    public static String formatMonth(final java.util.Calendar c) {
+        return new java.text.SimpleDateFormat(MONTH_STAMP_PATTERN, Locale.ENGLISH)
+                .format(c.getTime());
+    }
+
+    /**
+     * The date a note's first line says it is about, whether that line carries a full stamp or
+     * only a month.
+     *
+     * <p>One entry point for the question, so callers do not have to know which kinds of stamp
+     * exist. A month resolves to its first instant, which is what puts a month-only entry ahead of
+     * everything dated later in that month and after everything in the month before.
+     */
+    public static Long parseAboutDate(final String line) {
+        final Long exact = parseStamp(line);
+        if (exact != null) {
+            return exact;
+        }
+        return parseMonthStamp(line);
+    }
+
+    /** {@code November 2026} to the first instant of that month, or null. */
+    public static Long parseMonthStamp(final String line) {
+        if (line == null) {
+            return null;
+        }
+        final String trimmed = line.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        final java.text.SimpleDateFormat fmt =
+                new java.text.SimpleDateFormat(MONTH_STAMP_PATTERN, Locale.ENGLISH);
+        fmt.setLenient(false);
+        final java.text.ParsePosition pos = new java.text.ParsePosition(0);
+        final java.util.Date parsed = fmt.parse(trimmed, pos);
+        // Must account for the whole line, or "November 2026 was hard" would read as a stamp.
+        if (parsed == null || pos.getIndex() != trimmed.length()) {
+            return null;
+        }
+        return parsed.getTime();
+    }
+
     public static Long parseStamp(final String line) {
         if (line == null) {
             return null;
