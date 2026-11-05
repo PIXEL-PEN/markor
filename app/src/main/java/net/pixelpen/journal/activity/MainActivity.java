@@ -293,11 +293,8 @@ public class MainActivity extends AutumnBaseActivity {
             _searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
                 @Override
                 public boolean onMenuItemActionExpand(@NonNull final MenuItem item) {
-                    // The field is offered on the Calendar screen, but the Tree is what draws the
-                    // matches, so typing there would have gone nowhere visible. Move first.
-                    if (getCurrentPos() != tabIdToPos(R.id.nav_tree)) {
-                        _viewPager.setCurrentItem(tabIdToPos(R.id.nav_tree), false);
-                    }
+                    // No tab switch. Opening the field is not a request to go anywhere; it just
+                    // opens the field, on whichever screen it was tapped.
                     return true;
                 }
 

@@ -281,7 +281,12 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
      * Going home means going home until something is opened again.
      */
     public void goHome() {
-        final File root = (_root != null) ? _root : ApplicationObject.settings().getNotebookDirectory();
+        // The canonical archive root, and it is SET, not just read. getNotebookDirectory()
+        // returns whatever was last stored, which is how the tree ended up rooted somewhere
+        // inside the archive -- a year folder -- rather than at the top of it. Home was reaching
+        // the root of the tree faithfully; the tree was simply not rooted at /Documents/Autumn.
+        final File root = ApplicationObject.settings().getDefaultNotebookFile();
+        ApplicationObject.settings().setNotebookDirectory(root);
         _root = root;
         _expanded.clear();
         _expanded.add(root.getAbsolutePath());
