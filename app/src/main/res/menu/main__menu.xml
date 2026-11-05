@@ -36,6 +36,15 @@
         android:visible="false"
         app:showAsAction="never" />
 
+    <!-- Somewhere you go deliberately, rather than a tab flicked to while capturing. -->
+    <item
+        android:id="@+id/action_timeline"
+        android:icon="@drawable/ic_history_black_24dp"
+        android:orderInCategory="2"
+        android:title="@string/timeline"
+        android:visible="false"
+        app:showAsAction="never" />
+
     <!--
       In the overflow rather than gated behind a preference, so the bar has a menu at all. Its
       visibility follows the tab, which is what puts the overflow on the Calendar and Tree screens

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Menu items built in code rather than inflated, so they need an id declared somewhere. -->
+    <item name="action_timeline_add_years" type="id" />
+</resources>

@@ -79,6 +79,12 @@
         </activity>
 
         <activity
+            android:name=".activity.TimelineActivity"
+            android:exported="false"
+            android:label="@string/timeline"
+            android:parentActivityName=".activity.MainActivity" />
+
+        <activity
             android:name=".activity.YearEntryActivity"
             android:exported="false"
             android:parentActivityName=".activity.MainActivity"

@@ -61,12 +61,12 @@ public class MainActivity extends AutumnBaseActivity {
     private CalendarFragment _journal;
     private FolderTreeFragment _tree;
     private YearFragment _year;
-    private TimelineFragment _timeline;
     private MoreFragment _more;
     private FloatingActionButton _fab;
     /** Toolbar items whose visibility follows the tab. */
     private MenuItem _searchItem;
     private MenuItem _homeItem;
+    private MenuItem _timelineItem;
     private MenuItem _settingsItem;
 
     private androidx.appcompat.widget.Toolbar _toolbar;
@@ -127,7 +127,7 @@ public class MainActivity extends AutumnBaseActivity {
 
         // Setup viewpager
         _viewPager.setAdapter(new SectionsPagerAdapter(getSupportFragmentManager()));
-        _viewPager.setOffscreenPageLimit(5);
+        _viewPager.setOffscreenPageLimit(4);
         _bottomNav.setOnItemSelectedListener((item) -> {
             _viewPager.setCurrentItem(tabIdToPos(item.getItemId()));
             return true;
@@ -167,7 +167,6 @@ public class MainActivity extends AutumnBaseActivity {
             manager.putFragment(outState, Integer.toString(R.id.nav_journal), _journal);
             manager.putFragment(outState, Integer.toString(R.id.nav_tree), _tree);
             manager.putFragment(outState, Integer.toString(R.id.nav_year), _year);
-            manager.putFragment(outState, Integer.toString(R.id.nav_timeline), _timeline);
             manager.putFragment(outState, Integer.toString(R.id.nav_more), _more);
         } catch (NullPointerException | IllegalStateException ignored) {
             Log.d(MainActivity.class.getName(), "Child fragments null in onSaveInstanceState()");
@@ -188,7 +187,6 @@ public class MainActivity extends AutumnBaseActivity {
             _journal = (CalendarFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_journal));
             _tree = (FolderTreeFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_tree));
             _year = (YearFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_year));
-            _timeline = (TimelineFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_timeline));
             _more = (MoreFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_more));
         } catch (NullPointerException | IllegalStateException ignored) {
             Log.d(MainActivity.class.getName(), "Child fragment not found in onRestoreInstanceState()");
@@ -246,6 +244,10 @@ public class MainActivity extends AutumnBaseActivity {
             _cu.animateToActivity(this, SettingsActivity.class, false, null);
             return true;
         }
+        if (item.getItemId() == R.id.action_timeline) {
+            _cu.animateToActivity(this, TimelineActivity.class, false, null);
+            return true;
+        }
         if (item.getItemId() == R.id.action_home) {
             openHomeFolderInAndroid();
             return true;
@@ -259,6 +261,7 @@ public class MainActivity extends AutumnBaseActivity {
 
         _settingsItem = menu.findItem(R.id.action_settings);
         _homeItem = menu.findItem(R.id.action_home);
+        _timelineItem = menu.findItem(R.id.action_timeline);
         _searchItem = menu.findItem(R.id.action_search);
         final androidx.appcompat.widget.SearchView search =
                 (androidx.appcompat.widget.SearchView) _searchItem.getActionView();
@@ -380,6 +383,9 @@ public class MainActivity extends AutumnBaseActivity {
         if (_homeItem != null) {
             _homeItem.setVisible(wanted);
         }
+        if (_timelineItem != null) {
+            _timelineItem.setVisible(wanted);
+        }
         if (_settingsItem != null) {
             _settingsItem.setVisible(wanted);
         }
@@ -455,13 +461,6 @@ public class MainActivity extends AutumnBaseActivity {
      * which is why there is no per-tab branch here.
      */
     public void onClickFab(final View view) {
-        if (getCurrentPos() == tabIdToPos(R.id.nav_timeline)) {
-            // Same button, the screen's own primary action: the timeline's is adding years.
-            if (_timeline != null) {
-                _timeline.promptAddYears();
-            }
-            return;
-        }
         if (_journal == null) {
             return;
         }
@@ -503,8 +502,7 @@ public class MainActivity extends AutumnBaseActivity {
         if (id == R.id.nav_journal) return 0;
         if (id == R.id.nav_tree) return 1;
         if (id == R.id.nav_year) return 2;
-        if (id == R.id.nav_timeline) return 3;
-        if (id == R.id.nav_more) return 4;
+        if (id == R.id.nav_more) return 3;
         return 0;
     }
 
@@ -520,8 +518,6 @@ public class MainActivity extends AutumnBaseActivity {
             _tree.reload();
         } else if (pos == tabIdToPos(R.id.nav_year) && _year != null) {
             _year.reload();
-        } else if (pos == tabIdToPos(R.id.nav_timeline) && _timeline != null) {
-            _timeline.reload();
         }
     }
 
@@ -537,8 +533,7 @@ public class MainActivity extends AutumnBaseActivity {
         if (pos == 0) return getString(R.string.calendar);
         if (pos == 1) return getString(R.string.tree);
         if (pos == 2) return getString(R.string.year);
-        if (pos == 3) return getString(R.string.timeline);
-        if (pos == 4) return getString(R.string.more);
+        if (pos == 3) return getString(R.string.more);
         return "";
     }
 
@@ -546,8 +541,7 @@ public class MainActivity extends AutumnBaseActivity {
         if (pos == 0) return _journal;
         if (pos == 1) return _tree;
         if (pos == 2) return _year;
-        if (pos == 3) return _timeline;
-        if (pos == 4) return _more;
+        if (pos == 3) return _more;
         return null;
     }
 
@@ -555,9 +549,9 @@ public class MainActivity extends AutumnBaseActivity {
     public void onViewPagerPageSelected(final int pos) {
         _bottomNav.getMenu().getItem(pos).setChecked(true);
 
-        // The FAB is the primary action of whichever screen can take one: capture on Journal,
-        // and laying down years on Timeline. The Tree, Year and More screens have none.
-        if (pos == tabIdToPos(R.id.nav_journal) || pos == tabIdToPos(R.id.nav_timeline)) {
+        // Capture is the only primary action among the tabs; the Tree, Year and More screens
+        // have none. The timeline's own is on its own screen now.
+        if (pos == tabIdToPos(R.id.nav_journal)) {
             _fab.show();
         } else {
             _fab.hide();
@@ -588,9 +582,6 @@ public class MainActivity extends AutumnBaseActivity {
         if (pos == tabIdToPos(R.id.nav_year) && _year != null) {
             _year.reload();
         }
-        if (pos == tabIdToPos(R.id.nav_timeline) && _timeline != null) {
-            _timeline.reload();
-        }
 
         applyToolbarForTab(pos);
 
@@ -615,8 +606,6 @@ public class MainActivity extends AutumnBaseActivity {
                 frag = _tree = FolderTreeFragment.newInstance();
             } else if (id == R.id.nav_year) {
                 frag = _year = YearFragment.newInstance();
-            } else if (id == R.id.nav_timeline) {
-                frag = _timeline = TimelineFragment.newInstance();
             } else if (id == R.id.nav_more) {
                 frag = _more = MoreFragment.newInstance();
             } else {
