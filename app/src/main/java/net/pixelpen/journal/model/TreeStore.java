@@ -84,11 +84,6 @@ public class TreeStore {
             return new Entry(f, false, display, createdMillis, false, false);
         }
 
-        /** The "go up" row at the top of a folder listing. */
-        public static Entry forParent(final File parent) {
-            return new Entry(parent, true, "..", 0L, false, false);
-        }
-
         /**
          * A directory row the store did not produce itself -- the archive root, which has no
          * parent listing to come from.
