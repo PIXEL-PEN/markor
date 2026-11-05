@@ -17,7 +17,7 @@
         android:layout_width="46dp"
         android:layout_height="wrap_content"
         android:paddingTop="14dp"
-        android:textColor="@color/tl_gutter"
+        android:textColor="@color/tl_entry_gutter"
         android:textSize="13sp"
         android:textStyle="bold" />
 
@@ -26,7 +26,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:background="@drawable/tl_notes_card"
+        android:background="@drawable/tl_entry_field"
         android:gravity="top"
         android:importantForAutofill="no"
         android:inputType="textMultiLine|textCapSentences"

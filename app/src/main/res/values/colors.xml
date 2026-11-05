@@ -110,4 +110,13 @@
     <!-- The seeded month column. Subtle on purpose: it is a scaffold, not content. -->
     <color name="tl_gutter">#A9B4BF</color>
 
+    <!--
+      The year entry screen, a shade deeper than the timeline's page. White fields on a very pale
+      page read as glare with nothing to separate them; dropping the page lets the fields come
+      forward on their own instead of relying on a border to do it.
+    -->
+    <color name="tl_entry_bg">#D6DFE5</color>
+    <color name="tl_entry_border">#A8B6C0</color>
+    <color name="tl_entry_gutter">#5E6E79</color>
+
 </resources>
