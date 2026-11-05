@@ -568,6 +568,10 @@
     <!-- %1$d is a file count. -->
     <string name="backup_done">%1$d files packed. Choose where to keep it.</string>
     <string name="backup_failed">Backup failed.</string>
+    <string name="export_html">Export as web page</string>
+    <string name="export_working">Building the page\u2026</string>
+    <string name="export_failed">Export failed.</string>
+    <string name="export_empty">Nothing in the timeline to export yet.</string>
     <string name="backup_empty">There is nothing in the archive to back up yet.</string>
 
     <!-- Deleting a folder from the tree. %1$s is the folder name. -->

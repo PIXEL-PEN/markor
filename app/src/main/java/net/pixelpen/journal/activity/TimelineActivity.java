@@ -57,6 +57,9 @@ public class TimelineActivity extends AutumnBaseActivity {
         final MenuItem add = menu.add(0, R.id.action_timeline_add_years, 0,
                 R.string.timeline_add_years).setIcon(R.drawable.ic_add_white_24dp);
         add.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        // Overflow, not the bar: exporting is occasional, adding years is not.
+        menu.add(0, R.id.action_timeline_export, 1, R.string.export_html)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
         return true;
     }
 
@@ -68,11 +71,58 @@ public class TimelineActivity extends AutumnBaseActivity {
             }
             return true;
         }
+        if (item.getItemId() == R.id.action_timeline_export) {
+            runHtmlExport();
+            return true;
+        }
         if (item.getItemId() == android.R.id.home) {
             finish();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Writes the timeline to one self-contained HTML file and hands it to the share sheet.
+     *
+     * <p>Off the main thread: it reads every year note and re-encodes every picture in the
+     * timeline, which on a long life is seconds rather than milliseconds.
+     */
+    private void runHtmlExport() {
+        final java.io.File home = _appSettings.getNotebookDirectory();
+        if (home == null || !home.isDirectory()) {
+            android.widget.Toast.makeText(this, R.string.export_empty,
+                    android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final androidx.appcompat.app.AlertDialog dialog =
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setMessage(R.string.export_working)
+                        .setCancelable(false)
+                        .show();
+
+        new Thread(() -> {
+            java.io.File page = null;
+            try {
+                page = net.pixelpen.journal.model.HtmlExport.exportTimeline(this, home);
+            } catch (final Exception e) {
+                page = null;
+            }
+            final java.io.File done = page;
+            runOnUiThread(() -> {
+                if (isFinishing()) {
+                    return;
+                }
+                dialog.dismiss();
+                if (done == null) {
+                    android.widget.Toast.makeText(this, R.string.export_failed,
+                            android.widget.Toast.LENGTH_LONG).show();
+                    return;
+                }
+                _cu.shareStream(this, done, "text/html");
+            });
+        }).start();
     }
 
     @Override

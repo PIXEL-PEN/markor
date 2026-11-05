@@ -2,5 +2,6 @@
 <resources>
     <!-- Menu items built in code rather than inflated, so they need an id declared somewhere. -->
     <item name="action_timeline_add_years" type="id" />
+    <item name="action_timeline_export" type="id" />
     <item name="action_add_image" type="id" />
 </resources>
