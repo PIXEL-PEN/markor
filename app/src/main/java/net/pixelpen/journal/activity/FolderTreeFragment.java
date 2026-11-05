@@ -59,6 +59,8 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
 
     private RecyclerView _list;
     private TextView _empty;
+    /** Path header, shown only while browsing a folder. */
+    private TextView _path;
     private View _progress;
     private FolderTreeAdapter _adapter;
     private TreeStore _store;
@@ -93,6 +95,7 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         _list = view.findViewById(R.id.folder_tree_list);
         _empty = view.findViewById(R.id.folder_tree_empty);
         _progress = view.findViewById(R.id.folder_tree_progress);
+        _path = view.findViewById(R.id.folder_tree_path);
 
         _empty.setText(R.string.tree_empty);
         _adapter = new FolderTreeAdapter(this);
@@ -383,17 +386,138 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         _list = null;
         _empty = null;
         _progress = null;
+        _path = null;
         _adapter = null;
         super.onDestroyView();
     }
 
-    /** Draw whichever of the two views is current. */
-    private void redraw() {
-        if (_query == null) {
-            rebuild();
-        } else {
-            runSearch();
+    /**
+     * The folder being browsed, or null when showing the tree.
+     *
+     * <p>Browsing is a third mode beside the tree and search results: one directory at a time,
+     * folders then files, with a row to go up. The tree is the archive by year and month and is
+     * the right shape for reading; this is the right shape for finding a file that is simply
+     * somewhere in the home folder, which is where the summaries and scripts and exports live.
+     */
+    private File _browseDir;
+
+    /**
+     * Browse the home folder, in the app.
+     *
+     * <p>Earlier versions of Home handed the folder to Android's file browser. Those are
+     * inconsistent between devices and unpleasant on this one, which is the reason for keeping
+     * this inside the app.
+     */
+    public void goHome() {
+        final File root = ApplicationObject.settings().getDefaultNotebookFile();
+        ApplicationObject.settings().setNotebookDirectory(root);
+        _root = root;
+        _browseDir = root;
+        _query = null;
+        _pendingReveal = null;
+        _scrollToTop = true;
+        _store.invalidateAll();
+        redraw();
+    }
+
+    /**
+     * Go up one folder; leave browsing when already at the home folder.
+     *
+     * @return true if this consumed the gesture, false to let it fall through to the system.
+     */
+    public boolean navigateUp() {
+        if (_browseDir == null) {
+            return false;
         }
+        if (_root != null && _browseDir.equals(_root)) {
+            _browseDir = null; // Back out to the tree.
+        } else {
+            final File parent = _browseDir.getParentFile();
+            _browseDir = (parent != null && isUnder(_root, parent)) ? parent : null;
+        }
+        _scrollToTop = true;
+        redraw();
+        return true;
+    }
+
+    /**
+     * Back goes up a folder while browsing, and out of browsing at the home folder.
+     *
+     * <p>Only then. In the tree, back should leave the app as it always has: unfolding a few
+     * folders is not navigation and should not have to be undone one step at a time to get out.
+     */
+    @Override
+    public boolean onBackPressed() {
+        return navigateUp();
+    }
+
+    /** Draw whichever of the three views is current. */
+    private void redraw() {
+        if (_query != null) {
+            runSearch();
+        } else if (_browseDir != null) {
+            browse();
+        } else {
+            rebuild();
+        }
+    }
+
+    /** List one folder: a row to go up, then its subfolders, then its files. */
+    private void browse() {
+        final File dir = _browseDir;
+        final File root = _root;
+        if (dir == null || root == null) {
+            return;
+        }
+        new Thread(() -> {
+            final TreeStore.Dir contents = _store.load(dir);
+            final List<FolderTreeAdapter.Row> rows = new ArrayList<>();
+            // Always offered, including at the home folder, where it leaves browsing rather than
+            // climbing out of the archive. Nothing above the home folder is ever listed.
+            final File parent = dir.getParentFile();
+            rows.add(new FolderTreeAdapter.Row(
+                    TreeStore.Entry.forParent(parent != null ? parent : root), 0, false));
+            for (final TreeStore.Entry sub : contents.dirs) {
+                rows.add(new FolderTreeAdapter.Row(sub, 0, false));
+            }
+            for (final TreeStore.Entry f : contents.files) {
+                rows.add(new FolderTreeAdapter.Row(f, 0, false));
+            }
+
+            final android.app.Activity host = getActivity();
+            if (host == null) {
+                return;
+            }
+            final String shown = relativeToRoot(root, dir);
+            host.runOnUiThread(() -> {
+                if (!isAdded() || _adapter == null || _list == null || !dir.equals(_browseDir)) {
+                    return;
+                }
+                _adapter.setRows(rows);
+                _list.scrollToPosition(0);
+                _scrollToTop = false;
+                _progress.setVisibility(View.GONE);
+                _empty.setVisibility(rows.size() <= 1 ? View.VISIBLE : View.GONE);
+                _empty.setText(R.string.tree_empty);
+                if (_path != null) {
+                    _path.setText(shown);
+                    _path.setVisibility(View.VISIBLE);
+                }
+            });
+        }).start();
+    }
+
+    /** The home folder's own name, then the path below it. */
+    private static String relativeToRoot(final File root, final File dir) {
+        final String rootPath = root.getAbsolutePath();
+        final String p = dir.getAbsolutePath();
+        if (p.equals(rootPath)) {
+            return root.getName();
+        }
+        if (p.startsWith(rootPath + "/")) {
+            return root.getName() + "/" + p.substring(rootPath.length() + 1);
+        }
+        return p;
     }
 
     /**
@@ -444,6 +568,9 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
                 _adapter.setRows(rows);
                 _list.scrollToPosition(0);
                 _progress.setVisibility(View.GONE);
+                if (_path != null) {
+                    _path.setVisibility(View.GONE); // Results span folders; no one path fits.
+                }
                 _empty.setText(getString(R.string.tree_search_no_results, query));
                 _empty.setVisibility(rows.isEmpty() ? View.VISIBLE : View.GONE);
                 if (capped) {
@@ -501,6 +628,9 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
                     lm.onRestoreInstanceState(scroll);
                 }
                 _progress.setVisibility(View.GONE);
+                if (_path != null) {
+                    _path.setVisibility(View.GONE); // Tree rows carry their own context.
+                }
                 // Put the message back: a search leaves "nothing matched <query>" in here.
                 _empty.setText(R.string.tree_empty);
                 // Empty only counts when the root is open and still produced nothing. A closed
@@ -530,6 +660,17 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
 
     @Override
     public void onFolderToggled(final FolderTreeAdapter.Row row) {
+        if (_browseDir != null) {
+            // Browsing: a folder row is somewhere to go, not something to unfold.
+            if ("..".equals(row.entry.display)) {
+                navigateUp();
+            } else {
+                _browseDir = row.entry.file;
+                _scrollToTop = true;
+                redraw();
+            }
+            return;
+        }
         final String path = row.entry.file.getAbsolutePath();
         if (!_expanded.remove(path)) {
             _expanded.add(path);

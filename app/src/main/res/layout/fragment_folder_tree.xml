@@ -18,14 +18,42 @@
     android:layout_height="match_parent"
     tools:context=".activity.FolderTreeFragment">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/folder_tree_list"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingTop="8dp"
-        android:paddingBottom="88dp"
-        android:scrollbars="vertical" />
+        android:orientation="vertical">
+
+        <!--
+          The folder being browsed. Only shown while browsing: in the tree each row's indentation
+          already says where it sits, but a folder listing is one level with no such context, and
+          without the path there is nothing on screen to say which folder you are looking at.
+        -->
+        <TextView
+            android:id="@+id/folder_tree_path"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/tree_divider"
+            android:ellipsize="start"
+            android:paddingStart="16dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="10dp"
+            android:singleLine="true"
+            android:textColor="@color/tree_title"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/folder_tree_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="8dp"
+            android:paddingBottom="88dp"
+            android:scrollbars="vertical" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/folder_tree_empty"

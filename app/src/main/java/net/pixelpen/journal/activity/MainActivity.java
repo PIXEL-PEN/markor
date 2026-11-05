@@ -241,7 +241,19 @@ public class MainActivity extends AutumnBaseActivity {
             return true;
         }
         if (item.getItemId() == R.id.action_home) {
-            openHomeFolderInAndroid();
+            if (_searchItem != null && _searchItem.isActionViewExpanded()) {
+                _searchItem.collapseActionView();
+            }
+            if (getCurrentPos() != tabIdToPos(R.id.nav_tree)) {
+                _viewPager.setCurrentItem(tabIdToPos(R.id.nav_tree), false);
+            }
+            // Posted so it lands after the pager's page-selected callback, which reloads the
+            // Tree; arriving first, the browse view would be drawn and then immediately replaced.
+            _viewPager.post(() -> {
+                if (_tree != null) {
+                    _tree.goHome();
+                }
+            });
             return true;
         }
         return false;
@@ -303,53 +315,6 @@ public class MainActivity extends AutumnBaseActivity {
         _cu.tintMenuItems(menu, true, Color.WHITE);
         _cu.setSubMenuIconsVisibility(menu, true);
         return true;
-    }
-
-    /**
-     * Hand the home folder to Android's own file UI.
-     *
-     * <p>Home is not a view inside this app. Two earlier attempts treated it as one -- rooting the
-     * tree at the home folder and collapsing it -- and both were right about the folder and wrong
-     * about the screen: what was wanted is the standard Android file and folder browser, showing
-     * Documents/Autumn, not Autumn's own styled tree of years and months.
-     *
-     * <p>Two routes, because device file managers differ. ACTION_VIEW on the folder's document URI
-     * opens it for browsing where that is supported. Where it is not, ACTION_OPEN_DOCUMENT_TREE
-     * with the same URI as its starting point is the picker itself, which every device has, and
-     * shows the same structure. Nothing is done with what the picker returns: this is for looking,
-     * and no access beyond the home folder is wanted or asked for.
-     */
-    private void openHomeFolderInAndroid() {
-        if (_searchItem != null && _searchItem.isActionViewExpanded()) {
-            _searchItem.collapseActionView();
-        }
-
-        // "primary:Documents/Autumn", or "Autumn (dev)" on a debug install. Built through
-        // DocumentsContract so the space and brackets are encoded properly rather than by hand.
-        final String docId = "primary:Documents/" + net.pixelpen.journal.BuildConfig.STORAGE_ROOT_NAME;
-        final android.net.Uri folder = android.provider.DocumentsContract.buildDocumentUri(
-                "com.android.externalstorage.documents", docId);
-
-        final Intent view = new Intent(Intent.ACTION_VIEW);
-        view.setDataAndType(folder, "vnd.android.document/directory");
-        view.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        try {
-            startActivity(view);
-            return;
-        } catch (final Exception ignored) {
-            // No file manager answers ACTION_VIEW for a directory on this device.
-        }
-
-        final Intent pick = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            pick.putExtra(android.provider.DocumentsContract.EXTRA_INITIAL_URI, folder);
-        }
-        try {
-            startActivity(pick);
-        } catch (final Exception e) {
-            android.widget.Toast.makeText(this, R.string.error_could_not_open_file,
-                    android.widget.Toast.LENGTH_SHORT).show();
-        }
     }
 
     /**
@@ -481,9 +446,9 @@ public class MainActivity extends AutumnBaseActivity {
 
     // Tabs: Journal, Tree, More. Order must match main__bottom_nav.xml.
     //
-    // Notebook (Markor's file browser) was removed on request. Note that it was the only
-    // way to rename, move or delete a note -- the Tree is tap-to-open only -- so that
-    // capability is currently absent and wants replacing with actions on the Tree.
+    // Notebook (Markor's file browser) was removed on request. Rename, move and delete used to
+    // live only there; they are on a long-press on a Tree row now, and Home browses the home
+    // folder inside the Tree tab rather than reinstating a separate browser.
     public int tabIdToPos(final int id) {
         if (id == R.id.nav_journal) return 0;
         if (id == R.id.nav_tree) return 1;
