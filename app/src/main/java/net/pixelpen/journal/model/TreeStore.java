@@ -186,7 +186,11 @@ public class TreeStore {
                     continue;
                 }
                 dirs.add(new Entry(f, true, NUM_PREFIX.matcher(name).replaceFirst(""), 0L, false, false));
-            } else if (f.isFile() && isDoc(name)) {
+            } else if (f.isFile()) {
+                // Every file, not only notes. The home folder is where the rest of the archive's
+                // belongings end up -- generated summaries, scripts, exports -- and a browser
+                // that silently omits them is worse than no browser: the folder looks empty of
+                // things that are plainly in it.
                 files.add(fileEntry(f, name));
             }
         }
@@ -226,7 +230,9 @@ public class TreeStore {
     }
 
     private Entry fileEntry(final File f, final String name) {
-        final String display = STRIP_SUFFIX.matcher(name).replaceAll("");
+        // Only a note's own extension is hidden. Anything else keeps it, because for those the
+        // extension is the most useful thing about the row.
+        final String display = isDoc(name) ? STRIP_SUFFIX.matcher(name).replaceAll("") : name;
         final boolean longTitle = display.length() >= TITLE_LEN_THRESHOLD;
         // Only long-titled notes show a badge, so only they are worth opening to look inside.
         final boolean substantial = longTitle

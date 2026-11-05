@@ -242,7 +242,20 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         final String name = target.getName().toLowerCase(Locale.ROOT);
         try {
-            if (name.endsWith(".html") || name.endsWith(".htm")) {
+            if (!isEditable(name) && !name.endsWith(".html") && !name.endsWith(".htm")) {
+                // Not a note and not a page: hand it to whatever on the device owns it, rather
+                // than opening a PDF or a zip in a markdown editor. The home folder holds these
+                // now, so they have to do something sensible when tapped.
+                final android.net.Uri uri = androidx.core.content.FileProvider.getUriForFile(
+                        context, BuildConfig.APPLICATION_ID + ".provider", target);
+                final Intent i = new Intent(Intent.ACTION_VIEW);
+                final String ext = name.contains(".") ? name.substring(name.lastIndexOf('.') + 1) : "";
+                final String mime = android.webkit.MimeTypeMap.getSingleton()
+                        .getMimeTypeFromExtension(ext);
+                i.setDataAndType(uri, (mime != null) ? mime : "*/*");
+                i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                context.startActivity(Intent.createChooser(i, target.getName()));
+            } else if (name.endsWith(".html") || name.endsWith(".htm")) {
                 final android.net.Uri uri = androidx.core.content.FileProvider.getUriForFile(
                         context, BuildConfig.APPLICATION_ID + ".provider", target);
                 final Intent i = new Intent(Intent.ACTION_VIEW);
@@ -323,6 +336,12 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             }
         }
         return best;
+    }
+
+    /** Text this app's own editor should handle. */
+    private static boolean isEditable(final String lowerName) {
+        return lowerName.endsWith(".md") || lowerName.endsWith(".markdown")
+                || lowerName.endsWith(".txt");
     }
 
     static final class FolderHolder extends RecyclerView.ViewHolder {
