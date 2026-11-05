@@ -63,6 +63,15 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
 
     private YearOverview _year;
     private boolean _highlightsOpen = true;
+
+    /**
+     * The year being shown, or null to follow the newest.
+     *
+     * <p>Null by default, and it stays null unless a year is deliberately chosen. That way the
+     * screen rolls over on its own at New Year: the first note captured in January creates the
+     * folder, and the newest year becomes that one without anybody doing anything.
+     */
+    private String _selectedYear;
     /** Set while the spinner is being populated, so its callback does not count as a choice. */
     private boolean _settingUpSpinner;
 
@@ -84,7 +93,14 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
         _list.setItemAnimator(null);
 
         // Tapping the year folds the months away, and again brings them back.
-        _title.setOnClickListener(v -> toggleAllMonths());
+        // Tapping the year picks a year; the caret beside it has always looked like a picker and
+        // now is one. Folding the months away moves to a long press, which is the lesser of the
+        // two: without a picker, every year but the newest was simply unreachable here.
+        _title.setOnClickListener(v -> promptPickYear());
+        _title.setOnLongClickListener(v -> {
+            toggleAllMonths();
+            return true;
+        });
         _back.setOnClickListener(v -> showAllMonths());
         _highlightsToggle.setOnClickListener(v -> {
             _highlightsOpen = !_highlightsOpen;
@@ -120,10 +136,23 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
             return;
         }
         final File root = ApplicationObject.settings().getNotebookDirectory();
+        final String wanted = _selectedYear;
         new Thread(() -> {
-            final File yearDir = YearOverview.latestYearDir(root);
-            final YearOverview overview = (yearDir != null)
-                    ? YearOverview.read(yearDir)
+            File yearDir = null;
+            if (wanted != null) {
+                final File chosen = new File(root, wanted);
+                if (chosen.isDirectory()) {
+                    yearDir = chosen;
+                }
+            }
+            // Falls back to the newest if the chosen year has gone -- renamed, moved, deleted --
+            // rather than showing an empty screen for a folder that is not there any more.
+            if (yearDir == null) {
+                yearDir = YearOverview.latestYearDir(root);
+            }
+            final File resolved = yearDir;
+            final YearOverview overview = (resolved != null)
+                    ? YearOverview.read(resolved)
                     : YearOverview.empty(String.valueOf(java.util.Calendar.getInstance()
                             .get(java.util.Calendar.YEAR)));
 
@@ -359,6 +388,36 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
         _highlights.setVisibility(_highlightsOpen ? View.VISIBLE : View.GONE);
         _highlightsToggle.setText(_highlightsOpen
                 ? R.string.year_highlights_shown : R.string.year_highlights_hidden);
+    }
+
+    /**
+     * Choose which year to show.
+     *
+     * <p>Newest first, because the one wanted is nearly always recent. Choosing the newest clears
+     * the selection rather than pinning it, so the screen goes back to following whatever the
+     * newest year is and rolls over by itself next January.
+     */
+    private void promptPickYear() {
+        final File root = ApplicationObject.settings().getNotebookDirectory();
+        final java.util.List<File> years = YearOverview.yearDirs(root);
+        if (years.size() < 2) {
+            // Nothing to choose between; fall back to the other thing the header does.
+            toggleAllMonths();
+            return;
+        }
+        java.util.Collections.reverse(years);
+        final CharSequence[] labels = new CharSequence[years.size()];
+        for (int i = 0; i < years.size(); i++) {
+            labels[i] = years.get(i).getName();
+        }
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.year_pick)
+                .setItems(labels, (d, which) -> {
+                    _selectedYear = (which == 0) ? null : years.get(which).getName();
+                    reload();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     /** Fold every month away, or bring them all back. */

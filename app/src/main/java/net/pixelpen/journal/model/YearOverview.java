@@ -127,21 +127,31 @@ public final class YearOverview {
      * <p>Only all-digit names count, so "Highlights 2026" is not mistaken for a year.
      */
     public static File latestYearDir(final File root) {
+        final List<File> years = yearDirs(root);
+        return years.isEmpty() ? null : years.get(years.size() - 1);
+    }
+
+    /**
+     * Every year folder under the archive root, oldest first.
+     *
+     * <p>Only all-digit names count, so "Highlights 2026" is not mistaken for a year.
+     */
+    public static List<File> yearDirs(final File root) {
+        final List<File> out = new ArrayList<>();
         if (root == null || !root.isDirectory()) {
-            return null;
+            return out;
         }
         final File[] kids = root.listFiles();
         if (kids == null) {
-            return null;
+            return out;
         }
-        File best = null;
         for (final File f : kids) {
-            if (f.isDirectory() && f.getName().matches("\\d{4}")
-                    && (best == null || f.getName().compareTo(best.getName()) > 0)) {
-                best = f;
+            if (f.isDirectory() && f.getName().matches("\\d{4}")) {
+                out.add(f);
             }
         }
-        return best;
+        Collections.sort(out, (a, b) -> a.getName().compareTo(b.getName()));
+        return out;
     }
 
     /** Read a year. Call off the main thread. */

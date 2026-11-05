@@ -515,6 +515,7 @@
 
     <!-- Year overview screen. -->
     <string name="year">Year</string>
+    <string name="year_pick">Show year</string>
     <string name="year_back_to_full">← Back to full view</string>
     <string name="year_highlights_shown">▼ highlights</string>
     <string name="year_highlights_hidden">► highlights</string>
