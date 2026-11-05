@@ -17,6 +17,7 @@ import net.pixelpen.journal.R;
 import net.pixelpen.journal.adapter.YearMonthAdapter;
 import net.pixelpen.journal.model.Document;
 import net.pixelpen.journal.model.YearOverview;
+import net.pixelpen.journal.util.NoteTimestamp;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -153,8 +154,10 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
                 : String.valueOf(_categorySpinner.getSelectedItem());
 
         _settingUpSpinner = true;
+        // Closed state white-on-teal with a caret; the opened list stays the platform's own, which
+        // is drawn on the popup's background rather than on the bar.
         final ArrayAdapter<String> cats = new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_spinner_item, new ArrayList<>(overview.categories));
+                R.layout.item_year_spinner, new ArrayList<>(overview.categories));
         cats.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         _categorySpinner.setAdapter(cats);
 
@@ -200,9 +203,88 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
                 slot.setBackgroundResource(R.drawable.year_slot_empty);
                 slot.setTextColor(androidx.core.content.ContextCompat.getColor(
                         requireContext(), R.color.year_slot_empty));
-                slot.setOnClickListener(null);
-                slot.setClickable(false);
+                slot.setOnClickListener(v -> promptNewHighlight());
             }
+        }
+    }
+
+    /**
+     * Fill an empty highlight slot.
+     *
+     * <p>A highlight is an ordinary note in "Highlights &lt;year&gt;" beside the month folders,
+     * which is where year.py looked for them, so one written here is also one that script would
+     * have found.
+     *
+     * <p>It is seeded with the same date stamp on line 1 as a captured note. That stamp is what
+     * the archive treats as the record of when something was written, and a note created by
+     * another route without one is a note the ordering has nothing to read for.
+     */
+    private void promptNewHighlight() {
+        final YearOverview overview = _year;
+        if (overview == null || overview.highlightsDir() == null) {
+            return;
+        }
+        final android.widget.EditText input = new android.widget.EditText(requireContext());
+        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT
+                | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        input.setHint(R.string.year_highlight_hint);
+
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(getString(R.string.year_highlight_new, overview.year))
+                .setView(input)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(android.R.string.ok, (d, w) -> {
+                    // Same sanitising as the capture screen, so a highlight cannot be given a name
+                    // capture itself would never have produced.
+                    final String title = input.getText().toString().trim()
+                            .replaceAll("[\\\\/:*?\"<>|]", "_");
+                    if (title.isEmpty()) {
+                        return;
+                    }
+                    createHighlight(overview, title);
+                })
+                .show();
+    }
+
+    private void createHighlight(final YearOverview overview, final String title) {
+        final File dir = overview.highlightsDir();
+        if (dir == null) {
+            return;
+        }
+        if (!dir.isDirectory() && !dir.mkdirs()) {
+            toast(R.string.error_could_not_open_file);
+            return;
+        }
+        final File note = new File(dir, title + ".md");
+        if (note.exists()) {
+            toast(R.string.file_folder_already_exists_please_use_a_different_name);
+            return;
+        }
+        try {
+            final String stamp = NoteTimestamp.format(java.util.Calendar.getInstance());
+            final java.io.FileOutputStream out = new java.io.FileOutputStream(note);
+            try {
+                out.write((stamp + "\n\n").getBytes("UTF-8"));
+            } finally {
+                out.close();
+            }
+        } catch (final Exception e) {
+            toast(R.string.error_could_not_open_file);
+            return;
+        }
+        // Reload before opening, so the slot is filled when the editor is dismissed.
+        reload();
+        // Edit, not preview: it was created a moment ago and holds nothing but its date stamp, so
+        // there is nothing to preview and the point is to write in it.
+        final Intent i = new Intent(requireContext(), DocumentActivity.class);
+        i.putExtra(Document.EXTRA_FILE, note);
+        startActivity(i);
+    }
+
+    private void toast(final int stringRes) {
+        if (isAdded()) {
+            android.widget.Toast.makeText(requireContext(), stringRes,
+                    android.widget.Toast.LENGTH_SHORT).show();
         }
     }
 
