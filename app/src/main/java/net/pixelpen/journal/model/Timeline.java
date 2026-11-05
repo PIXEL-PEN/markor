@@ -190,7 +190,7 @@ public final class Timeline {
                 if (t.isEmpty()) {
                     continue;
                 }
-                final int heading = headingMonth(t);
+                final int heading = headingMonthOf(t);
                 if (heading >= 0) {
                     current = heading;
                     continue;
@@ -220,7 +220,7 @@ public final class Timeline {
     }
 
     /** The month a heading line names, or -1 if the line is not a heading. */
-    private static int headingMonth(final String line) {
+    public static int headingMonthOf(final String line) {
         final java.util.regex.Matcher m = MONTH_HEADING.matcher(line);
         if (!m.matches()) {
             return -1;

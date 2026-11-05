@@ -536,6 +536,9 @@
     <string name="timeline_set_highlight">Highlight</string>
     <!-- Shown in the pill of a year that has no defining event recorded yet. -->
     <string name="timeline_add_highlight">+ highlight</string>
+    <string name="timeline_open_text">Open as text</string>
+    <!-- Label for entries in a year that name no month. -->
+    <string name="timeline_undated">\u2014</string>
     <!-- %1$d is a year. -->
     <string name="timeline_highlight_for">Highlight for %1$d</string>
     <string name="timeline_highlight_hint">The one thing this year is remembered by</string>

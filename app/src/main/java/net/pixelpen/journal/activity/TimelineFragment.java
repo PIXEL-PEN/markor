@@ -175,6 +175,7 @@ public class TimelineFragment extends AutumnBaseFragment implements TimelineAdap
         final CharSequence[] actions = {
                 getString(R.string.timeline_set_highlight),
                 getString(R.string.timeline_write),
+                getString(R.string.timeline_open_text),
                 getString(R.string.delete),
         };
         new AlertDialog.Builder(requireContext())
@@ -184,6 +185,8 @@ public class TimelineFragment extends AutumnBaseFragment implements TimelineAdap
                         promptHighlight(year);
                     } else if (which == 1) {
                         onEditNotes(year);
+                    } else if (which == 2) {
+                        openAsText(year);
                     } else {
                         confirmRemoveYear(year);
                     }
@@ -241,41 +244,26 @@ public class TimelineFragment extends AutumnBaseFragment implements TimelineAdap
     }
 
     /**
-     * A year's note, seeded with the twelve months.
+     * Open the year for writing.
      *
-     * <p>The scaffold lives here rather than on the timeline card. This is where there is room for
-     * it and where it is useful: it gives somewhere to type, and it means a year is filled in by
-     * moving down the months rather than by remembering to write one at the start of every line.
-     *
-     * <p>The timeline reads these headings back, so anything written under "## Mar" shows beside
-     * March without repeating it. Headings with nothing under them are ignored, so a year stays as
-     * short on the card as it actually is.
+     * <p>A screen of fixed months rather than the markdown editor. The file is still ordinary
+     * markdown and can still be opened as text from the long-press menu; this is a way of typing
+     * into it that cannot damage its structure.
      */
-    private static String seededYearNote(final Timeline.Year year) {
-        // Bare month names, not "## Jan". Heading marks are structural in markdown, and spending
-        // a heading level on a scaffold means every year note carries twelve of them -- which
-        // crowds out the headings a year's actual writing might want, and renders heavily in
-        // preview for something that is only a guide to type against.
-        //
-        // A plain line is a paragraph: it reads quietly, and the timeline recognises it either
-        // way, so notes already seeded with hashes keep working.
-        // Each month gets an empty bullet under it. Without one there is nothing to show where
-        // an entry goes: the cursor has to be placed by hand in blank space, and the month and
-        // the line under it read as one thing rather than as a heading and its first entry.
-        final StringBuilder sb = new StringBuilder(stampFor(year)).append("\n");
-        for (final String month : Timeline.MONTH_SHORT) {
-            sb.append("\n").append(month).append("\n- \n");
-        }
-        return sb.toString();
-    }
-
     @Override
     public void onEditNotes(final Timeline.Year year) {
+        final Intent i = new Intent(requireContext(), YearEntryActivity.class);
+        i.putExtra(YearEntryActivity.EXTRA_FILE, year.notesFile);
+        i.putExtra(YearEntryActivity.EXTRA_YEAR, year.year);
+        startActivity(i);
+    }
+
+    /** The year's note as plain markdown, for anything the month fields cannot express. */
+    private void openAsText(final Timeline.Year year) {
         final File notes = year.notesFile;
-        if (!notes.isFile() && !write(notes, seededYearNote(year))) {
+        if (!notes.isFile() && !write(notes, stampFor(year) + "\n")) {
             return;
         }
-        // The editor, not preview: this screen exists to be written into.
         final Intent i = new Intent(requireContext(), DocumentActivity.class);
         i.putExtra(Document.EXTRA_FILE, notes);
         startActivity(i);

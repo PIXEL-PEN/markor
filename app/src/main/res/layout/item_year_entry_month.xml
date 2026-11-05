@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  One month: a fixed label, and a field for what happened in it.
+
+  The field is multi-line and grows. One line per entry, which is what the timeline reads back as
+  separate bullets, so there is no list syntax to get right while typing.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
+
+    <TextView
+        android:id="@+id/entry_month_label"
+        android:layout_width="46dp"
+        android:layout_height="wrap_content"
+        android:paddingTop="14dp"
+        android:textColor="@color/tl_gutter"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/entry_month_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="@drawable/tl_notes_card"
+        android:gravity="top"
+        android:importantForAutofill="no"
+        android:inputType="textMultiLine|textCapSentences"
+        android:minLines="1"
+        android:padding="10dp"
+        android:textColor="@color/tree_title"
+        android:textSize="14sp" />
+
+</LinearLayout>
