@@ -280,6 +280,19 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
         _hlEditor.recomputeHighlighting(); // Run before setting scroll position
         TextViewUtils.setSelectionAndShow(_hlEditor, startPos);
 
+        // And again once a layout pass has happened.
+        //
+        // setSelectionAndShow does nothing at all unless the position is within edit.length(),
+        // and showSelection needs the editor and its scroll container to have been measured
+        // before it can work out where to scroll. On the way in from a search result neither is
+        // reliably true yet: the cursor ends up on the right line while the view stays at the
+        // top, which reads as the jump not working. There is also a posted runnable that resets
+        // the editor's minimum height, and a relayout from that would undo an earlier scroll.
+        //
+        // Cheap to repeat and harmless when the first call already succeeded.
+        final int showPos = startPos;
+        _hlEditor.post(() -> TextViewUtils.setSelectionAndShow(_hlEditor, showPos));
+
         _hlEditor.post(() -> _hlEditor.animate().alpha(1).setDuration(500).start());
     }
 
