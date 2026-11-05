@@ -3,6 +3,7 @@ package net.pixelpen.journal.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
@@ -55,8 +56,7 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
     private TextView _title;
     private TextView _back;
     private TextView _highlightsToggle;
-    private View _highlights;
-    private final TextView[] _slots = new TextView[YearOverview.HIGHLIGHT_SLOTS];
+    private android.widget.LinearLayout _highlights;
     private Spinner _categorySpinner;
     private RecyclerView _list;
     private YearMonthAdapter _adapter;
@@ -74,9 +74,6 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
         _back = view.findViewById(R.id.year_back);
         _highlightsToggle = view.findViewById(R.id.year_highlights_toggle);
         _highlights = view.findViewById(R.id.year_highlights);
-        _slots[0] = view.findViewById(R.id.year_slot_1);
-        _slots[1] = view.findViewById(R.id.year_slot_2);
-        _slots[2] = view.findViewById(R.id.year_slot_3);
         _categorySpinner = view.findViewById(R.id.year_category);
         _list = view.findViewById(R.id.year_months);
 
@@ -189,11 +186,25 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
      */
     private void applyHighlights(final YearOverview overview) {
         final List<YearOverview.Event> hl = overview.highlights;
-        for (int i = 0; i < _slots.length; i++) {
-            final TextView slot = _slots[i];
+        final int rows = Math.max(YearOverview.HIGHLIGHT_SLOTS, hl.size());
+        _highlights.removeAllViews();
+
+        for (int i = 0; i < rows; i++) {
+            final TextView slot = new TextView(requireContext());
+            slot.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            final int pad = Math.round(8 * getResources().getDisplayMetrics().density);
+            slot.setPadding(pad + pad / 4, pad, pad + pad / 4, pad);
+            slot.setSingleLine(true);
+            slot.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            slot.setTextSize(14f);
+            final android.widget.LinearLayout.LayoutParams lp =
+                    (android.widget.LinearLayout.LayoutParams) slot.getLayoutParams();
+            lp.bottomMargin = Math.round(6 * getResources().getDisplayMetrics().density);
+
             if (i < hl.size()) {
                 final YearOverview.Event e = hl.get(i);
-                slot.setText("📌  " + e.title);
+                slot.setText("\uD83D\uDCCC  " + e.title);
                 slot.setBackgroundResource(R.drawable.year_slot_filled);
                 slot.setTextColor(androidx.core.content.ContextCompat.getColor(
                         requireContext(), R.color.tree_title));
@@ -205,6 +216,7 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
                         requireContext(), R.color.year_slot_empty));
                 slot.setOnClickListener(v -> promptNewHighlight());
             }
+            _highlights.addView(slot);
         }
     }
 
@@ -241,12 +253,48 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
                     if (title.isEmpty()) {
                         return;
                     }
-                    createHighlight(overview, title);
+                    promptHighlightDate(overview, title);
                 })
                 .show();
     }
 
-    private void createHighlight(final YearOverview overview, final String title) {
+    /**
+     * Ask when the highlight happened, which is not when it is being written.
+     *
+     * <p>This is the whole difficulty with highlights: they are a year-end exercise, written once
+     * the year has a shape, so the order they are typed in has nothing to do with the order things
+     * happened. Stamping them with "now" would pile a December writing session on top of a year of
+     * events and call it chronological.
+     *
+     * <p>So the date is asked for and written as the stamp, which is the same thing a backdated
+     * entry on the Calendar screen does, and the strip is ordered by reading it back.
+     *
+     * <p>Defaults to the middle of the year rather than today: at year end, today is the one date
+     * a highlight is least likely to be about, and starting in June costs at most a few months of
+     * scrolling either way.
+     */
+    private void promptHighlightDate(final YearOverview overview, final String title) {
+        final java.util.Calendar start = java.util.Calendar.getInstance();
+        int year;
+        try {
+            year = Integer.parseInt(overview.year);
+        } catch (final NumberFormatException e) {
+            year = start.get(java.util.Calendar.YEAR);
+        }
+        if (year != start.get(java.util.Calendar.YEAR)) {
+            start.set(year, java.util.Calendar.JUNE, 15);
+        }
+
+        new android.app.DatePickerDialog(requireContext(), (view, y, m, d) -> {
+            final java.util.Calendar picked = java.util.Calendar.getInstance();
+            picked.set(y, m, d);
+            createHighlight(overview, title, picked);
+        }, start.get(java.util.Calendar.YEAR), start.get(java.util.Calendar.MONTH),
+                start.get(java.util.Calendar.DAY_OF_MONTH)).show();
+    }
+
+    private void createHighlight(final YearOverview overview, final String title,
+                                 final java.util.Calendar about) {
         final File dir = overview.highlightsDir();
         if (dir == null) {
             return;
@@ -261,7 +309,10 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
             return;
         }
         try {
-            final String stamp = NoteTimestamp.format(java.util.Calendar.getInstance());
+            // The picked date with the current time, exactly as the Calendar screen stamps a
+            // backdated entry, so a highlight and a note written about the same day agree.
+            final String stamp = NoteTimestamp.format(
+                    NoteTimestamp.combineSelectedDateWithCurrentTime(about));
             final java.io.FileOutputStream out = new java.io.FileOutputStream(note);
             try {
                 out.write((stamp + "\n\n").getBytes("UTF-8"));

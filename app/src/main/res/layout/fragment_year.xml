@@ -83,17 +83,11 @@
         android:orientation="vertical"
         android:padding="8dp">
 
-        <TextView
-            android:id="@+id/year_slot_1"
-            style="@style/YearHighlightSlot" />
-
-        <TextView
-            android:id="@+id/year_slot_2"
-            style="@style/YearHighlightSlot" />
-
-        <TextView
-            android:id="@+id/year_slot_3"
-            style="@style/YearHighlightSlot" />
+        <!--
+          Filled in code. Three when the year has no highlights yet, and as many as there are once
+          it does: a fixed three would hide the fourth one written, and a highlight you wrote and
+          cannot see is worse than a strip that grows.
+        -->
 
     </LinearLayout>
 

@@ -1,5 +1,7 @@
 package net.pixelpen.journal.model;
 
+import net.pixelpen.journal.util.NoteTimestamp;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,7 +34,10 @@ public final class YearOverview {
     /** Shown in the dropdown above the individual categories. */
     public static final String ALL_CATEGORIES = "All";
 
-    /** Highlight slots, filled or not. The bar always shows this many. */
+    /**
+     * Empty highlight slots the bar offers. A floor, not a cap: more than this many highlights are
+     * all shown, because hiding one you wrote would be worse than a longer strip.
+     */
     public static final int HIGHLIGHT_SLOTS = 3;
 
     /** One note in a month. */
@@ -184,10 +189,18 @@ public final class YearOverview {
     }
 
     /**
-     * The year's highlight notes, at most {@link #HIGHLIGHT_SLOTS} of them.
+     * The year's highlight notes, oldest first by the date each one is about.
      *
-     * <p>"Highlights 2026" beside the month folders, as year.py named it. The bar shows three
-     * slots whether or not the folder exists, so an absent folder is not an error here.
+     * <p>"Highlights 2026" beside the month folders, as year.py named it. The bar shows its slots
+     * whether or not the folder exists, so an absent folder is not an error here.
+     *
+     * <p>Ordered by the stamp on line 1, not by filename and not by when the file was written.
+     * Highlights are a year-end exercise: you write them once the year has a shape, so the one
+     * typed first is usually not the one that happened first. The stamp carries the date the
+     * highlight is about -- the same convention a backdated entry on the Calendar screen uses --
+     * so reading it puts them in the order the year actually went. A highlight with no readable
+     * stamp sorts last rather than being dropped, with the name as the tiebreak throughout so the
+     * order does not shuffle between reads.
      */
     private static List<Event> readHighlights(final File yearDir, final String year) {
         final List<Event> out = new ArrayList<>();
@@ -202,14 +215,44 @@ public final class YearOverview {
                 notes.add(f);
             }
         }
-        Collections.sort(notes, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
-        for (final File f : notes) {
-            if (out.size() >= HIGHLIGHT_SLOTS) {
-                break;
+        Collections.sort(notes, (a, b) -> {
+            final Long sa = stampOf(a);
+            final Long sb = stampOf(b);
+            if (sa != null && sb != null && !sa.equals(sb)) {
+                return Long.compare(sa, sb);
             }
+            if (sa == null && sb != null) {
+                return 1;
+            }
+            if (sa != null && sb == null) {
+                return -1;
+            }
+            return a.getName().compareToIgnoreCase(b.getName());
+        });
+        for (final File f : notes) {
             out.add(new Event(f, stripExtension(f.getName()), "Highlights"));
         }
         return out;
+    }
+
+    /** The date a note is about, from its first line, or null if it has no readable stamp. */
+    private static Long stampOf(final File f) {
+        java.io.BufferedReader br = null;
+        try {
+            br = new java.io.BufferedReader(new java.io.InputStreamReader(
+                    new java.io.FileInputStream(f), "UTF-8"));
+            return NoteTimestamp.parseStamp(br.readLine());
+        } catch (final Exception e) {
+            return null;
+        } finally {
+            try {
+                if (br != null) {
+                    br.close();
+                }
+            } catch (final Exception ignore) {
+                // Nothing useful to do if a read-only handle will not close.
+            }
+        }
     }
 
     /** The folder for this year's highlights, whether or not it exists yet. */
