@@ -214,6 +214,10 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
                             "MMM", java.util.Locale.getDefault()).format(when.getTime());
                 }
                 slot.setText(label);
+                // Bold, as the original stylesheet had them: a highlight is the one thing on this
+                // screen that is meant to carry weight. The empty slots stay plain, so the strip
+                // reads as what is there rather than as room left over.
+                slot.setTypeface(null, android.graphics.Typeface.BOLD);
                 slot.setBackgroundResource(R.drawable.year_slot_filled);
                 slot.setTextColor(androidx.core.content.ContextCompat.getColor(
                         requireContext(), R.color.tree_title));
