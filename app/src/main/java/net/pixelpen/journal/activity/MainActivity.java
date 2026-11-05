@@ -410,11 +410,13 @@ public class MainActivity extends AutumnBaseActivity {
 
         // Coming back from the editor is the common way to arrive here, and the note that was
         // being edited has almost certainly changed on disk. The page-change callback does not
-        // fire on resume -- the pager never moved -- so without this the Tree would show the
-        // note as it was when the editor opened.
-        if (_tree != null && getCurrentPos() == tabIdToPos(R.id.nav_tree)) {
-            _tree.reload();
-        }
+        // fire on resume -- the pager never moved -- so without this a screen would show the note
+        // as it was when the editor opened.
+        //
+        // Every screen that reads files, not just the Tree. This was written for the Tree alone
+        // and the Year and Timeline screens inherited the bug when they arrived: write a year's
+        // entry, come back, and the text was simply not there, because nothing had re-read it.
+        reloadCurrentTab();
 
         _cu.setKeepScreenOn(this, _appSettings.isKeepScreenOn());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && _appSettings.isMultiWindowEnabled()) {
@@ -504,6 +506,23 @@ public class MainActivity extends AutumnBaseActivity {
         if (id == R.id.nav_timeline) return 3;
         if (id == R.id.nav_more) return 4;
         return 0;
+    }
+
+    /**
+     * Re-read whatever the visible screen shows, if it reads anything.
+     *
+     * <p>Called on resume. Journal and More hold no file listing of their own, so they are not
+     * here; the three that do are.
+     */
+    private void reloadCurrentTab() {
+        final int pos = getCurrentPos();
+        if (pos == tabIdToPos(R.id.nav_tree) && _tree != null) {
+            _tree.reload();
+        } else if (pos == tabIdToPos(R.id.nav_year) && _year != null) {
+            _year.reload();
+        } else if (pos == tabIdToPos(R.id.nav_timeline) && _timeline != null) {
+            _timeline.reload();
+        }
     }
 
     public int tabIdFromPos(final int pos) {
