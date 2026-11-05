@@ -62,8 +62,16 @@ public class MainActivity extends AutumnBaseActivity {
     private FolderTreeFragment _tree;
     private MoreFragment _more;
     private FloatingActionButton _fab;
-    /** The toolbar's search item, kept so its visibility can follow the tab. */
+    /**
+     * The search item. It is kept hidden as an action and only made visible to be expanded, so
+     * that the bar shows one search affordance -- the navigation icon on the left -- rather than
+     * that plus a second collapsed icon on the right.
+     */
     private MenuItem _searchItem;
+
+    private MenuItem _settingsItem;
+
+    private androidx.appcompat.widget.Toolbar _toolbar;
 
     private AutumnContextUtils _cu;
 
@@ -100,22 +108,14 @@ public class MainActivity extends AutumnBaseActivity {
         setSupportActionBar(findViewById(R.id.toolbar));
         optShowRate();
 
-        androidx.appcompat.widget.Toolbar tb = findViewById(R.id.toolbar);
-        if (tb != null) {
-            tb.setOnClickListener(v -> {});     // eat stray taps on the bar background
-            tb.setLongClickable(false);
-            tb.setHapticFeedbackEnabled(false);
-        }
-
-
-
-        // --- click guard: prevent whole-toolbar taps from triggering global search ---
-        final androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
-        if (toolbar != null) {
-            // Swallow empty-area toolbar clicks but keep menu items working
-            toolbar.setOnClickListener(v -> {
-                // no-op: intentionally ignore generic toolbar clicks
-            });
+        // Taps on the bar's empty background are swallowed so they cannot reach anything behind
+        // it. The navigation icon and the menu items keep their own listeners, so the search icon
+        // on the left is unaffected by this.
+        _toolbar = findViewById(R.id.toolbar);
+        if (_toolbar != null) {
+            _toolbar.setOnClickListener(v -> { });
+            _toolbar.setLongClickable(false);
+            _toolbar.setHapticFeedbackEnabled(false);
         }
 
         final com.google.android.material.appbar.AppBarLayout appBar = findViewById(R.id.appbar);
@@ -250,8 +250,8 @@ public class MainActivity extends AutumnBaseActivity {
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
         getMenuInflater().inflate(R.menu.main__menu, menu);
-        menu.findItem(R.id.action_settings).setVisible(_appSettings.isShowSettingsOptionInMainToolbar());
 
+        _settingsItem = menu.findItem(R.id.action_settings);
         _searchItem = menu.findItem(R.id.action_search);
         final androidx.appcompat.widget.SearchView search =
                 (androidx.appcompat.widget.SearchView) _searchItem.getActionView();
@@ -285,12 +285,14 @@ public class MainActivity extends AutumnBaseActivity {
                     if (_tree != null) {
                         _tree.setSearch(null);
                     }
+                    // Back to carrying nothing, so no second search icon appears on the right.
+                    item.setVisible(false);
                     return true;
                 }
             });
         }
-        // Visibility follows the tab, and the menu is created before the first page callback runs.
-        applySearchVisibility(getCurrentPos());
+        // The menu is created before the first page callback runs, so the bar is dressed here too.
+        applyToolbarForTab(getCurrentPos());
 
         _cu.tintMenuItems(menu, true, Color.WHITE);
         _cu.setSubMenuIconsVisibility(menu, true);
@@ -298,22 +300,56 @@ public class MainActivity extends AutumnBaseActivity {
     }
 
     /**
-     * Search belongs to the Tree, so it is only offered there.
+     * Put search on the left and the overflow on the right, on the Calendar and Tree screens.
      *
-     * <p>It searches the archive and shows the matches in place of the tree, which means it has
-     * nowhere to put results on the Calendar or More tabs. Collapsing it on the way out also
-     * clears the query, so switching tabs mid-search does not leave the Tree holding results
-     * nobody can see the field for.
+     * <p>Search is the navigation icon rather than an action item because that is the only slot on
+     * the left of a toolbar -- action items are right-aligned and cannot be moved. The overflow
+     * holds Settings, which used to be hidden behind a preference, so the bar had no menu at all.
+     *
+     * <p>Neither appears on More: search would have nowhere to show results, and an overflow
+     * offering Settings on the screen that already offers Settings is just a second door into the
+     * same room.
      */
-    private void applySearchVisibility(final int pos) {
-        if (_searchItem == null) {
-            return;
-        }
+    private void applyToolbarForTab(final int pos) {
         final boolean onTree = pos == tabIdToPos(R.id.nav_tree);
-        if (!onTree && _searchItem.isActionViewExpanded()) {
+        final boolean onJournal = pos == tabIdToPos(R.id.nav_journal);
+        final boolean wanted = onTree || onJournal;
+
+        if (_toolbar != null) {
+            if (wanted) {
+                _toolbar.setNavigationIcon(R.drawable.ic_search_black_24dp);
+                _toolbar.setNavigationContentDescription(R.string.search);
+                _toolbar.setNavigationOnClickListener(v -> openSearch());
+            } else {
+                _toolbar.setNavigationIcon(null);
+                _toolbar.setNavigationOnClickListener(null);
+            }
+        }
+        if (_settingsItem != null) {
+            _settingsItem.setVisible(wanted);
+        }
+        if (_searchItem != null && !onTree && _searchItem.isActionViewExpanded()) {
+            // Leaving the Tree closes the field, which also clears the query and the results.
             _searchItem.collapseActionView();
         }
-        _searchItem.setVisible(onTree);
+    }
+
+    /**
+     * Open the search field.
+     *
+     * <p>Reachable from the Calendar screen as well as the Tree, but the results are drawn by the
+     * Tree, so asking from the Calendar screen moves there first rather than typing into a field
+     * whose answers have nowhere to appear.
+     */
+    private void openSearch() {
+        if (getCurrentPos() != tabIdToPos(R.id.nav_tree)) {
+            _viewPager.setCurrentItem(tabIdToPos(R.id.nav_tree), false);
+        }
+        if (_searchItem != null) {
+            // Visible only for as long as it is expanded; see the menu resource.
+            _searchItem.setVisible(true);
+            _searchItem.expandActionView();
+        }
     }
 
     @Override
@@ -477,7 +513,7 @@ public class MainActivity extends AutumnBaseActivity {
             _tree.collapseCategories();
         }
 
-        applySearchVisibility(pos);
+        applyToolbarForTab(pos);
 
         setTitle(getPosTitle(pos));
     }
