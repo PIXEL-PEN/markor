@@ -249,9 +249,15 @@ public class MainActivity extends AutumnBaseActivity {
             if (getCurrentPos() != tabIdToPos(R.id.nav_tree)) {
                 _viewPager.setCurrentItem(tabIdToPos(R.id.nav_tree), false);
             }
-            if (_tree != null) {
-                _tree.goHome();
-            }
+            // Posted, so it runs after the pager's page-selected callback rather than before it.
+            // That callback hands the Tree the folder the Calendar screen points at and reloads,
+            // which re-opens the month and category -- undoing a collapse that had already
+            // happened. Going last means going home actually sticks.
+            _viewPager.post(() -> {
+                if (_tree != null) {
+                    _tree.goHome();
+                }
+            });
             return true;
         }
         return false;
@@ -287,6 +293,11 @@ public class MainActivity extends AutumnBaseActivity {
             _searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
                 @Override
                 public boolean onMenuItemActionExpand(@NonNull final MenuItem item) {
+                    // The field is offered on the Calendar screen, but the Tree is what draws the
+                    // matches, so typing there would have gone nowhere visible. Move first.
+                    if (getCurrentPos() != tabIdToPos(R.id.nav_tree)) {
+                        _viewPager.setCurrentItem(tabIdToPos(R.id.nav_tree), false);
+                    }
                     return true;
                 }
 
