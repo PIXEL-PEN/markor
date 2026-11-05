@@ -352,16 +352,21 @@ public class TimelineFragment extends AutumnBaseFragment implements TimelineAdap
     }
 
     /**
-     * A stamp for a timeline entry: the year it is about, to the month at best.
+     * A stamp for a timeline entry: the year, and only the year.
      *
-     * <p>January of that year rather than today. A note about 1973 written this evening is about
-     * 1973, and the archive reads line one as the date a thing is about -- the same reasoning the
-     * year highlights use.
+     * <p>The year it is about, not the evening it was typed -- a note about 1973 written tonight
+     * is about 1973, and the archive reads line one as the date a thing is about.
+     *
+     * <p>It used to write January of that year, because line one has to be recognisable as a
+     * stamp or it is rendered as the first bullet, and a month stamp was the coarsest form there
+     * was. That meant asserting a month nobody had chosen, on an entry that covers the whole
+     * year, for a purely mechanical reason. A year-only stamp claims exactly what is known.
      */
     private static String stampFor(final Timeline.Year year) {
         final Calendar c = Calendar.getInstance();
+        c.clear();
         c.set(year.year, Calendar.JANUARY, 1);
-        return NoteTimestamp.formatMonth(c);
+        return NoteTimestamp.formatYear(c);
     }
 
     private boolean write(final File file, final String content) {

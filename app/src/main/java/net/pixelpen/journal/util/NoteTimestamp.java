@@ -54,6 +54,16 @@ public final class NoteTimestamp {
      */
     public static final String MONTH_STAMP_PATTERN = "MMMM yyyy";
 
+    /**
+     * A year alone: {@code 2026}.
+     *
+     * <p>The coarsest of the three, for an entry that is about a year and nothing finer. A life
+     * timeline's year note is exactly that: it covers the whole year, so stamping it January
+     * would be asserting a month nobody chose, purely because the line had to be recognisable as
+     * a stamp.
+     */
+    public static final String YEAR_STAMP_PATTERN = "yyyy";
+
     public static final String YEAR_FOLDER_PATTERN = "yyyy";
 
     /** Month folder, e.g. {@code 11_November}. */
@@ -180,7 +190,42 @@ public final class NoteTimestamp {
         if (exact != null) {
             return exact;
         }
-        return parseMonthStamp(line);
+        final Long month = parseMonthStamp(line);
+        if (month != null) {
+            return month;
+        }
+        return parseYearStamp(line);
+    }
+
+    /**
+     * A bare {@code 2026} to the first instant of that year, or null.
+     *
+     * <p>Four digits and nothing else. The range is deliberately narrow: a line of digits could be
+     * someone's content, and only something that reads as a plausible year should be taken for a
+     * stamp rather than silently swallowed.
+     */
+    public static Long parseYearStamp(final String line) {
+        if (line == null) {
+            return null;
+        }
+        final String t = line.trim();
+        if (!t.matches("\\d{4}")) {
+            return null;
+        }
+        final int year = Integer.parseInt(t);
+        if (year < 1000 || year > 3000) {
+            return null;
+        }
+        final java.util.Calendar c = java.util.Calendar.getInstance();
+        c.clear();
+        c.set(year, java.util.Calendar.JANUARY, 1);
+        return c.getTimeInMillis();
+    }
+
+    /** A year stamp for the given date: {@code 2026}. */
+    public static String formatYear(final java.util.Calendar c) {
+        return new java.text.SimpleDateFormat(YEAR_STAMP_PATTERN, Locale.ENGLISH)
+                .format(c.getTime());
     }
 
     /** {@code November 2026} to the first instant of that month, or null. */
