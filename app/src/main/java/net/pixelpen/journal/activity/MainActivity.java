@@ -277,8 +277,15 @@ public class MainActivity extends AutumnBaseActivity {
             search.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
                 @Override
                 public boolean onQueryTextSubmit(final String query) {
-                    // The field already searched as it was typed; swallowing submit just closes
-                    // the keyboard instead of re-running the same walk.
+                    // The keyboard's search key. It used to be swallowed, on the reasoning that
+                    // the field had already searched as it was typed -- true on the Tree, where
+                    // the results are right there, and useless on the Calendar screen, where
+                    // they are not. Pressing it means "show me", so it goes to them.
+                    //
+                    // The walk is not re-run: the Tree already holds the results for this query.
+                    if (getCurrentPos() != tabIdToPos(R.id.nav_tree)) {
+                        _viewPager.setCurrentItem(tabIdToPos(R.id.nav_tree), false);
+                    }
                     return true;
                 }
 
