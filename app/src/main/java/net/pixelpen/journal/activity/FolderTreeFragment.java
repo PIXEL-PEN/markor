@@ -274,35 +274,11 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
     }
 
     /**
-     * Show the archive from the top, with everything below the root closed.
-     *
-     * <p>The automatic opens are marked as already done rather than cleared, because clearing them
-     * would have the next redraw immediately re-open the month and the category this just closed.
-     * Going home means going home until something is opened again.
+     * Set when the next draw should start at the top rather than hold the current position.
+     * Nothing sets it at the moment: Home became a hand-off to Android's file browser rather than
+     * a view in the tree, and it was the only caller. Kept because the restore-the-scroll branch
+     * beside it needs a way to be told not to.
      */
-    public void goHome() {
-        // The canonical archive root, and it is SET, not just read. getNotebookDirectory()
-        // returns whatever was last stored, which is how the tree ended up rooted somewhere
-        // inside the archive -- a year folder -- rather than at the top of it. Home was reaching
-        // the root of the tree faithfully; the tree was simply not rooted at /Documents/Autumn.
-        final File root = ApplicationObject.settings().getDefaultNotebookFile();
-        ApplicationObject.settings().setNotebookDirectory(root);
-        _root = root;
-        _expanded.clear();
-        _expanded.add(root.getAbsolutePath());
-
-        final File month = targetMonthDir(root);
-        _seededMonth = (month != null) ? month.getAbsolutePath() : null;
-        _seededCategory = (_focus != null && isUnder(root, _focus)) ? _focus.getAbsolutePath() : null;
-        _pendingReveal = null;
-        _query = null;
-        _scrollToTop = true;
-
-        _store.invalidateAll();
-        rebuild();
-    }
-
-    /** Set when the next draw should start at the top rather than hold the current position. */
     private boolean _scrollToTop;
 
     /** A note to make visible on the next draw. See {@link #revealPathTo}. */

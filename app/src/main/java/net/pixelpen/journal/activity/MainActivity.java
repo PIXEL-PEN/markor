@@ -241,23 +241,7 @@ public class MainActivity extends AutumnBaseActivity {
             return true;
         }
         if (item.getItemId() == R.id.action_home) {
-            // Offered on the Calendar screen too, and the tree is what shows the archive, so go
-            // there before asking it to go to the top.
-            if (_searchItem != null && _searchItem.isActionViewExpanded()) {
-                _searchItem.collapseActionView();
-            }
-            if (getCurrentPos() != tabIdToPos(R.id.nav_tree)) {
-                _viewPager.setCurrentItem(tabIdToPos(R.id.nav_tree), false);
-            }
-            // Posted, so it runs after the pager's page-selected callback rather than before it.
-            // That callback hands the Tree the folder the Calendar screen points at and reloads,
-            // which re-opens the month and category -- undoing a collapse that had already
-            // happened. Going last means going home actually sticks.
-            _viewPager.post(() -> {
-                if (_tree != null) {
-                    _tree.goHome();
-                }
-            });
+            openHomeFolderInAndroid();
             return true;
         }
         return false;
@@ -277,15 +261,13 @@ public class MainActivity extends AutumnBaseActivity {
             search.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
                 @Override
                 public boolean onQueryTextSubmit(final String query) {
-                    // The keyboard's search key. It used to be swallowed, on the reasoning that
-                    // the field had already searched as it was typed -- true on the Tree, where
-                    // the results are right there, and useless on the Calendar screen, where
-                    // they are not. Pressing it means "show me", so it goes to them.
+                    // Searching never moves between screens. The field already matched as it was
+                    // typed, so there is nothing for the keyboard's search key to trigger beyond
+                    // dismissing itself.
                     //
-                    // The walk is not re-run: the Tree already holds the results for this query.
-                    if (getCurrentPos() != tabIdToPos(R.id.nav_tree)) {
-                        _viewPager.setCurrentItem(tabIdToPos(R.id.nav_tree), false);
-                    }
+                    // That leaves the Calendar screen with a field whose results have nowhere to
+                    // draw, because only the Tree renders them. Giving the Calendar screen its own
+                    // results surface is the missing piece, not another jump between tabs.
                     return true;
                 }
 
@@ -321,6 +303,53 @@ public class MainActivity extends AutumnBaseActivity {
         _cu.tintMenuItems(menu, true, Color.WHITE);
         _cu.setSubMenuIconsVisibility(menu, true);
         return true;
+    }
+
+    /**
+     * Hand the home folder to Android's own file UI.
+     *
+     * <p>Home is not a view inside this app. Two earlier attempts treated it as one -- rooting the
+     * tree at the home folder and collapsing it -- and both were right about the folder and wrong
+     * about the screen: what was wanted is the standard Android file and folder browser, showing
+     * Documents/Autumn, not Autumn's own styled tree of years and months.
+     *
+     * <p>Two routes, because device file managers differ. ACTION_VIEW on the folder's document URI
+     * opens it for browsing where that is supported. Where it is not, ACTION_OPEN_DOCUMENT_TREE
+     * with the same URI as its starting point is the picker itself, which every device has, and
+     * shows the same structure. Nothing is done with what the picker returns: this is for looking,
+     * and no access beyond the home folder is wanted or asked for.
+     */
+    private void openHomeFolderInAndroid() {
+        if (_searchItem != null && _searchItem.isActionViewExpanded()) {
+            _searchItem.collapseActionView();
+        }
+
+        // "primary:Documents/Autumn", or "Autumn (dev)" on a debug install. Built through
+        // DocumentsContract so the space and brackets are encoded properly rather than by hand.
+        final String docId = "primary:Documents/" + net.pixelpen.journal.BuildConfig.STORAGE_ROOT_NAME;
+        final android.net.Uri folder = android.provider.DocumentsContract.buildDocumentUri(
+                "com.android.externalstorage.documents", docId);
+
+        final Intent view = new Intent(Intent.ACTION_VIEW);
+        view.setDataAndType(folder, "vnd.android.document/directory");
+        view.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try {
+            startActivity(view);
+            return;
+        } catch (final Exception ignored) {
+            // No file manager answers ACTION_VIEW for a directory on this device.
+        }
+
+        final Intent pick = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            pick.putExtra(android.provider.DocumentsContract.EXTRA_INITIAL_URI, folder);
+        }
+        try {
+            startActivity(pick);
+        } catch (final Exception e) {
+            android.widget.Toast.makeText(this, R.string.error_could_not_open_file,
+                    android.widget.Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**
