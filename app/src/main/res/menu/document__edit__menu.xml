@@ -6,6 +6,18 @@
  *     https://www.apache.org/licenses/LICENSE-2.0
  *
 #########################################################*/
+
+  Trimmed for Autumn. This carried about forty-five entries inherited from Markor, most of which
+  belong to an app that edits many formats: switching a document between todo.txt, orgmode,
+  wikitext, asciidoc, csv and embedded binary; epub conversion; speed-reading; a debug log; and a
+  file browser that no longer exists in this app. Also gone are the per-file settings toggles,
+  the text-case tools, file info and reload-from-disk.
+
+  What is left is what a journal entry needs: undo and redo, save, the preview/edit switch,
+  search within the note, and a way to send it somewhere.
+
+  On the save icon being greyed out: it is enabled only while there are unsaved changes, and the
+  editor saves on its own when it is left. Grey means there is nothing to save.
 -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -30,6 +42,7 @@
         android:title="@string/save"
         app:showAsAction="always" />
 
+    <!-- Hidden; the two icons below are the switch. Kept because the format plumbing calls it. -->
     <item
         android:id="@+id/action_preview_edit_toggle"
         android:icon="@drawable/ic_visibility_black_24dp"
@@ -37,6 +50,7 @@
         android:visible="false"
         app:showAsAction="never" />
 
+    <!-- These two swap: whichever mode you are not in is the one offered. -->
     <item
         android:id="@+id/action_preview"
         android:icon="@drawable/ic_visibility_black_24dp"
@@ -63,207 +77,31 @@
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/submenu_per_file_settings"
-        android:icon="@drawable/ic_check_black_24dp"
-        android:title="@string/file_settings"
-        app:showAsAction="never">
-        <menu>
-            <item
-                android:id="@+id/action_wrap_words"
-                android:checkable="true"
-                android:icon="@drawable/ic_baseline_wrap_text_24"
-                android:title="@string/wrap_words"
-                app:showAsAction="never" />
-
-            <item
-                android:id="@+id/action_line_numbers"
-                android:checkable="true"
-                android:icon="@drawable/ic_line_numbers_24dp"
-                android:title="@string/line_numbers"
-                app:showAsAction="never" />
-
-            <item
-                android:id="@+id/action_enable_highlighting"
-                android:checkable="true"
-                android:icon="@drawable/ic_format_color_fill_black_24dp"
-                android:title="@string/syntax_highlighting"
-                app:showAsAction="never" />
-
-            <item
-                android:id="@+id/action_enable_auto_format"
-                android:checkable="true"
-                android:icon="@drawable/ic_baseline_align_horizontal_left_24"
-                android:title="@string/auto_format"
-                app:showAsAction="never" />
-
-            <item
-                android:id="@+id/action_set_font_size"
-                android:checkable="false"
-                android:icon="@drawable/ic_format_size_black_24dp"
-                android:title="@string/font_size"
-                app:showAsAction="never" />
-
-            <!-- Text Case menu -->
-            <item
-                android:id="@+id/action_text_case"
-                android:icon="@drawable/ic_format_text_case_black_24dp"
-                android:title="@string/text_case"
-                app:showAsAction="never">
-                <menu>
-                    <item
-                        android:id="@+id/action_toggle_case"
-                        android:title="@string/toggle_case" />
-
-                    <item
-                        android:id="@+id/action_switch_case"
-                        android:title="@string/switch_case" />
-
-                    <item
-                        android:id="@+id/action_capitalize_words"
-                        android:title="@string/capitalize_words" />
-
-                    <item
-                        android:id="@+id/action_capitalize_sentences"
-                        android:title="@string/capitalize_sentences" />
-                </menu>
-            </item>
-
-            <!-- Format menu -->
-            <item
-                android:id="@+id/submenu_format_selection"
-                android:icon="@drawable/ic_format_shapes_black_24dp"
-                android:title="@string/format"
-                app:showAsAction="never">
-                <menu>
-                    <group
-                        android:id="@+id/action_format_group"
-                        android:checkableBehavior="single">
-                        <item
-                            android:id="@string/action_format_keyvalue"
-                            android:icon="@drawable/ic_file_white_24dp"
-                            android:title="@string/key_value" />
-                        <item
-                            android:id="@string/action_format_plaintext"
-                            android:icon="@drawable/ic_file_white_24dp"
-                            android:title="@string/plaintext" />
-                        <item
-                            android:id="@string/action_format_asciidoc"
-                            android:icon="@drawable/asciidoc_icon_black_24dp"
-                            android:title="@string/asciidoc" />
-                        <item
-                            android:id="@string/action_format_markdown"
-                            android:icon="@drawable/gs_markdown_black_24dp"
-                            android:title="@string/markdown" />
-                        <item
-                            android:id="@string/action_format_todotxt"
-                            android:icon="@drawable/ic_assignment_turned_in_black_24dp"
-                            android:title="@string/todo_txt" />
-                        <item
-                            android:id="@string/action_format_wikitext"
-                            android:icon="@drawable/fountain_pen"
-                            android:title="@string/wikitext" />
-                        <item
-                            android:id="@string/action_format_csv"
-                            android:icon="@drawable/ic_view_module_black_24dp"
-                            android:title="@string/csv" />
-                        <item
-                            android:id="@string/action_format_embedbinary"
-                            android:icon="@drawable/ic_image_black_24dp"
-                            android:title="@string/embed_binary" />
-                        <item
-                            android:id="@string/action_format_orgmode"
-                            android:icon="@drawable/ic_org_mode_file"
-                            android:title="@string/orgmode" />
-                    </group>
-                </menu>
-            </item>
-        </menu>
-    </item>
-
-    <item
         android:id="@+id/submenu_share"
         android:icon="@drawable/ic_share_black_24dp"
         android:title="@string/share"
         app:showAsAction="never">
         <menu>
-            <item
-                android:id="@+id/action_share_path"
-                android:icon="@drawable/ic_link_black_24dp"
-                android:title="@string/url_or_path" />
+            <!--
+              Three ways out, which is what an entry plausibly leaves as. The screenshot, share-as-
+              image and share-as-HTML variants are gone: they rendered the preview webview to a
+              bitmap, which is a different thing from exporting a document.
+            -->
             <item
                 android:id="@+id/action_share_text"
-                android:icon="@drawable/ic_format_text_case_black_24dp"
-                android:title="@string/plaintext" />
+                android:title="@string/plaintext"
+                app:showAsAction="never" />
+
             <item
                 android:id="@+id/action_share_pdf"
-                android:icon="@drawable/ic_print_black_24dp"
                 android:title="@string/print_pdf"
-                android:visible="false" />
+                app:showAsAction="never" />
+
             <item
                 android:id="@+id/action_share_file"
-                android:icon="@drawable/ic_file_white_24dp"
-                android:title="@string/file" />
-            <item
-                android:id="@+id/action_share_html"
-                android:icon="@drawable/ic_code_black_24dp"
-                android:title="@string/share_html__mime_html" />
-            <item
-                android:id="@+id/action_share_html_source"
-                android:icon="@drawable/ic_code_black_24dp"
-                android:title="@string/html_as_plaintext" />
-            <item
-                android:id="@+id/action_share_image"
-                android:icon="@drawable/ic_image_black_24dp"
-                android:title="@string/image" />
-            <item
-                android:id="@+id/action_share_screenshot"
-                android:icon="@drawable/ic_photo_camera_black_24dp"
-                android:title="@string/screenshot" />
-            <item
-                android:id="@+id/action_share_calendar_event"
-                android:icon="@drawable/ic_date_range_black_24dp"
-                android:title="@string/calendar" />
-        </menu>
-    </item>
-
-    <item
-        android:id="@+id/submenu_tools"
-        android:icon="@drawable/ic_format_shapes_black_24dp"
-        android:title="@string/tools"
-        app:showAsAction="never">
-        <menu>
-            <item
-                android:id="@+id/action_load_epub"
-                android:icon="@drawable/ic_file_white_24dp"
-                android:title="Convert &amp; load epub"
-                android:visible="false"
-                tools:ignore="HardcodedText" />
-            <item
-                android:id="@+id/action_speed_read"
-                android:icon="@drawable/ic_lightning_black_24dp"
-                android:title="Speed Read"
-                tools:ignore="HardcodedText" />
-            <item
-                android:id="@+id/action_send_debug_log"
-                android:icon="@drawable/ic_bug_report_black_24dp"
-                android:title="@string/send_debug_log"
-                android:visible="false"
+                android:title="@string/file"
                 app:showAsAction="never" />
         </menu>
     </item>
-    <item
-        android:id="@+id/action_show_file_browser"
-        android:icon="@drawable/ic_folder_gray_24dp"
-        android:title="@string/file_browser"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_info"
-        android:icon="@drawable/ic_info_black_24dp"
-        android:title="@string/info"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_reload"
-        android:icon="@drawable/ic_redo_black_24dp"
-        android:title="@string/reload"
-        app:showAsAction="never" />
+
 </menu>

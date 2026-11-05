@@ -10,7 +10,6 @@ package net.pixelpen.journal.activity;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -24,7 +23,6 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -338,7 +336,6 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
 
         menu.findItem(R.id.action_undo).setVisible(isText && _appSettings.isEditorHistoryEnabled());
         menu.findItem(R.id.action_redo).setVisible(isText && _appSettings.isEditorHistoryEnabled());
-        menu.findItem(R.id.action_send_debug_log).setVisible(MainActivity.IS_DEBUG_ENABLED && !isDisplayedAtMainActivity() && !_isPreviewVisible);
 
         // Undo / Redo / Save (keep visible, but deactivated and tinted grey if not executable)
         _undoMenuItem = menu.findItem(R.id.action_undo).setVisible(isText && !_isPreviewVisible);
@@ -350,14 +347,9 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
         menu.findItem(R.id.action_preview).setVisible(isText && !_isPreviewVisible);
         menu.findItem(R.id.action_search).setVisible(isText && !_isPreviewVisible);
         menu.findItem(R.id.action_search_view).setVisible(isText && _isPreviewVisible);
-        menu.findItem(R.id.submenu_format_selection).setVisible(isText && !_isPreviewVisible);
         menu.findItem(R.id.submenu_share).setVisible(isText);
-        menu.findItem(R.id.submenu_tools).setVisible(isText);
-        menu.findItem(R.id.submenu_per_file_settings).setVisible(isText);
 
         menu.findItem(R.id.action_share_pdf).setVisible(true);
-        menu.findItem(R.id.action_share_image).setVisible(true);
-        menu.findItem(R.id.action_load_epub).setVisible(isExperimentalFeaturesEnabled);
 
         // SearchView (View Mode)
         _menuSearchViewForViewMode = (SearchView) menu.findItem(R.id.action_search_view).getActionView();
@@ -498,13 +490,6 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
                 saveDocument(true);
                 return true;
             }
-            case R.id.action_reload: {
-                _document.resetChangeTracking(); // Force next load
-                if (loadDocument()) {
-                    Toast.makeText(activity, "✔", Toast.LENGTH_SHORT).show();
-                }
-                return true;
-            }
             case R.id.action_preview: {
                 setViewModeVisibility(true);
                 return true;
@@ -515,10 +500,6 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
             }
             case R.id.action_preview_edit_toggle: {
                 setViewModeVisibility(!_isPreviewVisible);
-                return true;
-            }
-            case R.id.action_share_path: {
-                _cu.shareText(getActivity(), _document.file.getAbsolutePath(), GsContextUtils.MIME_TEXT_PLAIN);
                 return true;
             }
             case R.id.action_share_text: {
@@ -533,45 +514,21 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
                 }
                 return true;
             }
-            case R.id.action_share_html:
-            case R.id.action_share_html_source: {
-                if (saveDocument(false)) {
-                    TextConverterBase converter = FormatRegistry.getFormat(_document.getFormat(), activity, _document).getConverter();
-                    _cu.shareText(getActivity(),
-                            converter.convertMarkup(getTextString(), getActivity(), false, _lineNumbersView.isLineNumbersEnabled(), _document.file),
-                            "text/" + (item.getItemId() == R.id.action_share_html ? "html" : "plain")
-                    );
-                }
-                return true;
-            }
-            case R.id.action_share_calendar_event: {
-                if (saveDocument(false)) {
-                    if (!_cu.createCalendarAppointment(getActivity(), _document.title, getTextString(), null)) {
-                        Toast.makeText(activity, R.string.no_calendar_app_is_installed, Toast.LENGTH_SHORT).show();
-                    }
-                }
-                return true;
-            }
-            case R.id.action_share_screenshot:
-            case R.id.action_share_image:
             case R.id.action_share_pdf: {
+                // Renders through the preview webview, so it has to switch to preview and wait for
+                // it to draw. The screenshot and share-as-image variants shared this block; they
+                // are gone, and with them the branch that chose between them.
                 _appSettings.getSetWebViewFulldrawing(true);
                 if (saveDocument(false)) {
                     _nextConvertToPrintMode = true;
                     setViewModeVisibility(true);
                     Toast.makeText(activity, R.string.please_wait, Toast.LENGTH_LONG).show();
                     _webView.postDelayed(() -> {
-                        if (itemId == R.id.action_share_pdf) {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                                _cu.printOrCreatePdfFromWebview(_webView, _document, getTextString().contains("beamer\n"));
-                            }
-                        } else {
-                            Bitmap bmp = _cu.getBitmapFromWebView(_webView, itemId == R.id.action_share_image);
-                            _cu.shareImage(getContext(), bmp, null);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                            _cu.printOrCreatePdfFromWebview(_webView, _document, getTextString().contains("beamer\n"));
                         }
                     }, 7000);
                 }
-
                 return true;
             }
             case R.string.action_format_wikitext:
@@ -594,89 +551,6 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
                 _format.getActions().onSearch();
                 return true;
             }
-            case R.id.action_send_debug_log: {
-                final String text = AppSettings.getDebugLog() + "\n\n------------------------\n\n\n\n" + Document.getMaskedContent(getTextString());
-                _cu.draftEmail(getActivity(), "Debug Log " + getString(R.string.app_name_real), text, "debug@localhost.lan");
-                return true;
-            }
-            case R.id.action_load_epub: {
-                AutumnFileBrowserFactory.showFileDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
-                                                            @Override
-                                                            public void onFsViewerSelected(String request, File file, final Integer lineNumber) {
-                                                                _hlEditor.setText(GsCoolExperimentalStuff.convertEpubToText(file, getString(R.string.page)));
-                                                            }
-
-                                                            @Override
-                                                            public void onFsViewerConfig(GsFileBrowserOptions.Options dopt) {
-                                                                dopt.titleText = R.string.select;
-                                                            }
-                                                        }, getParentFragmentManager(), activity,
-                        (context, file) -> file != null && file.getAbsolutePath().toLowerCase().endsWith(".epub")
-                );
-                return true;
-            }
-            case R.id.action_speed_read: {
-                GsCoolExperimentalStuff.showSpeedReadDialog(activity, getTextString());
-                return true;
-            }
-            case R.id.action_wrap_words: {
-                final boolean newState = !isWrapped();
-                _appSettings.setDocumentWrapState(_document.path, newState);
-                setWrapState(newState);
-                updateMenuToggleStates(0);
-                return true;
-            }
-            case R.id.action_line_numbers: {
-                final boolean newState = !_lineNumbersView.isLineNumbersEnabled();
-                _appSettings.setDocumentLineNumbersEnabled(_document.path, newState);
-                _lineNumbersView.setLineNumbersEnabled(newState);
-                updateMenuToggleStates(0);
-                return true;
-            }
-            case R.id.action_enable_highlighting: {
-                final boolean newState = !_hlEditor.getHighlightingEnabled();
-                _hlEditor.setHighlightingEnabled(newState);
-                _appSettings.setDocumentHighlightState(_document.path, newState);
-                updateMenuToggleStates(0);
-                return true;
-            }
-            case R.id.action_enable_auto_format: {
-                final boolean newState = !_hlEditor.getAutoFormatEnabled();
-                _hlEditor.setAutoFormatEnabled(newState);
-                _appSettings.setDocumentAutoFormatEnabled(_document.path, newState);
-                updateMenuToggleStates(0);
-                return true;
-            }
-            case R.id.action_info: {
-                if (saveDocument(false)) { // In order to have the correct info displayed
-                    FileInfoDialog.show(_document.file, getParentFragmentManager());
-                }
-                return true;
-            }
-            case R.id.action_set_font_size: {
-                AutumnDialogFactory.showFontSizeDialog(activity, _appSettings.getDocumentFontSize(_document.path), (newSize) -> {
-                    _hlEditor.setTextSize(TypedValue.COMPLEX_UNIT_SP, (float) newSize);
-                    _appSettings.setDocumentFontSize(_document.path, newSize);
-                });
-                return true;
-            }
-            case R.id.action_show_file_browser: {
-                // Delay because I want menu to close before we open the file browser
-                _hlEditor.postDelayed(() -> MainActivity.launch(activity, _document.file, false), 250);
-                return true;
-            }
-            case R.id.action_toggle_case:
-                TextViewUtils.toggleSelectionCase(_hlEditor.getText());
-                return true;
-            case R.id.action_switch_case:
-                TextViewUtils.switchSelectionCase(_hlEditor.getText());
-                return true;
-            case R.id.action_capitalize_words:
-                TextViewUtils.capitalizeSelectionWords(_hlEditor.getText());
-                return true;
-            case R.id.action_capitalize_sentences:
-                TextViewUtils.capitalizeSelectionSentences(_hlEditor.getText());
-                return true;
             default: {
                 return super.onOptionsItemSelected(item);
             }
@@ -737,30 +611,17 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
         }
     }
 
+    /**
+     * Nothing left to tick.
+     *
+     * <p>This kept the checkmarks on word wrap, line numbers, highlighting, auto-format and the
+     * selected format in step with the editor. All of those items are gone: the toggles with the
+     * per-file settings submenu, and the format list because this app is markdown and text only.
+     * Kept as a no-op rather than deleted, because it is called from the format plumbing in
+     * several places and an empty method there is less noise than threading its absence through
+     * all of them.
+     */
     private void updateMenuToggleStates(final int selectedFormatActionId) {
-        MenuItem mi;
-        if ((mi = _fragmentMenu.findItem(R.id.action_wrap_words)) != null) {
-            mi.setChecked(isWrapped());
-        }
-        if ((mi = _fragmentMenu.findItem(R.id.action_enable_highlighting)) != null) {
-            mi.setChecked(_hlEditor.getHighlightingEnabled());
-        }
-        if ((mi = _fragmentMenu.findItem(R.id.action_line_numbers)) != null) {
-            mi.setChecked(_lineNumbersView.isLineNumbersEnabled());
-        }
-        if ((mi = _fragmentMenu.findItem(R.id.action_enable_auto_format)) != null) {
-            mi.setChecked(_hlEditor.getAutoFormatEnabled());
-        }
-
-        final SubMenu su;
-        if (selectedFormatActionId != 0 && (mi = _fragmentMenu.findItem(R.id.submenu_format_selection)) != null && (su = mi.getSubMenu()) != null) {
-            for (int i = 0; i < su.size(); i++) {
-                if ((mi = su.getItem(i)).getItemId() == selectedFormatActionId) {
-                    mi.setChecked(true);
-                    break;
-                }
-            }
-        }
     }
 
     private boolean isWrapped() {
