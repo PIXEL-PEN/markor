@@ -252,9 +252,16 @@ public class TimelineFragment extends AutumnBaseFragment implements TimelineAdap
      * short on the card as it actually is.
      */
     private static String seededYearNote(final Timeline.Year year) {
+        // Bare month names, not "## Jan". Heading marks are structural in markdown, and spending
+        // a heading level on a scaffold means every year note carries twelve of them -- which
+        // crowds out the headings a year's actual writing might want, and renders heavily in
+        // preview for something that is only a guide to type against.
+        //
+        // A plain line is a paragraph: it reads quietly, and the timeline recognises it either
+        // way, so notes already seeded with hashes keep working.
         final StringBuilder sb = new StringBuilder(stampFor(year)).append("\n");
         for (final String month : Timeline.MONTH_SHORT) {
-            sb.append("\n## ").append(month).append("\n");
+            sb.append("\n").append(month).append("\n");
         }
         return sb.toString();
     }
