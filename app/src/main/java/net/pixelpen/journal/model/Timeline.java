@@ -94,20 +94,37 @@ public final class Timeline {
         /** The highlight line, or null. */
         public final String highlight;
         public final File highlightFile;
-        public final int imageCount;
-        public final int documentCount;
+        /**
+         * Pictures this year's note links to, in the order they appear in it.
+         *
+         * <p>Read from the note's own links, not by listing a folder. Attachments used to sit in
+         * a folder per year inside the timeline; they now share one tree per year for the whole
+         * archive, so a folder listing can no longer say which of its files belong to this year.
+         * The markdown can, and it is the record anyway.
+         */
+        public final List<File> images;
+        /** Everything else the note links to: PDFs, audio, whatever was kept. */
+        public final List<File> documents;
 
         Year(final int year, final File dir, final File notesFile, final List<Bullet> bullets,
              final String highlight, final File highlightFile,
-             final int imageCount, final int documentCount) {
+             final List<File> images, final List<File> documents) {
             this.year = year;
             this.dir = dir;
             this.notesFile = notesFile;
             this.bullets = bullets;
             this.highlight = highlight;
             this.highlightFile = highlightFile;
-            this.imageCount = imageCount;
-            this.documentCount = documentCount;
+            this.images = images;
+            this.documents = documents;
+        }
+
+        public int imageCount() {
+            return images.size();
+        }
+
+        public int documentCount() {
+            return documents.size();
         }
 
         public boolean hasNotes() {
@@ -157,9 +174,12 @@ public final class Timeline {
     private static Year readYear(final File dir, final int year) {
         final File notes = new File(dir, year + ".md");
         final File highlight = new File(dir, "highlight.md");
+        final CharSequence body = notes.isFile()
+                ? net.gsantner.opoc.util.GsFileUtils.readTextFileFast(notes).first : "";
         return new Year(year, dir, notes,
                 readBullets(notes), readFirstContentLine(highlight), highlight,
-                countIn(new File(dir, "Images")), countIn(new File(dir, "Documents")));
+                ArchiveImages.linkedImages(notes, body),
+                ArchiveImages.linkedFiles(notes, body));
     }
 
     /**
@@ -311,19 +331,6 @@ public final class Timeline {
         return null;
     }
 
-    private static int countIn(final File dir) {
-        final File[] kids = dir.listFiles();
-        if (kids == null) {
-            return 0;
-        }
-        int n = 0;
-        for (final File f : kids) {
-            if (f.isFile() && !f.getName().startsWith(".")) {
-                n++;
-            }
-        }
-        return n;
-    }
 
     private static void close(final BufferedReader br) {
         try {

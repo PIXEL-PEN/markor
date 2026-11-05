@@ -53,6 +53,10 @@ public final class ArchiveImages {
     /** Matches a markdown image link, capturing the path. */
     private static final Pattern IMAGE_LINK = Pattern.compile("!\\[[^\\]]*\\]\\(([^)]+)\\)");
 
+    /** A plain markdown link: the same shape, minus the leading bang that makes it an image. */
+    private static final Pattern FILE_LINK =
+            Pattern.compile("(?<!!)\\[[^\\]]*\\]\\(([^)]+)\\)");
+
     private ArchiveImages() {
     }
 
@@ -310,15 +314,36 @@ public final class ArchiveImages {
         if (noteDir == null || text == null) {
             return out;
         }
-        final Matcher m = IMAGE_LINK.matcher(text);
+        return resolve(IMAGE_LINK, noteDir, text, out);
+    }
+
+    /**
+     * Every non-image file a note links to, resolved against where the note lives.
+     *
+     * <p>Counted from the links rather than by listing a folder. Attachments share one tree per
+     * year across the whole archive, so the folder cannot say which of its files belong to this
+     * note; the note itself can.
+     */
+    public static List<File> linkedFiles(final File noteFile, final CharSequence text) {
+        final List<File> out = new ArrayList<>();
+        final File noteDir = (noteFile == null) ? null : noteFile.getParentFile();
+        if (noteDir == null || text == null) {
+            return out;
+        }
+        return resolve(FILE_LINK, noteDir, text, out);
+    }
+
+    private static List<File> resolve(final Pattern pattern, final File noteDir,
+                                      final CharSequence text, final List<File> out) {
+        final Matcher m = pattern.matcher(text);
         while (m.find()) {
             final String path = m.group(1).trim();
             if (path.isEmpty() || path.contains("://")) {
-                // Remote images are somebody else's problem and are not in the archive.
+                // Remote targets are somebody else's problem and are not in the archive.
                 continue;
             }
             final File f = path.startsWith("/") ? new File(path) : new File(noteDir, path);
-            if (f.isFile()) {
+            if (f.isFile() && !out.contains(f)) {
                 out.add(f);
             }
         }

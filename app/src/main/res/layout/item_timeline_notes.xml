@@ -20,6 +20,23 @@
         android:layout_height="wrap_content"
         android:orientation="vertical" />
 
+    <HorizontalScrollView
+        android:id="@+id/tl_notes_shots_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:clipToPadding="false"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/tl_notes_shots"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+
+    </HorizontalScrollView>
+
     <TextView
         android:id="@+id/tl_notes_edit"
         android:layout_width="wrap_content"

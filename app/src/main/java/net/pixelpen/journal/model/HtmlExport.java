@@ -25,8 +25,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import net.gsantner.opoc.util.GsFileUtils;
-
 /**
  * Exports the timeline as one self-contained HTML file.
  *
@@ -197,16 +195,11 @@ public final class HtmlExport {
 
     private static void writeImages(final Writer w, final Timeline.Year y, final File home)
             throws IOException {
-        if (y.notesFile == null || !y.notesFile.isFile()) {
-            return;
-        }
-        final CharSequence body = GsFileUtils.readTextFileFast(y.notesFile).first;
-        final List<File> images = ArchiveImages.linkedImages(y.notesFile, body);
-        if (images.isEmpty()) {
+        if (y.images.isEmpty()) {
             return;
         }
         final List<String> embedded = new ArrayList<>();
-        for (final File img : images) {
+        for (final File img : y.images) {
             final String uri = dataUri(img);
             if (uri != null) {
                 embedded.add(uri);

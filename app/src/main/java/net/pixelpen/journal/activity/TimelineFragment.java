@@ -244,6 +244,27 @@ public class TimelineFragment extends AutumnBaseFragment implements TimelineAdap
     }
 
     /**
+     * The year's pictures, full screen, starting at the one tapped.
+     *
+     * <p>Paths rather than the files themselves, because the viewer is another activity and this
+     * has to survive an Intent. The viewer drops any that have gone missing since the bind.
+     */
+    @Override
+    public void onImageTapped(final Timeline.Year year, final int index) {
+        if (year == null || year.images.isEmpty()) {
+            return;
+        }
+        final String[] paths = new String[year.images.size()];
+        for (int n = 0; n < paths.length; n++) {
+            paths[n] = year.images.get(n).getAbsolutePath();
+        }
+        final Intent intent = new Intent(requireContext(), ImageViewerActivity.class);
+        intent.putExtra(ImageViewerActivity.EXTRA_PATHS, paths);
+        intent.putExtra(ImageViewerActivity.EXTRA_START, index);
+        startActivity(intent);
+    }
+
+    /**
      * Open the year for writing.
      *
      * <p>A screen of fixed months rather than the markdown editor. The file is still ordinary

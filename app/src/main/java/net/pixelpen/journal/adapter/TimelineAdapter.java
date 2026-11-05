@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -12,6 +13,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import net.pixelpen.journal.R;
+import net.pixelpen.journal.model.ThumbLoader;
 import net.pixelpen.journal.model.Timeline;
 
 import java.util.ArrayList;
@@ -43,6 +45,9 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         /** "Edit" on the bullet card, or the card of a year with nothing written yet. */
         void onEditNotes(Timeline.Year year);
+
+        /** A thumbnail was tapped: open that year's pictures full screen, starting at this one. */
+        void onImageTapped(Timeline.Year year, int index);
     }
 
     /** One visible line. */
@@ -242,6 +247,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             h.bullets.addView(monthRow(ctx, density, "", undated));
         }
 
+        bindShots(h, y, density);
+
         h.edit.setText(y.hasNotes() ? R.string.timeline_edit : R.string.timeline_write);
         final View.OnClickListener open = v -> {
             if (_listener != null) {
@@ -250,6 +257,45 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         };
         h.edit.setOnClickListener(open);
         h.itemView.setOnClickListener(open);
+    }
+
+    /**
+     * The year's pictures, as a scrolling strip of square thumbnails.
+     *
+     * <p>Views are rebuilt per bind rather than pooled. A year has a handful of pictures, not
+     * hundreds, and the decoded bitmaps -- the only expensive part -- are cached in ThumbLoader
+     * and so survive the rebuild.
+     */
+    private void bindShots(final NotesHolder h, final Timeline.Year y, final float density) {
+        h.shots.removeAllViews();
+        if (y.images.isEmpty()) {
+            h.shotsScroll.setVisibility(View.GONE);
+            return;
+        }
+        h.shotsScroll.setVisibility(View.VISIBLE);
+
+        final Context ctx = h.itemView.getContext();
+        final int side = Math.round(72 * density);
+        final int gap = Math.round(6 * density);
+
+        for (int i = 0; i < y.images.size(); i++) {
+            final int index = i;
+            final ImageView iv = new ImageView(ctx);
+            final LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(side, side);
+            lp.setMarginEnd(gap);
+            iv.setLayoutParams(lp);
+            iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            iv.setBackgroundResource(R.drawable.tl_notes_card);
+            iv.setContentDescription(y.images.get(index).getName());
+            iv.setOnClickListener(v -> {
+                if (_listener != null) {
+                    _listener.onImageTapped(y, index);
+                }
+            });
+            // Decoded a little larger than drawn, so it stays sharp on a dense screen.
+            ThumbLoader.load(iv, y.images.get(index), Math.max(side, 220));
+            h.shots.addView(iv);
+        }
     }
 
     /** One month of the gutter and whatever sits beside it. */
@@ -316,11 +362,15 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     static final class NotesHolder extends RecyclerView.ViewHolder {
         final LinearLayout bullets;
         final TextView edit;
+        final View shotsScroll;
+        final LinearLayout shots;
 
         NotesHolder(final View v) {
             super(v);
             bullets = v.findViewById(R.id.tl_notes_bullets);
             edit = v.findViewById(R.id.tl_notes_edit);
+            shotsScroll = v.findViewById(R.id.tl_notes_shots_scroll);
+            shots = v.findViewById(R.id.tl_notes_shots);
         }
     }
 }
