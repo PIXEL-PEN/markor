@@ -71,8 +71,8 @@ public final class ArchiveImages {
      * somewhere with no year above it at all.
      */
     public static int yearForNote(final File note, final File home) {
-        File walk = (note == null) ? null : note.getParentFile();
-        final String homePath = (home == null) ? null : home.getAbsolutePath();
+        File walk = (note == null) ? null : canon(note).getParentFile();
+        final String homePath = (home == null) ? null : canon(home).getAbsolutePath();
         while (walk != null && !walk.getAbsolutePath().equals(homePath)) {
             if (walk.getName().matches("\\d{4}")) {
                 return Integer.parseInt(walk.getName());
@@ -273,11 +273,17 @@ public final class ArchiveImages {
      * actual files cannot be wrong, and will still be right if a third ever appears.
      */
     public static String relativeLink(final File noteFile, final File imageFile, final File home) {
-        final File noteDir = (noteFile == null) ? null : noteFile.getParentFile();
-        if (noteDir == null || home == null || imageFile == null) {
+        if (noteFile == null || noteFile.getParentFile() == null || home == null
+                || imageFile == null) {
             return imageFile == null ? "" : imageFile.getName();
         }
-        final String homePath = home.getAbsolutePath();
+        // All three canonical before anything is compared. One side reached through a symlink
+        // such as /sdcard and the other through /storage/emulated/0 are the same folder and
+        // compare as different strings, which would quietly emit an absolute path instead of a
+        // relative one and hard-wire this device's layout into the archive.
+        final File noteDir = canon(noteFile.getParentFile());
+        final File img = canon(imageFile);
+        final String homePath = canon(home).getAbsolutePath();
         final StringBuilder up = new StringBuilder();
         File walk = noteDir;
         while (walk != null && !walk.getAbsolutePath().equals(homePath)) {
@@ -287,19 +293,39 @@ public final class ArchiveImages {
         if (walk == null) {
             // The note is not under the home folder; an absolute path is wrong in markdown but at
             // least points somewhere real.
-            return imageFile.getAbsolutePath();
+            return img.getAbsolutePath();
         }
-        final String imgPath = imageFile.getAbsolutePath();
+        final String imgPath = img.getAbsolutePath();
         if (!imgPath.startsWith(homePath + "/")) {
             return imgPath;
         }
         return up + imgPath.substring(homePath.length() + 1);
     }
 
+    /** The canonical form, or the absolute one when the filesystem will not say. */
+    private static File canon(final File f) {
+        try {
+            return f.getCanonicalFile();
+        } catch (final IOException e) {
+            return f.getAbsoluteFile();
+        }
+    }
+
     /** A markdown image link, with the file's own name as the alt text. */
     public static String markdownLink(final String relativePath, final String alt) {
         final String label = (alt == null) ? "" : alt.replace("]", "").replace("[", "");
         return "![" + label + "](" + relativePath + ")";
+    }
+
+    /**
+     * The line with any image links taken out of it.
+     *
+     * <p>Links are markdown punctuation, not writing. A screen that shows the pictures separately
+     * wants the sentence on its own, and a field the user types into should never contain a link
+     * for the cursor to land in the middle of.
+     */
+    public static String stripImageLinks(final String line) {
+        return (line == null) ? "" : IMAGE_LINK.matcher(line).replaceAll("").trim();
     }
 
     /**
@@ -342,8 +368,21 @@ public final class ArchiveImages {
                 // Remote targets are somebody else's problem and are not in the archive.
                 continue;
             }
-            final File f = path.startsWith("/") ? new File(path) : new File(noteDir, path);
-            if (f.isFile() && !out.contains(f)) {
+            final File raw = path.startsWith("/") ? new File(path) : new File(noteDir, path);
+            if (!raw.isFile()) {
+                continue;
+            }
+            // Canonical, because a relative link resolves to a path with the ../.. still in it.
+            // That path opens the right file, but it is not equal to the same file reached any
+            // other way -- so duplicates would slip past, and rewriting a link from it would
+            // prepend a second set of hops and grow the path on every save.
+            File f;
+            try {
+                f = raw.getCanonicalFile();
+            } catch (final java.io.IOException e) {
+                f = raw.getAbsoluteFile();
+            }
+            if (!out.contains(f)) {
                 out.add(f);
             }
         }

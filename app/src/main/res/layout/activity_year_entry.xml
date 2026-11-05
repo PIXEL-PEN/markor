@@ -21,6 +21,31 @@
         android:paddingEnd="10dp"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
 
+    <!--
+      Pictures for the year, above the months.
+
+      Not a text field. A field would hold markdown links, which is punctuation to type around
+      and a cursor trap; and the months would imply a picture belongs to one, which the timeline
+      does not record and does not show.
+    -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/tl_entry_bg"
+        android:clipToPadding="false"
+        android:paddingStart="12dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="12dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/year_entry_shots"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+
+    </HorizontalScrollView>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"

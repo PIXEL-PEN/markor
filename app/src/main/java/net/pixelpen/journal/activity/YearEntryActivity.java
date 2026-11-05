@@ -48,8 +48,16 @@ public class YearEntryActivity extends AutumnBaseActivity {
     private static final int REQ_PICK_IMAGE = 7301;
 
     private final EditText[] _fields = new EditText[13];
-    /** Which month the cursor was last in, so an inserted image lands where it was wanted. */
-    private int _focused = -1;
+    /**
+     * The year's pictures, in the order they appear in the note.
+     *
+     * <p>Held apart from the month fields on purpose. They used to be inserted into whichever
+     * field had the cursor, which put a markdown link in the middle of the text being typed and
+     * implied the picture belonged to that month -- which nothing records and the timeline does
+     * not show. Pictures belong to the year.
+     */
+    private final List<File> _images = new ArrayList<>();
+    private LinearLayout _shots;
     private File _file;
     private int _year;
 
@@ -72,9 +80,13 @@ public class YearEntryActivity extends AutumnBaseActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
+        _shots = findViewById(R.id.year_entry_shots);
+
         final LinearLayout container = findViewById(R.id.year_entry_months);
         final LayoutInflater inflater = LayoutInflater.from(this);
+        // readExisting fills _images as it goes, so the strip can only be built after it.
         final List<List<String>> byMonth = readExisting();
+        buildShots();
 
         for (int m = 0; m <= UNDATED; m++) {
             // The undated row only appears when there is something in it. Offering it empty would
@@ -89,12 +101,6 @@ public class YearEntryActivity extends AutumnBaseActivity {
             label.setText(m == UNDATED
                     ? getString(R.string.timeline_undated) : Timeline.MONTH_SHORT[m]);
             field.setText(join(byMonth.get(m)));
-            final int index = m;
-            field.setOnFocusChangeListener((v, has) -> {
-                if (has) {
-                    _focused = index;
-                }
-            });
             _fields[m] = field;
             container.addView(row);
         }
@@ -159,17 +165,14 @@ public class YearEntryActivity extends AutumnBaseActivity {
     }
 
     /**
-     * Choose a picture to put in this year.
+     * Choose a picture for this year.
      *
-     * <p>It lands in the month the cursor was last in. Without that it would have to land
-     * somewhere arbitrary, and an image filed under the wrong month is worse than one not filed
-     * at all, because nothing about it says it is wrong.
+     * <p>No month is asked for. The timeline shows a year's pictures as one strip and keeps no
+     * month against them, so asking would be collecting an answer nothing reads and nothing
+     * displays -- and getting it wrong would be worse, since nothing about a misfiled picture
+     * says that it is misfiled.
      */
     private void pickImage() {
-        if (_focused < 0) {
-            Toast.makeText(this, R.string.year_entry_tap_month, Toast.LENGTH_SHORT).show();
-            return;
-        }
         final android.content.Intent pick =
                 new android.content.Intent(android.content.Intent.ACTION_OPEN_DOCUMENT);
         pick.addCategory(android.content.Intent.CATEGORY_OPENABLE);
@@ -189,7 +192,7 @@ public class YearEntryActivity extends AutumnBaseActivity {
                 || data.getData() == null) {
             return;
         }
-        importAndInsert(data.getData(), _focused);
+        importAndInsert(data.getData());
     }
 
     /**
@@ -199,7 +202,7 @@ public class YearEntryActivity extends AutumnBaseActivity {
      * first time that photo was tidied up, and an archive meant to last decades cannot depend on
      * files it does not own.
      */
-    private void importAndInsert(final android.net.Uri source, final int month) {
+    private void importAndInsert(final android.net.Uri source) {
         final File home = net.pixelpen.journal.ApplicationObject.settings().getNotebookDirectory();
         final String name = displayNameOf(source);
         new Thread(() -> {
@@ -220,10 +223,8 @@ public class YearEntryActivity extends AutumnBaseActivity {
                             Toast.LENGTH_LONG).show();
                     return;
                 }
-                final String rel = net.pixelpen.journal.model.ArchiveImages
-                        .relativeLink(_file, written, home);
-                insertLine(month, net.pixelpen.journal.model.ArchiveImages
-                        .markdownLink(rel, written.getName()));
+                _images.add(written);
+                buildShots();
             });
         }).start();
     }
@@ -249,17 +250,89 @@ public class YearEntryActivity extends AutumnBaseActivity {
         return null;
     }
 
-    /** Put a line into a month's field, on its own line after whatever the cursor sits on. */
-    private void insertLine(final int month, final String line) {
-        if (month < 0 || month >= _fields.length || _fields[month] == null) {
+    /**
+     * Draw the year's pictures, plus the tile that adds one.
+     *
+     * <p>The add tile sits at the end rather than the start, so the pictures stay in a stable
+     * place as they are added instead of shuffling right each time.
+     */
+    private void buildShots() {
+        if (_shots == null) {
             return;
         }
-        final EditText field = _fields[month];
-        final CharSequence current = field.getText();
-        final boolean needsBreak = current.length() > 0
-                && current.charAt(current.length() - 1) != '\n';
-        field.append((needsBreak ? "\n" : "") + line + "\n");
-        field.requestFocus();
+        _shots.removeAllViews();
+        final float density = getResources().getDisplayMetrics().density;
+        final int side = Math.round(72 * density);
+        final int gap = Math.round(6 * density);
+
+        for (int i = 0; i < _images.size(); i++) {
+            final int index = i;
+            final android.widget.ImageView iv = new android.widget.ImageView(this);
+            final LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(side, side);
+            lp.setMarginEnd(gap);
+            iv.setLayoutParams(lp);
+            iv.setScaleType(android.widget.ImageView.ScaleType.CENTER_CROP);
+            iv.setBackgroundResource(R.drawable.tl_notes_card);
+            iv.setContentDescription(_images.get(index).getName());
+            iv.setOnClickListener(v -> openViewer(index));
+            iv.setOnLongClickListener(v -> {
+                confirmRemove(index);
+                return true;
+            });
+            net.pixelpen.journal.model.ThumbLoader.load(iv, _images.get(index),
+                    Math.max(side, 220));
+            _shots.addView(iv);
+        }
+
+        final TextView add = new TextView(this);
+        final LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(side, side);
+        add.setLayoutParams(lp);
+        add.setBackgroundResource(R.drawable.tl_add_picture);
+        add.setGravity(android.view.Gravity.CENTER);
+        add.setText("+");
+        add.setTextSize(26);
+        add.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.tl_header));
+        add.setContentDescription(getString(R.string.year_entry_add_image));
+        add.setOnClickListener(v -> pickImage());
+        _shots.addView(add);
+    }
+
+    private void openViewer(final int index) {
+        if (index < 0 || index >= _images.size()) {
+            return;
+        }
+        final String[] paths = new String[_images.size()];
+        for (int n = 0; n < paths.length; n++) {
+            paths[n] = _images.get(n).getAbsolutePath();
+        }
+        final android.content.Intent intent =
+                new android.content.Intent(this, ImageViewerActivity.class);
+        intent.putExtra(ImageViewerActivity.EXTRA_PATHS, paths);
+        intent.putExtra(ImageViewerActivity.EXTRA_START, index);
+        startActivity(intent);
+    }
+
+    /**
+     * Take a picture off the year.
+     *
+     * <p>The link goes, the file stays. Pictures are shared out of one folder per year and a
+     * second note may well link to the same one; deleting the file here could empty a gap in
+     * somewhere this screen cannot see. The file can be deleted from the Tree when it is
+     * really finished with.
+     */
+    private void confirmRemove(final int index) {
+        if (index < 0 || index >= _images.size()) {
+            return;
+        }
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setMessage(R.string.year_entry_remove_image)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.remove, (d, w) -> {
+                    _images.remove(index);
+                    buildShots();
+                    save();
+                })
+                .show();
     }
 
     /** Read the file back into months, so editing continues from what is there. */
@@ -293,11 +366,27 @@ public class YearEntryActivity extends AutumnBaseActivity {
                     current = heading;
                     continue;
                 }
+                // Pictures come out of the line and into the strip at the top. A link left in
+                // a field is markdown for the user to type around and a place for the cursor to
+                // land mid-path; and the month it happened to sit under means nothing, since the
+                // timeline shows a year's pictures together and records no month against them.
+                for (final File img : net.pixelpen.journal.model.ArchiveImages
+                        .linkedImages(_file, t)) {
+                    if (!_images.contains(img)) {
+                        _images.add(img);
+                    }
+                }
+                // Marker first, links second. The other way round, "- ![x](...)" strips to a
+                // lone "-" and the marker pattern needs whitespace after the marker to match it,
+                // so the line would survive as a bullet reading "-". This is the same trap the
+                // seeded month column fell into.
                 final String text = t.replaceFirst("^([-*+]|\\d+\\.)\\s+", "");
-                if (text.isEmpty()) {
+                final String bare = net.pixelpen.journal.model.ArchiveImages.stripImageLinks(text);
+                if (bare.isEmpty()) {
+                    // The line was a marker, pictures, or both, and no writing.
                     continue;
                 }
-                byMonth.get(current >= 0 ? current : UNDATED).add(text);
+                byMonth.get(current >= 0 ? current : UNDATED).add(bare);
             }
         } catch (final Exception e) {
             Toast.makeText(this, R.string.error_could_not_open_file, Toast.LENGTH_SHORT).show();
@@ -333,6 +422,21 @@ public class YearEntryActivity extends AutumnBaseActivity {
         appendBlock(sb, null, _fields[UNDATED]);
         for (int m = 0; m < 12; m++) {
             appendBlock(sb, Timeline.MONTH_SHORT[m], _fields[m]);
+        }
+
+        // Pictures last, one link per line and no heading above them. A heading would read as an
+        // entry in the timeline, which keeps any line that is not a list item; a line holding
+        // only a link strips to nothing and is skipped, so these stay out of the bullets while
+        // remaining ordinary markdown that any editor can see.
+        if (!_images.isEmpty()) {
+            final File home = net.pixelpen.journal.ApplicationObject.settings()
+                    .getNotebookDirectory();
+            sb.append("\n");
+            for (final File img : _images) {
+                sb.append(net.pixelpen.journal.model.ArchiveImages.markdownLink(
+                        net.pixelpen.journal.model.ArchiveImages.relativeLink(_file, img, home),
+                        img.getName())).append("\n");
+            }
         }
 
         try {
