@@ -557,6 +557,10 @@
     <string name="search_prompt">Type to search your notes.</string>
 
     <!-- Backing up the archive. -->
+    <string name="year_entry_add_image">Add picture</string>
+    <string name="year_entry_tap_month">Tap a month first, so the picture lands in it.</string>
+    <string name="year_entry_image_failed">Could not add that picture.</string>
+
     <string name="backup_now">Back up archive</string>
     <string name="backup_working">Backing up\u2026</string>
     <!-- %1$d files done, %2$d total. -->

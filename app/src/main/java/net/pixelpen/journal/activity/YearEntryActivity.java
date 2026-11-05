@@ -45,7 +45,11 @@ public class YearEntryActivity extends AutumnBaseActivity {
     /** Entries that named no month, kept so editing a year cannot quietly discard them. */
     private static final int UNDATED = 12;
 
+    private static final int REQ_PICK_IMAGE = 7301;
+
     private final EditText[] _fields = new EditText[13];
+    /** Which month the cursor was last in, so an inserted image lands where it was wanted. */
+    private int _focused = -1;
     private File _file;
     private int _year;
 
@@ -85,6 +89,12 @@ public class YearEntryActivity extends AutumnBaseActivity {
             label.setText(m == UNDATED
                     ? getString(R.string.timeline_undated) : Timeline.MONTH_SHORT[m]);
             field.setText(join(byMonth.get(m)));
+            final int index = m;
+            field.setOnFocusChangeListener((v, has) -> {
+                if (has) {
+                    _focused = index;
+                }
+            });
             _fields[m] = field;
             container.addView(row);
         }
@@ -98,12 +108,22 @@ public class YearEntryActivity extends AutumnBaseActivity {
         // The icon is a black vector and the bar is dark, so it has to be tinted rather than left
         // to the theme. Near-white with a hint of the bar's own blue in it, so it sits on the
         // toolbar instead of punching a hole in it.
-        final android.graphics.drawable.Drawable icon = save.getIcon();
+        tint(save);
+
+        final MenuItem image = menu.add(0, R.id.action_add_image, 1, R.string.year_entry_add_image)
+                .setIcon(R.drawable.ic_image_black_24dp);
+        image.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        tint(image);
+        return true;
+    }
+
+    /** Black vectors on a dark bar have to be tinted; the theme does not do it for coded items. */
+    private static void tint(final MenuItem item) {
+        final android.graphics.drawable.Drawable icon = item.getIcon();
         if (icon != null) {
             icon.mutate().setColorFilter(new android.graphics.PorterDuffColorFilter(
                     0xFFE3ECEE, android.graphics.PorterDuff.Mode.SRC_IN));
         }
-        return true;
     }
 
     @Override
@@ -112,6 +132,10 @@ public class YearEntryActivity extends AutumnBaseActivity {
             if (save()) {
                 finish();
             }
+            return true;
+        }
+        if (item.getItemId() == R.id.action_add_image) {
+            pickImage();
             return true;
         }
         if (item.getItemId() == android.R.id.home) {
@@ -132,6 +156,110 @@ public class YearEntryActivity extends AutumnBaseActivity {
     public void onBackPressed() {
         save();
         super.onBackPressed();
+    }
+
+    /**
+     * Choose a picture to put in this year.
+     *
+     * <p>It lands in the month the cursor was last in. Without that it would have to land
+     * somewhere arbitrary, and an image filed under the wrong month is worse than one not filed
+     * at all, because nothing about it says it is wrong.
+     */
+    private void pickImage() {
+        if (_focused < 0) {
+            Toast.makeText(this, R.string.year_entry_tap_month, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        final android.content.Intent pick =
+                new android.content.Intent(android.content.Intent.ACTION_OPEN_DOCUMENT);
+        pick.addCategory(android.content.Intent.CATEGORY_OPENABLE);
+        pick.setType("image/*");
+        try {
+            startActivityForResult(pick, REQ_PICK_IMAGE);
+        } catch (final Exception e) {
+            Toast.makeText(this, R.string.error_could_not_open_file, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(final int requestCode, final int resultCode,
+                                    @Nullable final android.content.Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != REQ_PICK_IMAGE || resultCode != RESULT_OK || data == null
+                || data.getData() == null) {
+            return;
+        }
+        importAndInsert(data.getData(), _focused);
+    }
+
+    /**
+     * Copy the picture into the archive and write a link to it where the cursor was.
+     *
+     * <p>Copied rather than referenced: a link to wherever the gallery keeps it would break the
+     * first time that photo was tidied up, and an archive meant to last decades cannot depend on
+     * files it does not own.
+     */
+    private void importAndInsert(final android.net.Uri source, final int month) {
+        final File home = net.pixelpen.journal.ApplicationObject.settings().getNotebookDirectory();
+        final String name = displayNameOf(source);
+        new Thread(() -> {
+            File stored = null;
+            try {
+                stored = net.pixelpen.journal.model.ArchiveImages.importImage(
+                        getContentResolver(), source, home, _year, name);
+            } catch (final Exception e) {
+                stored = null;
+            }
+            final File written = stored;
+            runOnUiThread(() -> {
+                if (isFinishing()) {
+                    return;
+                }
+                if (written == null) {
+                    Toast.makeText(this, R.string.year_entry_image_failed,
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
+                final String rel = net.pixelpen.journal.model.ArchiveImages
+                        .relativeLink(_file, written, home);
+                insertLine(month, net.pixelpen.journal.model.ArchiveImages
+                        .markdownLink(rel, written.getName()));
+            });
+        }).start();
+    }
+
+    /** The picked file's own name, for the stored copy to carry a trace of. */
+    private String displayNameOf(final android.net.Uri uri) {
+        android.database.Cursor c = null;
+        try {
+            c = getContentResolver().query(uri, null, null, null, null);
+            if (c != null && c.moveToFirst()) {
+                final int i = c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
+                if (i >= 0) {
+                    return c.getString(i);
+                }
+            }
+        } catch (final Exception ignored) {
+            // The name is a nicety; the timestamp already makes the filename unique.
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+        }
+        return null;
+    }
+
+    /** Put a line into a month's field, on its own line after whatever the cursor sits on. */
+    private void insertLine(final int month, final String line) {
+        if (month < 0 || month >= _fields.length || _fields[month] == null) {
+            return;
+        }
+        final EditText field = _fields[month];
+        final CharSequence current = field.getText();
+        final boolean needsBreak = current.length() > 0
+                && current.charAt(current.length() - 1) != '\n';
+        field.append((needsBreak ? "\n" : "") + line + "\n");
+        field.requestFocus();
     }
 
     /** Read the file back into months, so editing continues from what is there. */

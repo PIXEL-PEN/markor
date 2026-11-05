@@ -67,6 +67,10 @@ public final class Timeline {
                     + "\\s*:?\\s*$",
             java.util.regex.Pattern.CASE_INSENSITIVE);
 
+    /** A markdown image link, which belongs to the gallery rather than to the bullet text. */
+    private static final java.util.regex.Pattern IMAGE_LINK =
+            java.util.regex.Pattern.compile("!\\[[^\\]]*\\]\\([^)]+\\)");
+
     /** One line of a year, and which month it belongs to if it says. */
     public static final class Bullet {
         public final String text;
@@ -202,7 +206,11 @@ public final class Timeline {
                 if (t.matches("^([-*+]|\\d+\\.)$")) {
                     continue;
                 }
-                final String text = t.replaceFirst("^([-*+]|\\d+\\.)\\s+", "");
+                String text = t.replaceFirst("^([-*+]|\\d+\\.)\\s+", "");
+                // Image links are pictures, not sentences. Shown as text they are a line of
+                // markdown punctuation where an entry should be; the screen draws them as
+                // thumbnails instead, read from these same links.
+                text = IMAGE_LINK.matcher(text).replaceAll("").trim();
                 if (text.isEmpty()) {
                     continue;
                 }
