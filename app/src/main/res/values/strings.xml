@@ -541,7 +541,7 @@
     <string name="timeline_undated">\u2014</string>
     <!-- %1$d is a year. -->
     <string name="timeline_highlight_for">Highlight for %1$d</string>
-    <string name="timeline_highlight_hint">The one thing this year is remembered by</string>
+    <string name="timeline_highlight_hint">What defined this year?</string>
     <string name="timeline_add_years">Add years</string>
     <string name="timeline_add_years_help">Lay down a span of years to fill in later. Leave the second blank to run to this year.</string>
     <string name="timeline_from">From</string>

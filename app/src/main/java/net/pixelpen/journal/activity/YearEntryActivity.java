@@ -92,9 +92,17 @@ public class YearEntryActivity extends AutumnBaseActivity {
 
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
-        menu.add(0, R.id.action_save, 0, R.string.save)
-                .setIcon(R.drawable.ic_save_black_24dp)
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        final MenuItem save = menu.add(0, R.id.action_save, 0, R.string.save)
+                .setIcon(R.drawable.ic_save_black_24dp);
+        save.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        // The icon is a black vector and the bar is dark, so it has to be tinted rather than left
+        // to the theme. Near-white with a hint of the bar's own blue in it, so it sits on the
+        // toolbar instead of punching a hole in it.
+        final android.graphics.drawable.Drawable icon = save.getIcon();
+        if (icon != null) {
+            icon.mutate().setColorFilter(new android.graphics.PorterDuffColorFilter(
+                    0xFFE3ECEE, android.graphics.PorterDuff.Mode.SRC_IN));
+        }
         return true;
     }
 
