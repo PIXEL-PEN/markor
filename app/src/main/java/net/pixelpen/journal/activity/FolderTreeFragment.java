@@ -68,10 +68,11 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
     private String _otherFilesLabel;
 
     /**
-     * Whether the "other files" section is open. Starts open, because it is the only sign that
-     * anything is kept beside the journal; closed on first run it would read as an empty label.
+     * Whether the "other files" section is open. Starts closed: the archive is what the screen is
+     * for, and the material beside it grows without limit while the years do not. The arrow on the
+     * heading is what says there is something under it.
      */
-    private boolean _otherFilesOpen = true;
+    private boolean _otherFilesOpen;
 
     private FolderTreeAdapter _adapter;
     private TreeStore _store;
