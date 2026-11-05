@@ -171,17 +171,27 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         final Timeline.Year y = row.year;
         h.label.setText(String.valueOf(y.year));
 
-        if (y.highlight != null && !y.highlight.isEmpty()) {
-            h.pill.setVisibility(View.VISIBLE);
+        // The pill is always there, filled or not. Hidden when empty, the only way to give a year
+        // its defining event was a long-press on the bar, which is not something anyone finds. A
+        // dashed pill says both that the year has no highlight and where to put one.
+        h.pill.setVisibility(View.VISIBLE);
+        final boolean has = y.highlight != null && !y.highlight.isEmpty();
+        if (has) {
             h.pill.setText(y.highlight);
-            h.pill.setOnClickListener(v -> {
-                if (_listener != null) {
-                    _listener.onHighlightTapped(y);
-                }
-            });
+            h.pill.setBackgroundResource(R.drawable.tl_pill);
+            h.pill.setTextColor(0xFF3A2F00);
+            h.pill.setTypeface(null, android.graphics.Typeface.BOLD);
         } else {
-            h.pill.setVisibility(View.GONE);
+            h.pill.setText(R.string.timeline_add_highlight);
+            h.pill.setBackgroundResource(R.drawable.tl_pill_empty);
+            h.pill.setTextColor(0xFF4A5A5D);
+            h.pill.setTypeface(null, android.graphics.Typeface.NORMAL);
         }
+        h.pill.setOnClickListener(v -> {
+            if (_listener != null) {
+                _listener.onHighlightTapped(y);
+            }
+        });
 
         h.itemView.setOnClickListener(v -> {
             if (_listener != null) {
