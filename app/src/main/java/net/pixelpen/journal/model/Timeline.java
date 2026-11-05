@@ -195,9 +195,15 @@ public final class Timeline {
                     current = heading;
                     continue;
                 }
+                // A line that is nothing but a list marker is the scaffold waiting to be
+                // written into. It has to be caught before the marker is stripped: the line was
+                // trimmed on the way in, so a seeded "- " arrives here as "-" with no trailing
+                // space for the strip to match, and would otherwise show as a bullet reading "-".
+                if (t.matches("^([-*+]|\\d+\\.)$")) {
+                    continue;
+                }
                 final String text = t.replaceFirst("^([-*+]|\\d+\\.)\\s+", "");
                 if (text.isEmpty()) {
-                    // An empty bullet is the scaffold waiting to be written into, not content.
                     continue;
                 }
                 final Bullet b = toBullet(text);

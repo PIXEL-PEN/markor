@@ -259,9 +259,12 @@ public class TimelineFragment extends AutumnBaseFragment implements TimelineAdap
         //
         // A plain line is a paragraph: it reads quietly, and the timeline recognises it either
         // way, so notes already seeded with hashes keep working.
+        // Each month gets an empty bullet under it. Without one there is nothing to show where
+        // an entry goes: the cursor has to be placed by hand in blank space, and the month and
+        // the line under it read as one thing rather than as a heading and its first entry.
         final StringBuilder sb = new StringBuilder(stampFor(year)).append("\n");
         for (final String month : Timeline.MONTH_SHORT) {
-            sb.append("\n").append(month).append("\n");
+            sb.append("\n").append(month).append("\n- \n");
         }
         return sb.toString();
     }
