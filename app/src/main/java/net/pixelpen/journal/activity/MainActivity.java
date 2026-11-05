@@ -40,6 +40,8 @@ import net.gsantner.opoc.frontend.base.GsFragmentBase;
 import net.gsantner.opoc.util.GsContextUtils;
 import net.gsantner.opoc.util.GsFileUtils;
 
+import net.pixelpen.journal.model.ArchiveBackup;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -69,6 +71,7 @@ public class MainActivity extends AutumnBaseActivity {
     private MenuItem _timelineItem;
     /** Opens the search screen, on the tabs that cannot draw results themselves. */
     private MenuItem _searchElsewhereItem;
+    private MenuItem _backupItem;
     private MenuItem _settingsItem;
 
     private androidx.appcompat.widget.Toolbar _toolbar;
@@ -246,6 +249,10 @@ public class MainActivity extends AutumnBaseActivity {
             _cu.animateToActivity(this, SettingsActivity.class, false, null);
             return true;
         }
+        if (item.getItemId() == R.id.action_backup) {
+            runBackup();
+            return true;
+        }
         if (item.getItemId() == R.id.action_search_screen) {
             _cu.animateToActivity(this, SearchActivity.class, false, null);
             return true;
@@ -269,6 +276,7 @@ public class MainActivity extends AutumnBaseActivity {
         _homeItem = menu.findItem(R.id.action_home);
         _timelineItem = menu.findItem(R.id.action_timeline);
         _searchElsewhereItem = menu.findItem(R.id.action_search_screen);
+        _backupItem = menu.findItem(R.id.action_backup);
         _searchItem = menu.findItem(R.id.action_search);
         final androidx.appcompat.widget.SearchView search =
                 (androidx.appcompat.widget.SearchView) _searchItem.getActionView();
@@ -319,6 +327,66 @@ public class MainActivity extends AutumnBaseActivity {
         _cu.tintMenuItems(menu, true, Color.WHITE);
         _cu.setSubMenuIconsVisibility(menu, true);
         return true;
+    }
+
+    /**
+     * Zip the archive and hand it to the share sheet.
+     *
+     * <p>No backup folder of its own, no schedule, no sync. The archive is plain markdown in
+     * dated folders and is already the most portable form it could take; the only thing missing
+     * was a way to pick it all up at once. Where it then goes -- Drive, mail, a cable -- is the
+     * share sheet's business and already solved.
+     *
+     * <p>The zip is built in the cache, not in the archive, so a backup never ends up inside the
+     * next backup. Earlier ones are cleared first for the same reason the cache exists: it is
+     * scratch space, and the copy that matters is wherever it was just sent.
+     */
+    private void runBackup() {
+        final File archive = _appSettings.getNotebookDirectory();
+        if (archive == null || !archive.isDirectory()) {
+            android.widget.Toast.makeText(this, R.string.backup_empty,
+                    android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final androidx.appcompat.app.AlertDialog dialog =
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setMessage(R.string.backup_working)
+                        .setCancelable(false)
+                        .show();
+
+        new Thread(() -> {
+            final File dir = new File(getCacheDir(), "backups");
+            ArchiveBackup.clearOld(dir);
+            final File dest = new File(dir, ArchiveBackup.fileNameFor(archive));
+            int count = -1;
+            try {
+                count = ArchiveBackup.create(archive, dest, (done, total) -> {
+                    if (done % 25 == 0 || done == total) {
+                        runOnUiThread(() -> dialog.setMessage(
+                                getString(R.string.backup_progress, done, total)));
+                    }
+                });
+            } catch (final Exception e) {
+                count = -1;
+            }
+            final int written = count;
+            runOnUiThread(() -> {
+                if (isFinishing()) {
+                    return;
+                }
+                dialog.dismiss();
+                if (written < 0) {
+                    android.widget.Toast.makeText(this, R.string.backup_failed,
+                            android.widget.Toast.LENGTH_LONG).show();
+                    return;
+                }
+                android.widget.Toast.makeText(this,
+                        getString(R.string.backup_done, written),
+                        android.widget.Toast.LENGTH_LONG).show();
+                _cu.shareStream(this, dest, "application/zip");
+            });
+        }).start();
     }
 
     /**
@@ -399,6 +467,9 @@ public class MainActivity extends AutumnBaseActivity {
         }
         if (_timelineItem != null) {
             _timelineItem.setVisible(wanted);
+        }
+        if (_backupItem != null) {
+            _backupItem.setVisible(wanted);
         }
         if (_settingsItem != null) {
             _settingsItem.setVisible(wanted);

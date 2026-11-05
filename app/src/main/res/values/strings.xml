@@ -556,6 +556,16 @@
 
     <string name="search_prompt">Type to search your notes.</string>
 
+    <!-- Backing up the archive. -->
+    <string name="backup_now">Back up archive</string>
+    <string name="backup_working">Backing up\u2026</string>
+    <!-- %1$d files done, %2$d total. -->
+    <string name="backup_progress">Backing up\u2026 %1$d of %2$d</string>
+    <!-- %1$d is a file count. -->
+    <string name="backup_done">%1$d files packed. Choose where to keep it.</string>
+    <string name="backup_failed">Backup failed.</string>
+    <string name="backup_empty">There is nothing in the archive to back up yet.</string>
+
     <!-- Deleting a folder from the tree. %1$s is the folder name. -->
     <string name="tree_delete_folder">Delete %1$s?</string>
     <string name="tree_delete_folder_empty">This folder is empty.</string>

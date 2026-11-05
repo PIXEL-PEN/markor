@@ -58,6 +58,18 @@
         app:showAsAction="never" />
 
     <!--
+      A copy of the whole archive, handed to the share sheet. Not a format of its own: the folder
+      of markdown is already the backup, and this only picks it all up at once.
+    -->
+    <item
+        android:id="@+id/action_backup"
+        android:icon="@drawable/ic_save_black_24dp"
+        android:orderInCategory="50"
+        android:title="@string/backup_now"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <!--
       In the overflow rather than gated behind a preference, so the bar has a menu at all. Its
       visibility follows the tab, which is what puts the overflow on the Calendar and Tree screens
       and leaves it off the More screen, where it would only point back at itself.
