@@ -1,5 +1,6 @@
 package net.pixelpen.journal.adapter;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
@@ -249,14 +250,27 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 i.setPackage(context.getPackageName());
                 context.startActivity(i);
+            } else if (context instanceof Activity) {
+                // The app's own entry point rather than a hand-built intent. That distinction is
+                // what broke jumping to a line the first time: a raw intent skips the format
+                // check, the multi-window and single-top flags, and -- the part that actually
+                // matters -- the line never reached the editor. The fragment reads the line from
+                // its own arguments in onFragmentFirstTimeVisible, and only launch() puts it
+                // there, by way of newInstance(). Sent as an activity extra it was simply
+                // dropped on any path where DocumentActivity was reused.
+                //
+                // Preview is off when a line is given, since a line is a position in the text and
+                // there is nothing to position in a rendered preview.
+                DocumentActivity.launch((Activity) context, target,
+                        (line >= 0) ? Boolean.FALSE : Boolean.TRUE,
+                        (line >= 0) ? Integer.valueOf(line) : null);
             } else {
+                // No activity to launch from, which should not happen for a tapped row. Open it
+                // plainly rather than doing nothing; the line is lost, the note is not.
                 final Intent i = new Intent(context, DocumentActivity.class);
                 i.putExtra(Document.EXTRA_FILE, target);
                 i.putExtra(Document.EXTRA_DO_PREVIEW, true);
-                // The line number is deliberately not passed. Sending it was the only thing that
-                // differed between a search result and a tree row, and search results stopped
-                // opening at all -- so jumping to the match is parked until that path is
-                // understood, rather than left in the way of opening the note.
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(i);
             }
         } catch (final Exception e) {
