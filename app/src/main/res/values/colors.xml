@@ -100,4 +100,12 @@
     <color name="year_page_bg">#F4F4F4</color>
     <color name="year_slot_empty">#9AB3B8</color>
 
+    <!-- Life timeline. Sampled from the HTML this screen replaces. -->
+    <color name="tl_header">#44546A</color>
+    <color name="tl_decade">#B08D0F</color>
+    <color name="tl_year">#92B4B8</color>
+    <color name="tl_pill">#F7DD93</color>
+    <color name="tl_page_bg">#EEF2F7</color>
+    <color name="tl_card_border">#C9D2DC</color>
+
 </resources>

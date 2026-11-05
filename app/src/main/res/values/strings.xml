@@ -526,6 +526,28 @@
     <string name="year_highlight_hint">What stood out?</string>
     <string name="year_highlight_when">Roughly when?</string>
 
+    <!-- Life timeline. -->
+    <string name="timeline">Timeline</string>
+    <string name="timeline_header">Past Years</string>
+    <string name="timeline_empty">No years yet.\nUse + to lay down the years you want to fill in.</string>
+    <string name="timeline_year_blank">Nothing written for this year yet.</string>
+    <string name="timeline_edit">Edit</string>
+    <string name="timeline_write">Write</string>
+    <string name="timeline_set_highlight">Highlight</string>
+    <!-- %1$d is a year. -->
+    <string name="timeline_highlight_for">Highlight for %1$d</string>
+    <string name="timeline_highlight_hint">The one thing this year is remembered by</string>
+    <string name="timeline_add_years">Add years</string>
+    <string name="timeline_add_years_help">Lay down a span of years to fill in later. Leave the second blank to run to this year.</string>
+    <string name="timeline_from">From</string>
+    <string name="timeline_bad_year">Enter a four-digit year.</string>
+    <string name="timeline_years_added">Years added.</string>
+    <string name="timeline_years_existed">Those years were already there.</string>
+    <!-- %1$d is a year. -->
+    <string name="timeline_remove_year">Remove %1$d?</string>
+    <string name="timeline_remove_warning">This year has writing in it. Removing it deletes the year and everything filed under it.</string>
+    <string name="timeline_remove_plain">Nothing is written in this year.</string>
+
     <!-- Shown on the Tree tab when the archive has nothing in it yet. -->
     <string name="tree_empty">Nothing here yet.\nCapture a note on the Calendar tab and it will appear here.</string>
 

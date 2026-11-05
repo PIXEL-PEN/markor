@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The year's highlight, as a rounded pill on the right of its bar. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/tl_pill" />
+    <corners android:radius="14dp" />
+</shape>
