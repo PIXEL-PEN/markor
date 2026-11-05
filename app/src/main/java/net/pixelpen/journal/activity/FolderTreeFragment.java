@@ -640,6 +640,84 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         return true;
     }
 
+    /**
+     * Delete a folder and everything under it.
+     *
+     * <p>Only delete. Renaming a folder is deliberately not offered: a year or month folder's name
+     * is what files the notes inside it, and renaming one strips them out of the structure their
+     * stamps describe without touching the notes themselves, which is a worse state than either
+     * keeping or deleting them.
+     *
+     * <p>The home folder itself is refused. Emptying the archive from a long-press on its own row
+     * is not something to make possible by accident.
+     */
+    @Override
+    public boolean onFolderLongPressed(final File dir) {
+        if (dir == null || !dir.isDirectory()) {
+            return false;
+        }
+        if (_root != null && dir.equals(_root)) {
+            return false;
+        }
+
+        final int notes = countFilesUnder(dir);
+        final String message = (notes == 0)
+                ? getString(R.string.tree_delete_folder_empty)
+                : getResources().getQuantityString(R.plurals.tree_delete_folder_count, notes, notes);
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle(getString(R.string.tree_delete_folder, dir.getName()))
+                .setMessage(message)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.delete, (d, w) -> {
+                    final File parent = dir.getParentFile();
+                    if (deleteRecursively(dir)) {
+                        _index.save();
+                        _expanded.remove(dir.getAbsolutePath());
+                        refreshAfterChange(parent, null);
+                    } else {
+                        toast(R.string.error_could_not_open_file);
+                    }
+                })
+                .show();
+        return true;
+    }
+
+    /** How many files sit under a folder, at any depth. */
+    private static int countFilesUnder(final File dir) {
+        final File[] kids = dir.listFiles();
+        if (kids == null) {
+            return 0;
+        }
+        int n = 0;
+        for (final File k : kids) {
+            n += k.isDirectory() ? countFilesUnder(k) : 1;
+        }
+        return n;
+    }
+
+    /**
+     * Remove a folder and its contents, dropping each note from the creation index on the way.
+     *
+     * <p>The index is keyed by path. Left behind, those entries would hand their creation times to
+     * any future note that happened to land on the same path -- which, in an archive whose folders
+     * are years, months and categories, is not a far-fetched collision.
+     */
+    private boolean deleteRecursively(final File f) {
+        final File[] kids = f.listFiles();
+        if (kids != null) {
+            for (final File k : kids) {
+                if (!deleteRecursively(k)) {
+                    return false;
+                }
+            }
+        }
+        if (f.isFile() && _index != null) {
+            _index.remove(f);
+        }
+        return f.delete();
+    }
+
     private void promptRename(final File file) {
         final String name = file.getName();
         final int dot = name.lastIndexOf('.');

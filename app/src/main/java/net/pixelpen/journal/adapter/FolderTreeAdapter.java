@@ -109,6 +109,9 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         /** A note row was long-pressed. */
         boolean onFileLongPressed(File file);
+
+        /** A folder row was long-pressed. */
+        boolean onFolderLongPressed(File dir);
     }
 
     private final List<Row> _rows = new ArrayList<>();
@@ -223,6 +226,8 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 _listener.onFolderToggled(row);
             }
         });
+        h.itemView.setOnLongClickListener(v ->
+                _listener != null && _listener.onFolderLongPressed(row.entry.file));
     }
 
     private void bindFile(final FileHolder h, final Row row) {
