@@ -56,6 +56,17 @@ public final class Timeline {
                     + "\\b[\\s.:,\\-\u2013]*",
             java.util.regex.Pattern.CASE_INSENSITIVE);
 
+    /**
+     * A month standing alone on its own line, with or without markdown heading marks: the seeded
+     * scaffold a year's note is created with. Everything after one belongs to that month until
+     * the next.
+     */
+    private static final java.util.regex.Pattern MONTH_HEADING = java.util.regex.Pattern.compile(
+            "^#{0,6}\\s*(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july"
+                    + "|aug|august|sep|sept|september|oct|october|nov|november|dec|december)"
+                    + "\\s*:?\\s*$",
+            java.util.regex.Pattern.CASE_INSENSITIVE);
+
     /** One line of a year, and which month it belongs to if it says. */
     public static final class Bullet {
         public final String text;
@@ -164,6 +175,9 @@ public final class Timeline {
             br = new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF-8"));
             String line;
             boolean first = true;
+            // Set by a month heading and kept until the next one, so everything typed under
+            // "## Mar" belongs to March without each line having to repeat it.
+            int current = -1;
             while ((line = br.readLine()) != null) {
                 final String t = line.trim();
                 if (first) {
@@ -176,7 +190,20 @@ public final class Timeline {
                 if (t.isEmpty()) {
                     continue;
                 }
-                out.add(toBullet(t.replaceFirst("^([-*+]|\\d+\\.)\\s+", "")));
+                final int heading = headingMonth(t);
+                if (heading >= 0) {
+                    current = heading;
+                    continue;
+                }
+                final String text = t.replaceFirst("^([-*+]|\\d+\\.)\\s+", "");
+                if (text.isEmpty()) {
+                    // An empty bullet is the scaffold waiting to be written into, not content.
+                    continue;
+                }
+                final Bullet b = toBullet(text);
+                // A month written on the line itself wins over the heading above it: it is more
+                // specific, and someone who writes it there means it.
+                out.add(b.month >= 0 ? b : new Bullet(b.text, current));
             }
         } catch (final Exception e) {
             // An unreadable year shows as an empty one rather than taking the screen down.
@@ -184,6 +211,21 @@ public final class Timeline {
             close(br);
         }
         return out;
+    }
+
+    /** The month a heading line names, or -1 if the line is not a heading. */
+    private static int headingMonth(final String line) {
+        final java.util.regex.Matcher m = MONTH_HEADING.matcher(line);
+        if (!m.matches()) {
+            return -1;
+        }
+        final String name = m.group(1).toLowerCase(Locale.ROOT);
+        for (int i = 0; i < MONTH_SHORT.length; i++) {
+            if (name.startsWith(MONTH_SHORT[i].toLowerCase(Locale.ROOT))) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**

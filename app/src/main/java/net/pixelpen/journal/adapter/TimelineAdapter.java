@@ -205,10 +205,9 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     /**
      * A year's card: months down the left, what happened beside them.
      *
-     * <p>All twelve are drawn whether or not anything sits next to them. That is the point of a
-     * seeded column -- it is a scaffold to place things into, and a year showing only the three
-     * months you have already filled gives you nothing to aim at for the other nine. It also makes
-     * the sequence legible at a glance, which is the thing memory is worst at.
+     * <p>Only months with something in them. The scaffold of all twelve belongs in the note, not
+     * here: most years have a handful of entries, and ten empty rows around them is not structure,
+     * it is padding.
      *
      * <p>Lines that name no month go underneath, undated, rather than being guessed into one.
      */
@@ -231,8 +230,13 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             }
         }
 
+        // Only the months that have something in them. The seeded column of all twelve lives in
+        // the note, which is where there is room for it and where it is useful as a scaffold to
+        // type into; here it would be ten empty rows for a year with two entries.
         for (int m = 0; m < 12; m++) {
-            h.bullets.addView(monthRow(ctx, density, Timeline.MONTH_SHORT[m], byMonth.get(m)));
+            if (!byMonth.get(m).isEmpty()) {
+                h.bullets.addView(monthRow(ctx, density, Timeline.MONTH_SHORT[m], byMonth.get(m)));
+            }
         }
         if (!undated.isEmpty()) {
             h.bullets.addView(monthRow(ctx, density, "", undated));

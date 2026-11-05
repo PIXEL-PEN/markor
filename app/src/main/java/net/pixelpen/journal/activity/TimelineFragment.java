@@ -240,10 +240,29 @@ public class TimelineFragment extends AutumnBaseFragment implements TimelineAdap
         }
     }
 
+    /**
+     * A year's note, seeded with the twelve months.
+     *
+     * <p>The scaffold lives here rather than on the timeline card. This is where there is room for
+     * it and where it is useful: it gives somewhere to type, and it means a year is filled in by
+     * moving down the months rather than by remembering to write one at the start of every line.
+     *
+     * <p>The timeline reads these headings back, so anything written under "## Mar" shows beside
+     * March without repeating it. Headings with nothing under them are ignored, so a year stays as
+     * short on the card as it actually is.
+     */
+    private static String seededYearNote(final Timeline.Year year) {
+        final StringBuilder sb = new StringBuilder(stampFor(year)).append("\n");
+        for (final String month : Timeline.MONTH_SHORT) {
+            sb.append("\n## ").append(month).append("\n");
+        }
+        return sb.toString();
+    }
+
     @Override
     public void onEditNotes(final Timeline.Year year) {
         final File notes = year.notesFile;
-        if (!notes.isFile() && !write(notes, stampFor(year) + "\n\n- ")) {
+        if (!notes.isFile() && !write(notes, seededYearNote(year))) {
             return;
         }
         // The editor, not preview: this screen exists to be written into.
