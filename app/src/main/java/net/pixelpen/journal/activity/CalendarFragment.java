@@ -122,20 +122,22 @@ public class CalendarFragment extends AutumnBaseFragment
     }
 
     /**
-     * Put the form back to a blank entry for today.
+     * Clear the title after a note is written.
      *
-     * <p>Runs after a note is written rather than on a button, so the next capture does not start
-     * out holding the previous one's title, category and date -- which, on a screen whose whole
-     * job is a dated entry, is a way to misfile the next one.
+     * <p>The title and only the title. This used to put the category back to the default and the
+     * date back to today as well, which was wrong twice.
+     *
+     * <p>It broke the tree. The form is reset before the host switches tabs, so the tree was told
+     * the category being worked in was the default while the note had gone somewhere else, and it
+     * opened both -- and every later redraw kept re-asserting the wrong one.
+     *
+     * <p>It was also wrong on its own terms. Writing several entries into one category, or
+     * backfilling a run of days in March, means the category and the date are exactly what should
+     * survive a save; re-picking them each time is the work, not the convenience. The title is the
+     * only field that is genuinely stale once it has been used, because it has become the note.
      */
     private void resetForm() {
         inputNoteTitle.setText("");
-        final List<String> cats = loadCategoriesForSpinner();
-        final int idxDefault = indexOfIgnoreCase(cats, DEFAULT_CATEGORY);
-        spinnerCategory.setSelection(idxDefault >= 0 ? idxDefault : 0, false);
-        lastRealCategorySelection = spinnerCategory.getSelectedItemPosition();
-        calendarView.setDate(System.currentTimeMillis(), false, true);
-        selectedCalendarDate.setTimeInMillis(System.currentTimeMillis());
     }
 
     @Override
