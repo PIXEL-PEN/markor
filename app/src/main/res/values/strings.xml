@@ -554,6 +554,8 @@
     <string name="timeline_remove_warning">This year has writing in it. Removing it deletes the year and everything filed under it.</string>
     <string name="timeline_remove_plain">Nothing is written in this year.</string>
 
+    <string name="search_prompt">Type to search your notes.</string>
+
     <!-- Deleting a folder from the tree. %1$s is the folder name. -->
     <string name="tree_delete_folder">Delete %1$s?</string>
     <string name="tree_delete_folder_empty">This folder is empty.</string>

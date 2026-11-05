@@ -36,6 +36,18 @@
         android:visible="false"
         app:showAsAction="never" />
 
+    <!--
+      Search from a screen that cannot show results in place. Opens the search screen; the Tree
+      has its own field, where matches replace the tree itself.
+    -->
+    <item
+        android:id="@+id/action_search_screen"
+        android:icon="@drawable/ic_search_black_24dp"
+        android:orderInCategory="11"
+        android:title="@string/search"
+        android:visible="false"
+        app:showAsAction="always" />
+
     <!-- Somewhere you go deliberately, rather than a tab flicked to while capturing. -->
     <item
         android:id="@+id/action_timeline"

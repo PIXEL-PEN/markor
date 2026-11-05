@@ -67,6 +67,8 @@ public class MainActivity extends AutumnBaseActivity {
     private MenuItem _searchItem;
     private MenuItem _homeItem;
     private MenuItem _timelineItem;
+    /** Opens the search screen, on the tabs that cannot draw results themselves. */
+    private MenuItem _searchElsewhereItem;
     private MenuItem _settingsItem;
 
     private androidx.appcompat.widget.Toolbar _toolbar;
@@ -244,6 +246,10 @@ public class MainActivity extends AutumnBaseActivity {
             _cu.animateToActivity(this, SettingsActivity.class, false, null);
             return true;
         }
+        if (item.getItemId() == R.id.action_search_screen) {
+            _cu.animateToActivity(this, SearchActivity.class, false, null);
+            return true;
+        }
         if (item.getItemId() == R.id.action_timeline) {
             _cu.animateToActivity(this, TimelineActivity.class, false, null);
             return true;
@@ -262,6 +268,7 @@ public class MainActivity extends AutumnBaseActivity {
         _settingsItem = menu.findItem(R.id.action_settings);
         _homeItem = menu.findItem(R.id.action_home);
         _timelineItem = menu.findItem(R.id.action_timeline);
+        _searchElsewhereItem = menu.findItem(R.id.action_search_screen);
         _searchItem = menu.findItem(R.id.action_search);
         final androidx.appcompat.widget.SearchView search =
                 (androidx.appcompat.widget.SearchView) _searchItem.getActionView();
@@ -375,10 +382,17 @@ public class MainActivity extends AutumnBaseActivity {
      */
     private void applyToolbarForTab(final int pos) {
         final boolean onTree = pos == tabIdToPos(R.id.nav_tree);
-        final boolean wanted = onTree || pos == tabIdToPos(R.id.nav_journal);
+        // Year joins Journal and Tree. More is the settings screen and needs none of it.
+        final boolean wanted = onTree
+                || pos == tabIdToPos(R.id.nav_journal)
+                || pos == tabIdToPos(R.id.nav_year);
 
         if (_searchItem != null && !_searchItem.isActionViewExpanded()) {
-            _searchItem.setVisible(wanted);
+            // The inline field belongs to the Tree, where matches replace what is on screen.
+            _searchItem.setVisible(onTree);
+        }
+        if (_searchElsewhereItem != null) {
+            _searchElsewhereItem.setVisible(wanted && !onTree);
         }
         if (_homeItem != null) {
             _homeItem.setVisible(wanted);
