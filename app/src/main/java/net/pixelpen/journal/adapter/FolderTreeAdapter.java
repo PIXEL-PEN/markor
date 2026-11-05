@@ -43,6 +43,7 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     private static final int TYPE_FOLDER = 0;
     private static final int TYPE_FILE = 1;
+    private static final int TYPE_HEADER = 2;
 
     /** Left step per level, matching the stylesheet's 20px indent. */
     private static final int INDENT_DP = 20;
@@ -66,6 +67,22 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
          * match was in the body.
          */
         public final int line;
+        /** Section heading text; when set this row is a heading and carries no entry. */
+        public final String header;
+
+        /** A section heading, with a rule above it. */
+        public static Row heading(final String text) {
+            return new Row(text);
+        }
+
+        private Row(final String header) {
+            this.entry = null;
+            this.depth = 0;
+            this.expanded = false;
+            this.subtitle = null;
+            this.line = -1;
+            this.header = header;
+        }
 
         public Row(final TreeStore.Entry entry, final int depth, final boolean expanded) {
             this(entry, depth, expanded, null, -1);
@@ -78,6 +95,7 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             this.expanded = expanded;
             this.subtitle = subtitle;
             this.line = line;
+            this.header = null;
         }
     }
 
@@ -120,13 +138,20 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public int getItemViewType(final int position) {
-        return _rows.get(position).entry.isDir ? TYPE_FOLDER : TYPE_FILE;
+        final Row row = _rows.get(position);
+        if (row.header != null) {
+            return TYPE_HEADER;
+        }
+        return row.entry.isDir ? TYPE_FOLDER : TYPE_FILE;
     }
 
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull final ViewGroup parent, final int viewType) {
         final LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        if (viewType == TYPE_HEADER) {
+            return new HeaderHolder(inflater.inflate(R.layout.item_tree_header, parent, false));
+        }
         if (viewType == TYPE_FOLDER) {
             return new FolderHolder(inflater.inflate(R.layout.item_tree_folder, parent, false));
         }
@@ -136,6 +161,10 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     @Override
     public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, final int position) {
         final Row row = _rows.get(position);
+        if (holder instanceof HeaderHolder) {
+            ((HeaderHolder) holder).label.setText(row.header);
+            return;
+        }
         if (holder instanceof FolderHolder) {
             bindFolder((FolderHolder) holder, row);
         } else {
@@ -342,6 +371,15 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private static boolean isEditable(final String lowerName) {
         return lowerName.endsWith(".md") || lowerName.endsWith(".markdown")
                 || lowerName.endsWith(".txt");
+    }
+
+    static final class HeaderHolder extends RecyclerView.ViewHolder {
+        final TextView label;
+
+        HeaderHolder(final View v) {
+            super(v);
+            label = v.findViewById(R.id.tree_header_label);
+        }
     }
 
     static final class FolderHolder extends RecyclerView.ViewHolder {

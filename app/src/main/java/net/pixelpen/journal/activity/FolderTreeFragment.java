@@ -512,19 +512,57 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         }).start();
     }
 
-    /** Append the contents of one open directory, recursing into those that are themselves open. */
+    /**
+     * Append the contents of one open directory, recursing into those that are themselves open.
+     *
+     * <p>The root is split in two. The home folder holds the journal -- a folder per year -- and
+     * also everything that accumulates beside it: the timeline, images, documents, downloaded
+     * pages. Listed together they were one undifferentiated column, and which was which had to be
+     * inferred from the folder names. The years come first, then a rule and a heading, then the
+     * rest.
+     *
+     * <p>A year is a four-digit folder name. That is the archive's own rule, not a guess: it is
+     * what the capture screen creates and what the year overview looks for.
+     */
     private void collect(final List<FolderTreeAdapter.Row> out, final File dir, final int depth,
                          final Set<String> open) {
         final TreeStore.Dir contents = _store.load(dir);
-        for (final TreeStore.Entry sub : contents.dirs) {
-            final boolean isOpen = open.contains(sub.file.getAbsolutePath());
-            out.add(new FolderTreeAdapter.Row(sub, depth, isOpen));
-            if (isOpen) {
-                collect(out, sub.file, depth + 1, open);
+
+        if (_root != null && dir.equals(_root)) {
+            final List<TreeStore.Entry> years = new ArrayList<>();
+            final List<TreeStore.Entry> others = new ArrayList<>();
+            for (final TreeStore.Entry sub : contents.dirs) {
+                (sub.file.getName().matches("\\d{4}") ? years : others).add(sub);
             }
+            for (final TreeStore.Entry sub : years) {
+                appendDir(out, sub, depth, open);
+            }
+            if (!others.isEmpty() || !contents.files.isEmpty()) {
+                out.add(FolderTreeAdapter.Row.heading(_otherFilesLabel));
+                for (final TreeStore.Entry sub : others) {
+                    appendDir(out, sub, depth, open);
+                }
+                for (final TreeStore.Entry f : contents.files) {
+                    out.add(new FolderTreeAdapter.Row(f, depth, false));
+                }
+            }
+            return;
+        }
+
+        for (final TreeStore.Entry sub : contents.dirs) {
+            appendDir(out, sub, depth, open);
         }
         for (final TreeStore.Entry f : contents.files) {
             out.add(new FolderTreeAdapter.Row(f, depth, false));
+        }
+    }
+
+    private void appendDir(final List<FolderTreeAdapter.Row> out, final TreeStore.Entry sub,
+                           final int depth, final Set<String> open) {
+        final boolean isOpen = open.contains(sub.file.getAbsolutePath());
+        out.add(new FolderTreeAdapter.Row(sub, depth, isOpen));
+        if (isOpen) {
+            collect(out, sub.file, depth + 1, open);
         }
     }
 
