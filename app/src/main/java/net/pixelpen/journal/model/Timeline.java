@@ -39,6 +39,35 @@ public final class Timeline {
     /** Folder under the home folder. */
     public static final String FOLDER = "Timeline";
 
+    /** Short month labels for the gutter, January first. */
+    public static final String[] MONTH_SHORT = {
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    };
+
+    /**
+     * Matches a month at the start of a bullet, with an optional day before it, so "March ...",
+     * "14 March ..." and "Mar: ..." all land in March. Trailing punctuation is eaten with it.
+     */
+    private static final java.util.regex.Pattern LEADING_MONTH = java.util.regex.Pattern.compile(
+            "^(?:\\d{1,2}(?:st|nd|rd|th)?\\s+)?"
+                    + "(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july"
+                    + "|aug|august|sep|sept|september|oct|october|nov|november|dec|december)"
+                    + "\\b[\\s.:,\\-\u2013]*",
+            java.util.regex.Pattern.CASE_INSENSITIVE);
+
+    /** One line of a year, and which month it belongs to if it says. */
+    public static final class Bullet {
+        public final String text;
+        /** 0 for January, 11 for December, or -1 when the line names no month. */
+        public final int month;
+
+        Bullet(final String text, final int month) {
+            this.text = text;
+            this.month = month;
+        }
+    }
+
     /** One year. */
     public static final class Year {
         public final int year;
@@ -46,14 +75,14 @@ public final class Timeline {
         /** The year's entry, which may not exist yet. */
         public final File notesFile;
         /** Bullet lines, stripped of their markers; empty when nothing is written. */
-        public final List<String> bullets;
+        public final List<Bullet> bullets;
         /** The highlight line, or null. */
         public final String highlight;
         public final File highlightFile;
         public final int imageCount;
         public final int documentCount;
 
-        Year(final int year, final File dir, final File notesFile, final List<String> bullets,
+        Year(final int year, final File dir, final File notesFile, final List<Bullet> bullets,
              final String highlight, final File highlightFile,
              final int imageCount, final int documentCount) {
             this.year = year;
@@ -125,8 +154,8 @@ public final class Timeline {
      * a list item is kept as written rather than dropped, so an entry someone typed as prose still
      * shows up instead of vanishing for not being formatted correctly.
      */
-    private static List<String> readBullets(final File f) {
-        final List<String> out = new ArrayList<>();
+    private static List<Bullet> readBullets(final File f) {
+        final List<Bullet> out = new ArrayList<>();
         if (!f.isFile()) {
             return out;
         }
@@ -147,7 +176,7 @@ public final class Timeline {
                 if (t.isEmpty()) {
                     continue;
                 }
-                out.add(t.replaceFirst("^([-*+]|\\d+\\.)\\s+", ""));
+                out.add(toBullet(t.replaceFirst("^([-*+]|\\d+\\.)\\s+", "")));
             }
         } catch (final Exception e) {
             // An unreadable year shows as an empty one rather than taking the screen down.
@@ -155,6 +184,45 @@ public final class Timeline {
             close(br);
         }
         return out;
+    }
+
+    /**
+     * Split a line into its month and the rest.
+     *
+     * <p>A line that opens with a month belongs beside it in the gutter, and the month is taken
+     * out of the text: repeating "March" next to a column already saying Mar is noise. A line that
+     * names no month keeps all of its text and sits under the months, undated -- which is the
+     * honest place for it rather than being guessed into one.
+     */
+    private static Bullet toBullet(final String line) {
+        final java.util.regex.Matcher m = LEADING_MONTH.matcher(line);
+        if (!m.find()) {
+            return new Bullet(line, -1);
+        }
+        final String matched = m.group(1);
+        final String name = matched.toLowerCase(Locale.ROOT);
+
+        // "may" is the one month that is also an ordinary English word, and a bullet beginning
+        // "may the project ship" is not about May. Taken as a month only when it is capitalised,
+        // when a day number precedes it, or when punctuation follows -- which is how a date is
+        // written and how a sentence opening with the verb is not.
+        if ("may".equals(name) && matched.charAt(0) == 'm') {
+            final boolean hasDayBefore = m.start(1) > 0;
+            final String tail = line.substring(m.end(1), m.end());
+            if (!hasDayBefore && tail.trim().isEmpty()) {
+                return new Bullet(line, -1);
+            }
+        }
+        int month = -1;
+        for (int i = 0; i < MONTH_SHORT.length; i++) {
+            if (name.startsWith(MONTH_SHORT[i].toLowerCase(Locale.ROOT))) {
+                month = i;
+                break;
+            }
+        }
+        final String rest = line.substring(m.end()).trim();
+        // A line that is nothing but a month name keeps its text, or the row would be blank.
+        return rest.isEmpty() ? new Bullet(line, month) : new Bullet(rest, month);
     }
 
     /** First line that is not the stamp and not blank. */

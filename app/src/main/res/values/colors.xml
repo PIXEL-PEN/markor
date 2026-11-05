@@ -107,5 +107,7 @@
     <color name="tl_pill">#F7DD93</color>
     <color name="tl_page_bg">#EEF2F7</color>
     <color name="tl_card_border">#C9D2DC</color>
+    <!-- The seeded month column. Subtle on purpose: it is a scaffold, not content. -->
+    <color name="tl_gutter">#A9B4BF</color>
 
 </resources>

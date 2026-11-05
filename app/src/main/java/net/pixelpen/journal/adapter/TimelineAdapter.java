@@ -202,33 +202,40 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 _listener != null && _listener.onYearLongPressed(y));
     }
 
+    /**
+     * A year's card: months down the left, what happened beside them.
+     *
+     * <p>All twelve are drawn whether or not anything sits next to them. That is the point of a
+     * seeded column -- it is a scaffold to place things into, and a year showing only the three
+     * months you have already filled gives you nothing to aim at for the other nine. It also makes
+     * the sequence legible at a glance, which is the thing memory is worst at.
+     *
+     * <p>Lines that name no month go underneath, undated, rather than being guessed into one.
+     */
     private void bindNotes(final NotesHolder h, final Row row) {
         final Timeline.Year y = row.year;
         final Context ctx = h.itemView.getContext();
+        final float density = ctx.getResources().getDisplayMetrics().density;
         h.bullets.removeAllViews();
 
-        if (y.bullets.isEmpty()) {
-            // An empty year is a year laid down and not yet written about, which is most of a
-            // timeline for a long time. It says so, and the card is the way in to writing it.
-            final TextView none = new TextView(ctx);
-            none.setText(R.string.timeline_year_blank);
-            none.setTextSize(14f);
-            none.setTypeface(null, android.graphics.Typeface.ITALIC);
-            none.setTextColor(ContextCompat.getColor(ctx, R.color.tree_meta));
-            h.bullets.addView(none);
-        } else {
-            for (final String b : y.bullets) {
-                final TextView t = new TextView(ctx);
-                t.setText("•  " + b);
-                t.setTextSize(14f);
-                t.setTextColor(ContextCompat.getColor(ctx, R.color.tree_title));
-                final LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                final int pad = Math.round(3 * ctx.getResources().getDisplayMetrics().density);
-                lp.setMargins(0, pad, 0, pad);
-                t.setLayoutParams(lp);
-                h.bullets.addView(t);
+        final List<List<Timeline.Bullet>> byMonth = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            byMonth.add(new ArrayList<>());
+        }
+        final List<Timeline.Bullet> undated = new ArrayList<>();
+        for (final Timeline.Bullet b : y.bullets) {
+            if (b.month >= 0 && b.month < 12) {
+                byMonth.get(b.month).add(b);
+            } else {
+                undated.add(b);
             }
+        }
+
+        for (int m = 0; m < 12; m++) {
+            h.bullets.addView(monthRow(ctx, density, Timeline.MONTH_SHORT[m], byMonth.get(m)));
+        }
+        if (!undated.isEmpty()) {
+            h.bullets.addView(monthRow(ctx, density, "", undated));
         }
 
         h.edit.setText(y.hasNotes() ? R.string.timeline_edit : R.string.timeline_write);
@@ -239,6 +246,47 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         };
         h.edit.setOnClickListener(open);
         h.itemView.setOnClickListener(open);
+    }
+
+    /** One month of the gutter and whatever sits beside it. */
+    private static View monthRow(final Context ctx, final float density,
+                                 final String label, final List<Timeline.Bullet> items) {
+        final LinearLayout rowView = new LinearLayout(ctx);
+        rowView.setOrientation(LinearLayout.HORIZONTAL);
+        final LinearLayout.LayoutParams rowLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        // The spacing is the point as much as the labels: a cramped column reads as a list with a
+        // prefix, and a spaced one reads as a year with room in it.
+        final int gap = Math.round(7 * density);
+        rowLp.setMargins(0, gap, 0, gap);
+        rowView.setLayoutParams(rowLp);
+        rowView.setMinimumHeight(Math.round(22 * density));
+
+        final TextView gutter = new TextView(ctx);
+        gutter.setText(label);
+        gutter.setTextSize(12f);
+        gutter.setTextColor(ContextCompat.getColor(ctx, R.color.tl_gutter));
+        gutter.setWidth(Math.round(42 * density));
+        rowView.addView(gutter);
+
+        final LinearLayout col = new LinearLayout(ctx);
+        col.setOrientation(LinearLayout.VERTICAL);
+        col.setLayoutParams(new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        for (final Timeline.Bullet b : items) {
+            final TextView t = new TextView(ctx);
+            t.setText("\u2022  " + b.text);
+            t.setTextSize(14f);
+            t.setTextColor(ContextCompat.getColor(ctx, R.color.tree_title));
+            final LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            final int pad = Math.round(3 * density);
+            lp.setMargins(0, pad, 0, pad);
+            t.setLayoutParams(lp);
+            col.addView(t);
+        }
+        rowView.addView(col);
+        return rowView;
     }
 
     static final class DecadeHolder extends RecyclerView.ViewHolder {
