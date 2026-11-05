@@ -328,7 +328,23 @@ public class AttachLinkOrFileDialog {
             }
         } else {
             if (!GsFileUtils.isChild(notebookDir, attachment)) {
-                final File attachmentDir = as.getAttachmentFolder(document);
+                // One tree per kind under the home folder, instead of a _res beside every note.
+                // Per-note folders multiply without limit and each one shows up in every gallery
+                // app until it is hidden; this way one .nomedia covers all of them, and the
+                // pictures can actually be browsed and pruned in one place.
+                //
+                // Only where new attachments land. Links already written into existing notes
+                // point at their _res folders, those files are untouched, and they keep working.
+                File attachmentDir;
+                try {
+                    attachmentDir = net.pixelpen.journal.model.ArchiveImages.attachmentFolder(
+                            notebookDir, document,
+                            net.pixelpen.journal.model.ArchiveImages.isImageName(attachment.getName()));
+                } catch (final Exception e) {
+                    // If the shared folder cannot be made, fall back to the old behaviour rather
+                    // than losing the attachment.
+                    attachmentDir = as.getAttachmentFolder(document);
+                }
                 final File local = copyFileToAttachmentDir(attachment, attachmentDir);
                 path = GsFileUtils.relativePath(document, local);
             } else {

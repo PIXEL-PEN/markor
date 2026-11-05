@@ -56,6 +56,63 @@ public final class ArchiveImages {
     private ArchiveImages() {
     }
 
+    /** Folder under the home folder holding attachments that are not pictures. */
+    public static final String FILES_FOLDER = "Files";
+
+    /**
+     * The year an attachment belongs to, taken from where its note lives.
+     *
+     * <p>Read from the path rather than the clock: a note written tonight about 1973 sits in a
+     * 1973 folder, and its pictures belong with it. Falls back to this year only when the note is
+     * somewhere with no year above it at all.
+     */
+    public static int yearForNote(final File note, final File home) {
+        File walk = (note == null) ? null : note.getParentFile();
+        final String homePath = (home == null) ? null : home.getAbsolutePath();
+        while (walk != null && !walk.getAbsolutePath().equals(homePath)) {
+            if (walk.getName().matches("\\d{4}")) {
+                return Integer.parseInt(walk.getName());
+            }
+            walk = walk.getParentFile();
+        }
+        return java.util.Calendar.getInstance().get(java.util.Calendar.YEAR);
+    }
+
+    /**
+     * Where an attachment for this note should be copied to.
+     *
+     * <p>Pictures and everything else are kept apart, because "Images" holding a PDF is a folder
+     * whose name lies. Both are one tree per kind, under the home folder, rather than a folder
+     * beside every note.
+     */
+    public static File attachmentFolder(final File home, final File note, final boolean isImage)
+            throws IOException {
+        if (isImage) {
+            return yearFolder(home, yearForNote(note, home));
+        }
+        final File root = new File(home, FILES_FOLDER);
+        final File dir = new File(root, String.valueOf(yearForNote(note, home)));
+        if (!dir.isDirectory() && !dir.mkdirs()) {
+            throw new IOException("Cannot create " + dir);
+        }
+        // Attachments here can still be audio or video, which music players and galleries index
+        // just as eagerly as pictures. Hide the whole tree the same way.
+        final File noMedia = new File(root, ".nomedia");
+        if (!noMedia.exists()) {
+            try {
+                noMedia.createNewFile();
+            } catch (final IOException ignored) {
+                // Clutter in a gallery is not worth failing an attachment over.
+            }
+        }
+        return dir;
+    }
+
+    /** True if this name is a picture, by extension. */
+    public static boolean isImageName(final String name) {
+        return name != null && name.matches("(?i).+\\.(jpg|jpeg|png|webp|gif|bmp)");
+    }
+
     /** {@code Autumn/Images}, whether or not it exists. */
     public static File folderIn(final File home) {
         return (home == null) ? null : new File(home, FOLDER);
