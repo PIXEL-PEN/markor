@@ -22,6 +22,11 @@
         android:title="@string/tree" />
 
     <item
+        android:id="@+id/nav_year"
+        android:icon="@drawable/ic_date_range_black_24dp"
+        android:title="@string/year" />
+
+    <item
         android:id="@+id/nav_more"
         android:icon="@drawable/ic_favorite_black_24dp"
         android:title="@string/more" />

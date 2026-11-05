@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Month boxes per row. One on a phone, which is what the stylesheet's 600px breakpoint did;
+      values-sw600dp widens it to the three the desktop layout used.
+    -->
+    <integer name="year_month_columns">1</integer>
+</resources>

@@ -88,4 +88,16 @@
     <color name="tree_meta">#6E6E6E</color>
     <color name="tree_divider">#DDDDDD</color>
 
+    <!--
+      Year overview. Taken from the stylesheet year.py generated, so the native screen reads as
+      the same screen rather than a reinterpretation of it.
+    -->
+    <color name="year_header">#005F73</color>
+    <color name="year_dropdown">#0A9396</color>
+    <color name="year_highlight_bg">#E0FBFC</color>
+    <color name="year_month_bg">#D0F4DE</color>
+    <color name="year_month_border">#A3C4BC</color>
+    <color name="year_page_bg">#F4F4F4</color>
+    <color name="year_slot_empty">#9AB3B8</color>
+
 </resources>

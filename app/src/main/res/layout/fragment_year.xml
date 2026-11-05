@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Year overview.
+
+  The native form of what year.py generated and showed in a WebView: a teal bar with the year
+  and a category dropdown, a collapsible highlights strip, and the months below.
+
+  The stylesheet dropped to a single column under 600px, so on a phone this was always one
+  column; the grid span comes from an integer resource that keeps that, and widens on a tablet.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/year_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/year_page_bg"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/year_header_bg"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="8dp">
+
+        <!-- Tapping the year folds every month shut, and again to bring them back. -->
+        <TextView
+            android:id="@+id/year_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@android:color/white"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/year_category"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/year_dropdown"
+            android:minWidth="130dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp" />
+
+    </LinearLayout>
+
+    <!-- Shown only while a single month is isolated. -->
+    <TextView
+        android:id="@+id/year_back"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp"
+        android:text="@string/year_back_to_full"
+        android:textColor="@color/year_header"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/year_highlights_toggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp"
+        android:textColor="@color/year_header"
+        android:textSize="15sp" />
+
+    <!--
+      Always three slots, filled or not. Empty ones are drawn dashed so the bar reads as three
+      places a highlight goes rather than as a bar that happens to be short.
+    -->
+    <LinearLayout
+        android:id="@+id/year_highlights"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/year_highlight_bg"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/year_slot_1"
+            style="@style/YearHighlightSlot" />
+
+        <TextView
+            android:id="@+id/year_slot_2"
+            style="@style/YearHighlightSlot" />
+
+        <TextView
+            android:id="@+id/year_slot_3"
+            style="@style/YearHighlightSlot" />
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/year_months"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="10dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="88dp"
+        android:scrollbars="vertical" />
+
+</LinearLayout>

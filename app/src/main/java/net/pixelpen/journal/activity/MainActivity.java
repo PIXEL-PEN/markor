@@ -60,6 +60,7 @@ public class MainActivity extends AutumnBaseActivity {
     private ViewPager2 _viewPager;
     private CalendarFragment _journal;
     private FolderTreeFragment _tree;
+    private YearFragment _year;
     private MoreFragment _more;
     private FloatingActionButton _fab;
     /** Toolbar items whose visibility follows the tab. */
@@ -125,7 +126,7 @@ public class MainActivity extends AutumnBaseActivity {
 
         // Setup viewpager
         _viewPager.setAdapter(new SectionsPagerAdapter(getSupportFragmentManager()));
-        _viewPager.setOffscreenPageLimit(3);
+        _viewPager.setOffscreenPageLimit(4);
         _bottomNav.setOnItemSelectedListener((item) -> {
             _viewPager.setCurrentItem(tabIdToPos(item.getItemId()));
             return true;
@@ -164,6 +165,7 @@ public class MainActivity extends AutumnBaseActivity {
             // Put and get notebook first. Most important for correct operation.
             manager.putFragment(outState, Integer.toString(R.id.nav_journal), _journal);
             manager.putFragment(outState, Integer.toString(R.id.nav_tree), _tree);
+            manager.putFragment(outState, Integer.toString(R.id.nav_year), _year);
             manager.putFragment(outState, Integer.toString(R.id.nav_more), _more);
         } catch (NullPointerException | IllegalStateException ignored) {
             Log.d(MainActivity.class.getName(), "Child fragments null in onSaveInstanceState()");
@@ -183,6 +185,7 @@ public class MainActivity extends AutumnBaseActivity {
             final FragmentManager manager = getSupportFragmentManager();
             _journal = (CalendarFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_journal));
             _tree = (FolderTreeFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_tree));
+            _year = (YearFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_year));
             _more = (MoreFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_more));
         } catch (NullPointerException | IllegalStateException ignored) {
             Log.d(MainActivity.class.getName(), "Child fragment not found in onRestoreInstanceState()");
@@ -487,7 +490,8 @@ public class MainActivity extends AutumnBaseActivity {
     public int tabIdToPos(final int id) {
         if (id == R.id.nav_journal) return 0;
         if (id == R.id.nav_tree) return 1;
-        if (id == R.id.nav_more) return 2;
+        if (id == R.id.nav_year) return 2;
+        if (id == R.id.nav_more) return 3;
         return 0;
     }
 
@@ -502,14 +506,16 @@ public class MainActivity extends AutumnBaseActivity {
     public String getPosTitle(final int pos) {
         if (pos == 0) return getString(R.string.calendar);
         if (pos == 1) return getString(R.string.tree);
-        if (pos == 2) return getString(R.string.more);
+        if (pos == 2) return getString(R.string.year);
+        if (pos == 3) return getString(R.string.more);
         return "";
     }
 
     public GsFragmentBase<?, ?> getPosFragment(final int pos) {
         if (pos == 0) return _journal;
         if (pos == 1) return _tree;
-        if (pos == 2) return _more;
+        if (pos == 2) return _year;
+        if (pos == 3) return _more;
         return null;
     }
 
@@ -544,6 +550,12 @@ public class MainActivity extends AutumnBaseActivity {
             _tree.collapseCategories();
         }
 
+        // Same reason the Tree reloads: the pager keeps fragments alive, so a note captured on
+        // the Calendar screen would not appear in the year until this fragment was recreated.
+        if (pos == tabIdToPos(R.id.nav_year) && _year != null) {
+            _year.reload();
+        }
+
         applyToolbarForTab(pos);
 
         setTitle(getPosTitle(pos));
@@ -565,6 +577,8 @@ public class MainActivity extends AutumnBaseActivity {
                 frag = _journal = CalendarFragment.newInstance();
             } else if (id == R.id.nav_tree) {
                 frag = _tree = FolderTreeFragment.newInstance();
+            } else if (id == R.id.nav_year) {
+                frag = _year = YearFragment.newInstance();
             } else if (id == R.id.nav_more) {
                 frag = _more = MoreFragment.newInstance();
             } else {

@@ -85,4 +85,18 @@
         <item name="android:backgroundDimEnabled">true</item>
         <item name="colorAccent">@color/accent</item>
     </style>
+
+    <!-- One of the three highlight slots on the year overview. -->
+    <style name="YearHighlightSlot">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">6dp</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingEnd">10dp</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:textSize">14sp</item>
+    </style>
 </resources>

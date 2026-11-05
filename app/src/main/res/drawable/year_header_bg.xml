@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The dark teal bar carrying the year and the category dropdown. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/year_header" />
+    <corners android:radius="5dp" />
+</shape>

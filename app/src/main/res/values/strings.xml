@@ -513,6 +513,15 @@
     <!-- Overflow action: show the tree from the top of the archive, everything else closed. -->
     <string name="home">Home</string>
 
+    <!-- Year overview screen. -->
+    <string name="year">Year</string>
+    <string name="year_back_to_full">← Back to full view</string>
+    <string name="year_highlights_shown">▼ highlights</string>
+    <string name="year_highlights_hidden">► highlights</string>
+    <!-- An unfilled highlight slot. %1$d is 1, 2 or 3. -->
+    <string name="year_highlight_empty">Highlight %1$d</string>
+    <string name="year_no_events">No events available</string>
+
     <!-- Shown on the Tree tab when the archive has nothing in it yet. -->
     <string name="tree_empty">Nothing here yet.\nCapture a note on the Calendar tab and it will appear here.</string>
 
