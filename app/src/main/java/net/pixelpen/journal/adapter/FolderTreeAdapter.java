@@ -70,15 +70,15 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         /** Section heading text; when set this row is a heading and carries no entry. */
         public final String header;
 
-        /** A section heading, with a rule above it. */
-        public static Row heading(final String text) {
-            return new Row(text);
+        /** A section heading, with a rule above it, that opens and closes what follows. */
+        public static Row heading(final String text, final boolean open) {
+            return new Row(text, open);
         }
 
-        private Row(final String header) {
+        private Row(final String header, final boolean open) {
             this.entry = null;
             this.depth = 0;
-            this.expanded = false;
+            this.expanded = open;
             this.subtitle = null;
             this.line = -1;
             this.header = header;
@@ -103,6 +103,9 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     public interface Listener {
         /** A folder row was tapped; the fragment opens or closes it and rebuilds the rows. */
         void onFolderToggled(Row row);
+
+        /** A section heading was tapped: open or close everything under it. */
+        void onSectionToggled();
 
         /** A note row was long-pressed. */
         boolean onFileLongPressed(File file);
@@ -162,7 +165,13 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, final int position) {
         final Row row = _rows.get(position);
         if (holder instanceof HeaderHolder) {
-            ((HeaderHolder) holder).label.setText(row.header);
+            final HeaderHolder hh = (HeaderHolder) holder;
+            hh.label.setText(row.header + (row.expanded ? "  \u25BC" : "  \u25B6"));
+            hh.itemView.setOnClickListener(v -> {
+                if (_listener != null) {
+                    _listener.onSectionToggled();
+                }
+            });
             return;
         }
         if (holder instanceof FolderHolder) {

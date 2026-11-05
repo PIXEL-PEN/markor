@@ -67,6 +67,12 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
      */
     private String _otherFilesLabel;
 
+    /**
+     * Whether the "other files" section is open. Starts open, because it is the only sign that
+     * anything is kept beside the journal; closed on first run it would read as an empty label.
+     */
+    private boolean _otherFilesOpen = true;
+
     private FolderTreeAdapter _adapter;
     private TreeStore _store;
     /** Held, not just handed to the store: rename, move and delete all have to update it. */
@@ -546,12 +552,14 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
                 appendDir(out, sub, depth, open);
             }
             if (!others.isEmpty() || !contents.files.isEmpty()) {
-                out.add(FolderTreeAdapter.Row.heading(_otherFilesLabel));
-                for (final TreeStore.Entry sub : others) {
-                    appendDir(out, sub, depth, open);
-                }
-                for (final TreeStore.Entry f : contents.files) {
-                    out.add(new FolderTreeAdapter.Row(f, depth, false));
+                out.add(FolderTreeAdapter.Row.heading(_otherFilesLabel, _otherFilesOpen));
+                if (_otherFilesOpen) {
+                    for (final TreeStore.Entry sub : others) {
+                        appendDir(out, sub, depth, open);
+                    }
+                    for (final TreeStore.Entry f : contents.files) {
+                        out.add(new FolderTreeAdapter.Row(f, depth, false));
+                    }
                 }
             }
             return;
@@ -572,6 +580,12 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         if (isOpen) {
             collect(out, sub.file, depth + 1, open);
         }
+    }
+
+    @Override
+    public void onSectionToggled() {
+        _otherFilesOpen = !_otherFilesOpen;
+        rebuild();
     }
 
     @Override
