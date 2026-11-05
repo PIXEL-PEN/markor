@@ -14,15 +14,9 @@
     tools:ignore="AlwaysShowAction">
 
     <!--
-      Search lived in the file browser's own menu and went with it.
-
-      This item exists only to carry the SearchView. It is never shown as an icon: the search
-      affordance is the toolbar's navigation icon, on the left, and MainActivity makes this item
-      visible for just as long as it takes to expand it. Left as a visible action as well, the bar
-      would offer search twice: once on the left and once collapsed on the right.
-
-      collapseActionView so the field expands over the bar when opened and hands the query back
-      when closed, which is what clears the results.
+      Search lived in the file browser's own menu and went with it. A visible action item, shown
+      on the Calendar and Tree screens; collapseActionView so the field expands over the bar when
+      opened and hands the query back when closed, which is what clears the results.
     -->
     <item
         android:id="@+id/action_search"
@@ -32,6 +26,15 @@
         android:visible="false"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
         app:showAsAction="always|collapseActionView" />
+
+    <!-- First in the overflow: back up to the top of the archive. -->
+    <item
+        android:id="@+id/action_home"
+        android:icon="@drawable/ic_home_black_24dp"
+        android:orderInCategory="1"
+        android:title="@string/home"
+        android:visible="false"
+        app:showAsAction="never" />
 
     <!--
       In the overflow rather than gated behind a preference, so the bar has a menu at all. Its

@@ -510,6 +510,9 @@
             <item>Emails</item>
         </string-array>
 
+    <!-- Overflow action: show the tree from the top of the archive, everything else closed. -->
+    <string name="home">Home</string>
+
     <!-- Shown on the Tree tab when the archive has nothing in it yet. -->
     <string name="tree_empty">Nothing here yet.\nCapture a note on the Calendar tab and it will appear here.</string>
 

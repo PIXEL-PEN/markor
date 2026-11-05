@@ -273,6 +273,33 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         _seededCategory = null;
     }
 
+    /**
+     * Show the archive from the top, with everything below the root closed.
+     *
+     * <p>The automatic opens are marked as already done rather than cleared, because clearing them
+     * would have the next redraw immediately re-open the month and the category this just closed.
+     * Going home means going home until something is opened again.
+     */
+    public void goHome() {
+        final File root = (_root != null) ? _root : ApplicationObject.settings().getNotebookDirectory();
+        _root = root;
+        _expanded.clear();
+        _expanded.add(root.getAbsolutePath());
+
+        final File month = targetMonthDir(root);
+        _seededMonth = (month != null) ? month.getAbsolutePath() : null;
+        _seededCategory = (_focus != null && isUnder(root, _focus)) ? _focus.getAbsolutePath() : null;
+        _pendingReveal = null;
+        _query = null;
+        _scrollToTop = true;
+
+        _store.invalidateAll();
+        rebuild();
+    }
+
+    /** Set when the next draw should start at the top rather than hold the current position. */
+    private boolean _scrollToTop;
+
     /** A note to make visible on the next draw. See {@link #revealPathTo}. */
     private File _pendingReveal;
 
@@ -481,11 +508,15 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
                 // Hold the scroll position across the swap, otherwise every expand and every
                 // return to this tab throws you back to the top of the archive.
                 final RecyclerView.LayoutManager lm = _list.getLayoutManager();
-                final Parcelable scroll = (lm == null) ? null : lm.onSaveInstanceState();
+                final boolean toTop = _scrollToTop;
+                _scrollToTop = false;
+                final Parcelable scroll = (lm == null || toTop) ? null : lm.onSaveInstanceState();
 
                 _adapter.setRows(rows);
 
-                if (scroll != null && lm != null) {
+                if (toTop) {
+                    _list.scrollToPosition(0);
+                } else if (scroll != null && lm != null) {
                     lm.onRestoreInstanceState(scroll);
                 }
                 _progress.setVisibility(View.GONE);

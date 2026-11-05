@@ -62,13 +62,9 @@ public class MainActivity extends AutumnBaseActivity {
     private FolderTreeFragment _tree;
     private MoreFragment _more;
     private FloatingActionButton _fab;
-    /**
-     * The search item. It is kept hidden as an action and only made visible to be expanded, so
-     * that the bar shows one search affordance -- the navigation icon on the left -- rather than
-     * that plus a second collapsed icon on the right.
-     */
+    /** Toolbar items whose visibility follows the tab. */
     private MenuItem _searchItem;
-
+    private MenuItem _homeItem;
     private MenuItem _settingsItem;
 
     private androidx.appcompat.widget.Toolbar _toolbar;
@@ -244,6 +240,20 @@ public class MainActivity extends AutumnBaseActivity {
             _cu.animateToActivity(this, SettingsActivity.class, false, null);
             return true;
         }
+        if (item.getItemId() == R.id.action_home) {
+            // Offered on the Calendar screen too, and the tree is what shows the archive, so go
+            // there before asking it to go to the top.
+            if (_searchItem != null && _searchItem.isActionViewExpanded()) {
+                _searchItem.collapseActionView();
+            }
+            if (getCurrentPos() != tabIdToPos(R.id.nav_tree)) {
+                _viewPager.setCurrentItem(tabIdToPos(R.id.nav_tree), false);
+            }
+            if (_tree != null) {
+                _tree.goHome();
+            }
+            return true;
+        }
         return false;
     }
 
@@ -252,6 +262,7 @@ public class MainActivity extends AutumnBaseActivity {
         getMenuInflater().inflate(R.menu.main__menu, menu);
 
         _settingsItem = menu.findItem(R.id.action_settings);
+        _homeItem = menu.findItem(R.id.action_home);
         _searchItem = menu.findItem(R.id.action_search);
         final androidx.appcompat.widget.SearchView search =
                 (androidx.appcompat.widget.SearchView) _searchItem.getActionView();
@@ -285,8 +296,6 @@ public class MainActivity extends AutumnBaseActivity {
                     if (_tree != null) {
                         _tree.setSearch(null);
                     }
-                    // Back to carrying nothing, so no second search icon appears on the right.
-                    item.setVisible(false);
                     return true;
                 }
             });
@@ -300,30 +309,26 @@ public class MainActivity extends AutumnBaseActivity {
     }
 
     /**
-     * Put search on the left and the overflow on the right, on the Calendar and Tree screens.
+     * Show search and the overflow on the Calendar and Tree screens.
      *
-     * <p>Search is the navigation icon rather than an action item because that is the only slot on
-     * the left of a toolbar -- action items are right-aligned and cannot be moved. The overflow
-     * holds Settings, which used to be hidden behind a preference, so the bar had no menu at all.
+     * <p>An earlier version put search on the toolbar's navigation icon, to get it to the left of
+     * the bar. That is the only slot on the left, but it does not survive: with the toolbar set as
+     * the support action bar, the action bar owns the navigation affordance and the icon set
+     * directly on the toolbar never appeared. So search is an ordinary action item again.
      *
      * <p>Neither appears on More: search would have nowhere to show results, and an overflow
-     * offering Settings on the screen that already offers Settings is just a second door into the
-     * same room.
+     * offering Settings on the screen that already offers Settings is a second door into the same
+     * room.
      */
     private void applyToolbarForTab(final int pos) {
         final boolean onTree = pos == tabIdToPos(R.id.nav_tree);
-        final boolean onJournal = pos == tabIdToPos(R.id.nav_journal);
-        final boolean wanted = onTree || onJournal;
+        final boolean wanted = onTree || pos == tabIdToPos(R.id.nav_journal);
 
-        if (_toolbar != null) {
-            if (wanted) {
-                _toolbar.setNavigationIcon(R.drawable.ic_search_black_24dp);
-                _toolbar.setNavigationContentDescription(R.string.search);
-                _toolbar.setNavigationOnClickListener(v -> openSearch());
-            } else {
-                _toolbar.setNavigationIcon(null);
-                _toolbar.setNavigationOnClickListener(null);
-            }
+        if (_searchItem != null && !_searchItem.isActionViewExpanded()) {
+            _searchItem.setVisible(wanted);
+        }
+        if (_homeItem != null) {
+            _homeItem.setVisible(wanted);
         }
         if (_settingsItem != null) {
             _settingsItem.setVisible(wanted);
@@ -331,24 +336,6 @@ public class MainActivity extends AutumnBaseActivity {
         if (_searchItem != null && !onTree && _searchItem.isActionViewExpanded()) {
             // Leaving the Tree closes the field, which also clears the query and the results.
             _searchItem.collapseActionView();
-        }
-    }
-
-    /**
-     * Open the search field.
-     *
-     * <p>Reachable from the Calendar screen as well as the Tree, but the results are drawn by the
-     * Tree, so asking from the Calendar screen moves there first rather than typing into a field
-     * whose answers have nowhere to appear.
-     */
-    private void openSearch() {
-        if (getCurrentPos() != tabIdToPos(R.id.nav_tree)) {
-            _viewPager.setCurrentItem(tabIdToPos(R.id.nav_tree), false);
-        }
-        if (_searchItem != null) {
-            // Visible only for as long as it is expanded; see the menu resource.
-            _searchItem.setVisible(true);
-            _searchItem.expandActionView();
         }
     }
 
