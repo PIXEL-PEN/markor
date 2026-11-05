@@ -407,11 +407,16 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
             final List<ArchiveSearch.Hit> hits = ArchiveSearch.run(root, query, _index);
             final List<FolderTreeAdapter.Row> rows = new ArrayList<>(hits.size());
             for (final ArchiveSearch.Hit h : hits) {
+                // Just the category, not the whole relative path. The date sitting next to it on
+                // the same line already gives the year and the month, so "2026/11_November/Work"
+                // repeated two thirds of what was beside it.
+                final int cut = h.where.lastIndexOf('/');
+                final String category = (cut >= 0) ? h.where.substring(cut + 1) : h.where;
                 // A body match says which line, both so the reader can see the hit was in the
                 // text rather than the title and because that is where tapping will land them.
                 final String where = h.inBody
-                        ? h.where + "  ·  " + ctx.getString(R.string.tree_search_in_body, h.line + 1)
-                        : h.where;
+                        ? category + "  ·  " + ctx.getString(R.string.tree_search_in_body, h.line + 1)
+                        : category;
                 rows.add(new FolderTreeAdapter.Row(
                         TreeStore.Entry.forNote(h.file, h.display, h.createdMillis),
                         0, false, where, h.line));
