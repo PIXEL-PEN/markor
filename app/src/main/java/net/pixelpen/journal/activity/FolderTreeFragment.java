@@ -60,6 +60,13 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
     private RecyclerView _list;
     private TextView _empty;
     private View _progress;
+
+    /**
+     * Resolved once, on the main thread. The rows are built on a background thread, and
+     * getString() on a fragment that has since detached throws.
+     */
+    private String _otherFilesLabel;
+
     private FolderTreeAdapter _adapter;
     private TreeStore _store;
     /** Held, not just handed to the store: rename, move and delete all have to update it. */
@@ -93,6 +100,7 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         _list = view.findViewById(R.id.folder_tree_list);
         _empty = view.findViewById(R.id.folder_tree_empty);
         _progress = view.findViewById(R.id.folder_tree_progress);
+        _otherFilesLabel = getString(R.string.tree_other_files);
 
         _empty.setText(R.string.tree_empty);
         _adapter = new FolderTreeAdapter(this);
