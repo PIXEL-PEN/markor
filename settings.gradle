@@ -1,1 +1,7 @@
+// Without this, Gradle names the root project after whatever the checkout folder happens to be
+// called -- which is why a folder still named markor-plus kept the old name alive in the IDE long
+// after every label in the app had changed. Set explicitly so the project's name travels with the
+// project rather than with one machine's directory.
+rootProject.name = 'Autumn'
+
 include ':app'
