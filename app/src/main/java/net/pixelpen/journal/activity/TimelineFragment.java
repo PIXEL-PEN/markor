@@ -65,6 +65,15 @@ public class TimelineFragment extends AutumnBaseFragment implements TimelineAdap
     private Timeline _timeline;
     private final Set<Integer> _openDecades = new HashSet<>();
     private final Set<Integer> _openYears = new HashSet<>();
+    /**
+     * Years whose thumbnail strip is showing.
+     *
+     * <p>Empty by default and cleared when a year closes, so a year always opens with its
+     * pictures shut. Images are the heavy part of the screen and the writing is the point of it;
+     * a year that reopened mid-scroll with a row of photos already decoded would push the
+     * entries the reader came for off the screen.
+     */
+    private final Set<Integer> _openImages = new HashSet<>();
     private boolean _newestFirst;
     /** Set while every decade is deliberately shut, so a reload does not reopen them. */
     private boolean _allCollapsed;
@@ -126,7 +135,7 @@ public class TimelineFragment extends AutumnBaseFragment implements TimelineAdap
             return;
         }
         _title.setText(getString(R.string.timeline_header) + (_openDecades.isEmpty() ? "  ▶" : "  ▼"));
-        _adapter.setData(_timeline.years, _openDecades, _openYears, _newestFirst);
+        _adapter.setData(_timeline.years, _openDecades, _openYears, _openImages, _newestFirst);
 
         final boolean bare = _timeline.years.isEmpty();
         _empty.setText(R.string.timeline_empty);
@@ -148,6 +157,7 @@ public class TimelineFragment extends AutumnBaseFragment implements TimelineAdap
         } else {
             _openDecades.clear();
             _openYears.clear();
+            _openImages.clear();
             _allCollapsed = true;
         }
         draw();
@@ -166,6 +176,18 @@ public class TimelineFragment extends AutumnBaseFragment implements TimelineAdap
     public void onYearTapped(final Timeline.Year year) {
         if (!_openYears.remove(year.year)) {
             _openYears.add(year.year);
+        } else {
+            // Closed: forget the strip too, so reopening starts shut rather than restoring a
+            // state from minutes ago that the reader has no reason to expect.
+            _openImages.remove(year.year);
+        }
+        draw();
+    }
+
+    @Override
+    public void onImagesToggled(final Timeline.Year year) {
+        if (!_openImages.remove(year.year)) {
+            _openImages.add(year.year);
         }
         draw();
     }

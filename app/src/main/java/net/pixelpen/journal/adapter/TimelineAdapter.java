@@ -48,6 +48,9 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         /** A thumbnail was tapped: open that year's pictures full screen, starting at this one. */
         void onImageTapped(Timeline.Year year, int index);
+
+        /** The Images header was tapped: show or hide that year's thumbnails. */
+        void onImagesToggled(Timeline.Year year);
     }
 
     /** One visible line. */
@@ -56,12 +59,20 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         final int decade;
         final Timeline.Year year;
         final boolean open;
+        /** Notes rows only: whether the thumbnail strip is showing. */
+        final boolean shotsOpen;
 
         Row(final int type, final int decade, final Timeline.Year year, final boolean open) {
+            this(type, decade, year, open, false);
+        }
+
+        Row(final int type, final int decade, final Timeline.Year year, final boolean open,
+            final boolean shotsOpen) {
             this.type = type;
             this.decade = decade;
             this.year = year;
             this.open = open;
+            this.shotsOpen = shotsOpen;
         }
 
         static Row decade(final int decade, final boolean open) {
@@ -72,8 +83,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             return new Row(TYPE_YEAR, y.decade(), y, open);
         }
 
-        static Row notes(final Timeline.Year y) {
-            return new Row(TYPE_NOTES, y.decade(), y, true);
+        static Row notes(final Timeline.Year y, final boolean shotsOpen) {
+            return new Row(TYPE_NOTES, y.decade(), y, true, shotsOpen);
         }
     }
 
@@ -90,7 +101,8 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
      * @param newestFirst years and decades in descending order.
      */
     public void setData(final List<Timeline.Year> years, final java.util.Set<Integer> openDecades,
-                        final java.util.Set<Integer> openYears, final boolean newestFirst) {
+                        final java.util.Set<Integer> openYears,
+                        final java.util.Set<Integer> openImages, final boolean newestFirst) {
         _rows.clear();
 
         final List<Integer> decades = new ArrayList<>();
@@ -122,7 +134,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 final boolean yearOpen = openYears.contains(y.year);
                 _rows.add(Row.year(y, yearOpen));
                 if (yearOpen) {
-                    _rows.add(Row.notes(y));
+                    _rows.add(Row.notes(y, openImages.contains(y.year)));
                 }
             }
         }
@@ -247,7 +259,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             h.bullets.addView(monthRow(ctx, density, "", undated));
         }
 
-        bindShots(h, y, density);
+        bindShots(h, y, density, row.shotsOpen);
 
         h.edit.setText(y.hasNotes() ? R.string.timeline_edit : R.string.timeline_write);
         final View.OnClickListener open = v -> {
@@ -266,15 +278,31 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
      * hundreds, and the decoded bitmaps -- the only expensive part -- are cached in ThumbLoader
      * and so survive the rebuild.
      */
-    private void bindShots(final NotesHolder h, final Timeline.Year y, final float density) {
+    private void bindShots(final NotesHolder h, final Timeline.Year y, final float density,
+                           final boolean open) {
         h.shots.removeAllViews();
         if (y.images.isEmpty()) {
+            h.shotsHeader.setVisibility(View.GONE);
             h.shotsScroll.setVisibility(View.GONE);
             return;
         }
-        h.shotsScroll.setVisibility(View.VISIBLE);
 
         final Context ctx = h.itemView.getContext();
+        h.shotsHeader.setVisibility(View.VISIBLE);
+        h.shotsHeader.setText(ctx.getString(R.string.timeline_images)
+                + " (" + y.images.size() + ")" + (open ? "  \u25BC" : "  \u25B6"));
+        h.shotsHeader.setOnClickListener(v -> {
+            if (_listener != null) {
+                _listener.onImagesToggled(y);
+            }
+        });
+
+        h.shotsScroll.setVisibility(open ? View.VISIBLE : View.GONE);
+        if (!open) {
+            // Nothing decoded while it is shut. A closed strip that still loaded its bitmaps
+            // would cost exactly what closing it was meant to save.
+            return;
+        }
         final int side = Math.round(72 * density);
         final int gap = Math.round(6 * density);
 
@@ -364,6 +392,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         final TextView edit;
         final View shotsScroll;
         final LinearLayout shots;
+        final TextView shotsHeader;
 
         NotesHolder(final View v) {
             super(v);
@@ -371,6 +400,7 @@ public class TimelineAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             edit = v.findViewById(R.id.tl_notes_edit);
             shotsScroll = v.findViewById(R.id.tl_notes_shots_scroll);
             shots = v.findViewById(R.id.tl_notes_shots);
+            shotsHeader = v.findViewById(R.id.tl_notes_shots_header);
         }
     }
 }
