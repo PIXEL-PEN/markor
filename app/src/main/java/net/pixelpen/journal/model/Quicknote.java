@@ -32,7 +32,8 @@ import java.util.Locale;
  * overview, the overview stops being a year in review and becomes a log.
  *
  * <p>Newest first. The file is read top-down and the thing you just wrote is the thing you
- * want to see, so an entry is inserted directly under the month heading rather than appended.
+ * want to see, so an entry is inserted directly under the month heading rather than appended,
+ * and the rule that separates it from the previous entry moves down with it.
  */
 public final class Quicknote {
 
@@ -86,10 +87,16 @@ public final class Quicknote {
             return null;
         }
 
-        final String heading = "# " + new SimpleDateFormat(MONTH_TITLE, Locale.ENGLISH)
+        // Deliberately quiet markup. The month was an h1 and each stamp an h2, which the
+        // base stylesheet renders in sans-serif-condensed with a rule beneath, so a page of
+        // trivia came out shouting and looking nothing like the rest of the app. The month is
+        // now an h3 -- the file name already names it in the toolbar, so this is a courtesy
+        // for reading the file outside the app -- and a stamp is italic, because it is a label
+        // on an entry rather than a heading over a section.
+        final String heading = "### " + new SimpleDateFormat(MONTH_TITLE, Locale.ENGLISH)
                 .format(when.getTime());
         final String stamp = new SimpleDateFormat(STAMP, Locale.ENGLISH).format(when.getTime());
-        final String entry = "---\n\n## " + stamp + "\n\n" + text.trim() + "\n\n";
+        final String entry = "*" + stamp + "*\n\n" + text.trim() + "\n\n";
 
         // Keep whatever is already there, minus its heading line, and put the new entry above
         // it. Reading the heading back rather than assuming it means a file the user has
@@ -111,7 +118,9 @@ public final class Quicknote {
         }
 
         try {
-            write(file, heading + "\n\n" + entry + body);
+            // The rule separates entries, so it belongs above the older one rather than under
+            // the heading. Stacked directly beneath an underlined h1 it read as a double rule.
+            write(file, heading + "\n\n" + entry + (body.isEmpty() ? "" : "---\n\n" + body));
         } catch (final IOException e) {
             return null;
         }
