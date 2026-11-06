@@ -262,7 +262,7 @@ public class CategoryManager {
         if (!src.exists() || !src.isDirectory()) throw new Exception("Not a dir: " + src);
         if (dst.exists()) {
             // merge into dst
-                    mergeIntoPreserveMtimes(src, dst);
+            JSONObject mg = mergeIntoPreserveMtimes(src, dst);
             if (mg != null && mg.has("ops")) {
                 JSONArray mgops = mg.getJSONArray("ops");
                 for (int i = 0; i < mgops.length(); i++) ops.put(mgops.get(i));
