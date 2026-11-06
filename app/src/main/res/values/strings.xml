@@ -629,4 +629,5 @@
       where. %1$d is a 1-based line number. Tapping the result opens the note at that line.
     -->
     <string name="tree_search_in_body">line %1$d</string>
-    </resources>
+        <string name="guide">Guide</string>
+</resources>

@@ -140,4 +140,13 @@
     <color name="tl_entry_border">#A8B6C0</color>
     <color name="tl_entry_gutter">#5E6E79</color>
 
+
+    <!-- Guide. Same teal and blue-grey family as the Year screen, deliberately, so the guide
+         looks like part of the app rather than a help page bolted on. -->
+    <color name="guide_page_bg">#F4F7F9</color>
+    <color name="guide_title">#005F73</color>
+    <color name="guide_heading">#0A9396</color>
+    <color name="guide_body">#2B3545</color>
+    <color name="guide_callout_bg">#E0FBFC</color>
+    <color name="guide_callout_rule">#0A9396</color>
 </resources>

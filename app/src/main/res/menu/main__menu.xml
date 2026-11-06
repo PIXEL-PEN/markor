@@ -75,6 +75,12 @@
       and leaves it off the More screen, where it would only point back at itself.
     -->
     <item
+        android:id="@+id/action_guide"
+        android:icon="@drawable/ic_info_black_24dp"
+        android:orderInCategory="190"
+        android:title="@string/guide"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_settings"
         android:icon="@drawable/ic_settings_black_24dp"
         android:orderInCategory="100"

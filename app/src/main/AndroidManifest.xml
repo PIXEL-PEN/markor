@@ -102,6 +102,12 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name=".activity.GuideActivity"
+            android:exported="false"
+            android:label="@string/guide"
+            android:parentActivityName=".activity.MainActivity" />
+
+        <activity
             android:name=".activity.TimelineActivity"
             android:exported="false"
             android:label="@string/timeline"

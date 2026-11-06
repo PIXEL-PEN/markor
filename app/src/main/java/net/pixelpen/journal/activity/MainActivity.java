@@ -236,6 +236,10 @@ public class MainActivity extends AutumnBaseActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         super.onOptionsItemSelected(item);
+        if (item.getItemId() == R.id.action_guide) {
+            _cu.animateToActivity(this, GuideActivity.class, false, null);
+            return true;
+        }
         if (item.getItemId() == R.id.action_settings) {
             _cu.animateToActivity(this, SettingsActivity.class, false, null);
             return true;
