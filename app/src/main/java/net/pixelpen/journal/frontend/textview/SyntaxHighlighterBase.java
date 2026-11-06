@@ -541,6 +541,14 @@ public abstract class SyntaxHighlighterBase {
     }
 
     protected final void createUnderlineHexColorsSpans() {
+        // Six highlighters called this unconditionally while a checkbox in Settings claimed to
+        // switch it, so the setting had no effect and the underlining was always on. Connected
+        // rather than removed: the feature works, the control works, they were simply never
+        // joined up. The stored default moves to true in the same change, so this keeps doing
+        // what it has always done until somebody turns it off on purpose.
+        if (!net.pixelpen.journal.ApplicationObject.settings().isHighlightingHexColorEnabled()) {
+            return;
+        }
         createColoredUnderlineSpanForMatches(ColorUnderlineSpan.HEX_CODE_UNDERLINE_PATTERN, m -> new ColorUnderlineSpan(m.group(1), 3f), 1);
     }
 

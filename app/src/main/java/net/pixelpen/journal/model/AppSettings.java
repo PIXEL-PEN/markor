@@ -344,7 +344,7 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
     }
 
     public boolean isHighlightingHexColorEnabled() {
-        return getBool(R.string.pref_key__is_highlighting_for_hexcolor_activated, false);
+        return getBool(R.string.pref_key__is_highlighting_for_hexcolor_activated, true);
     }
 
     public boolean isTodoAppendProConOnEndEnabled() {
@@ -369,10 +369,6 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
 
     public String getLastTodoUsedArchiveFilename() {
         return getString(R.string.pref_key__todotxt__last_used_archive_filename, "todo.archive.txt");
-    }
-
-    public boolean isEditorStartOnBotttom() {
-        return getBool(R.string.pref_key__editor_start_editing_on_bottom, true);
     }
 
     public boolean isEditorStartEditingInCenter() {
