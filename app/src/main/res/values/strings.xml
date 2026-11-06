@@ -560,6 +560,10 @@
     <string name="backup_done">%1$d files packed. Choose where to keep it.</string>
     <string name="backup_failed">Backup failed.</string>
     <string name="enter_note_title">Enter note title..</string>
+    <string name="year_growth_toggle">Personal growth  %1$s</string>
+    <string name="year_growth_prompt">Achievements, milestones, proud moments, aspirations\u2026</string>
+    <string name="could_not_create_note">Could not create the note.</string>
+    <string name="quick_note">Save the title as the note</string>
     <string name="new_folder">New folder</string>
     <string name="folder_is_empty">This folder is empty.</string>
     <string name="folder_unavailable">The Autumn folder could not be opened.</string>

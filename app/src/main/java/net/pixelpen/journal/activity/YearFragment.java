@@ -63,6 +63,10 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
 
     private YearOverview _year;
     private boolean _highlightsOpen = true;
+    private TextView _growthToggle;
+    private TextView _growth;
+    /** Shut by default: it is a paragraph, and it would push the months off the screen. */
+    private boolean _growthOpen = false;
 
     /**
      * The year being shown, or null to follow the newest.
@@ -83,6 +87,13 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
         _back = view.findViewById(R.id.year_back);
         _highlightsToggle = view.findViewById(R.id.year_highlights_toggle);
         _highlights = view.findViewById(R.id.year_highlights);
+        _growthToggle = view.findViewById(R.id.year_growth_toggle);
+        _growth = view.findViewById(R.id.year_growth);
+        _growthToggle.setOnClickListener(v -> {
+            _growthOpen = !_growthOpen;
+            bindGrowth();
+        });
+        _growth.setOnClickListener(v -> openGrowth());
         _categorySpinner = view.findViewById(R.id.year_category);
         _list = view.findViewById(R.id.year_months);
 
@@ -202,6 +213,7 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
         _adapter.setMonths(overview.months);
 
         applyHighlights(overview);
+        bindGrowth();
         applyHighlightsVisibility();
         _back.setVisibility(_adapter.getIsolated() >= 0 ? View.VISIBLE : View.GONE);
     }
@@ -209,13 +221,84 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
     /**
      * Fill the three slots.
      *
-     * <p>Three of them always, however many highlights exist. The original hid the strip entirely
+     * <p>At least three, and always one more than exist. The original hid the strip entirely
      * when the folder was empty, which gave no hint that a year is meant to have highlights at
      * all; an empty slot is drawn dashed and says which number it is.
      */
+    /**
+     * The personal-growth field: its toggle, and whatever has been written in it.
+     *
+     * <p>Reads the file on every bind rather than caching it. It is one small file, it is read
+     * only when the Year screen draws, and the alternative is showing a stale paragraph after
+     * the editor has just changed it.
+     */
+    private void bindGrowth() {
+        if (_growthToggle == null) {
+            return;
+        }
+        _growthToggle.setText(getString(R.string.year_growth_toggle,
+                _growthOpen ? "\u25BC" : "\u25B6"));
+        _growth.setVisibility(_growthOpen ? View.VISIBLE : View.GONE);
+        if (!_growthOpen) {
+            return;
+        }
+
+        final File file = (_year == null) ? null : _year.growthFile();
+        String text = "";
+        if (file != null && file.isFile()) {
+            text = net.gsantner.opoc.util.GsFileUtils.readTextFileFast(file).first.trim();
+        }
+        if (text.isEmpty()) {
+            // The prompt is the empty state. Without it the field is a grey rectangle that gives
+            // no idea what belongs in it, and this is the kind of writing nobody starts cold.
+            _growth.setText(R.string.year_growth_prompt);
+            _growth.setTextColor(androidx.core.content.ContextCompat.getColor(
+                    requireContext(), R.color.cal_weekday));
+        } else {
+            _growth.setText(text);
+            _growth.setTextColor(androidx.core.content.ContextCompat.getColor(
+                    requireContext(), R.color.cal_title));
+        }
+    }
+
+    /** Open the growth note in the editor, creating it on first use. */
+    private void openGrowth() {
+        if (_year == null) {
+            return;
+        }
+        final File file = _year.growthFile();
+        if (file == null) {
+            return;
+        }
+        if (!file.isFile()) {
+            try {
+                final File parent = file.getParentFile();
+                if (parent != null && !parent.isDirectory() && !parent.mkdirs()) {
+                    return;
+                }
+                // Seeded with the year, the way every other note in the archive starts with the
+                // date it is about, so the timeline and the tree can read it like any other.
+                final java.io.FileWriter w = new java.io.FileWriter(file);
+                try {
+                    w.write(String.valueOf(_year.year));
+                    w.write("\n\n");
+                } finally {
+                    w.close();
+                }
+            } catch (final java.io.IOException e) {
+                android.widget.Toast.makeText(requireContext(), R.string.could_not_create_note,
+                        android.widget.Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+        DocumentActivity.launch(requireActivity(), file, Boolean.FALSE, null);
+    }
+
     private void applyHighlights(final YearOverview overview) {
         final List<YearOverview.Event> hl = overview.highlights;
-        final int rows = Math.max(YearOverview.HIGHLIGHT_SLOTS, hl.size());
+        // Always one empty slot past whatever exists. Three fixed slots meant that filling the
+        // third left nothing to tap, so a year could hold exactly three highlights and no more.
+        final int rows = Math.max(YearOverview.HIGHLIGHT_SLOTS, hl.size() + 1);
         _highlights.removeAllViews();
 
         for (int i = 0; i < rows; i++) {

@@ -72,8 +72,8 @@
         android:textSize="15sp" />
 
     <!--
-      Always three slots, filled or not. Empty ones are drawn dashed so the bar reads as three
-      places a highlight goes rather than as a bar that happens to be short.
+      At least three slots, and always one empty past whatever exists. Empty ones are drawn
+      dashed so the bar reads as places a highlight goes rather than as a bar that fell short.
     -->
     <LinearLayout
         android:id="@+id/year_highlights"
@@ -90,6 +90,34 @@
         -->
 
     </LinearLayout>
+
+    <!--
+      Personal growth: one free-text field for the year, under the highlights.
+
+      A highlight is an event with a date and a place in the sequence. This is the other kind of
+      year-end writing, which has neither: what was achieved, what was learned, what is wanted
+      next. One field rather than slots, because it is prose and does not enumerate.
+    -->
+    <TextView
+        android:id="@+id/year_growth_toggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?android:selectableItemBackground"
+        android:gravity="end"
+        android:paddingTop="10dp"
+        android:paddingBottom="4dp"
+        android:textColor="@color/year_header"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/year_growth"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/year_highlight_bg"
+        android:lineSpacingExtra="2dp"
+        android:padding="12dp"
+        android:textColor="@color/cal_title"
+        android:textSize="14sp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/year_months"

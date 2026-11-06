@@ -117,7 +117,19 @@ public class CalendarFragment extends AutumnBaseFragment
      * with what they typed.
      */
     public File captureNote() {
-        return createNoteFileAndSeedContent();
+        return createNoteFileAndSeedContent(true);
+    }
+
+    /**
+     * Write the note and stay put.
+     *
+     * <p>A title can be up to 252 characters, which is long enough that for many entries the
+     * title is the whole note. Those still opened the editor on a file holding nothing but a date
+     * stamp, so finishing meant backing out of a document that was never wanted. This writes the
+     * same file, seeded the same way, and leaves the editor shut.
+     */
+    public File captureNoteTitleOnly() {
+        return createNoteFileAndSeedContent(false);
     }
 
     /**
@@ -522,7 +534,7 @@ public class CalendarFragment extends AutumnBaseFragment
         return -1;
     }
 
-    private File createNoteFileAndSeedContent() {
+    private File createNoteFileAndSeedContent(final boolean openEditor) {
         String title = inputNoteTitle.getText().toString().trim();
         if (title.isEmpty()) {
             Toast.makeText(requireContext(), "Please enter a note title.", Toast.LENGTH_SHORT).show();
@@ -591,9 +603,11 @@ public class CalendarFragment extends AutumnBaseFragment
         // ActivityNotFoundException when it was not, inside a try block that only caught
         // IOException. Launching DocumentActivity directly is what FolderBrowserActivity already
         // did, and needs no uri permissions at all.
-        final Intent intent = new Intent(requireContext(), DocumentActivity.class);
-        intent.putExtra(Document.EXTRA_FILE, noteFile);
-        startActivity(intent);
+        if (openEditor) {
+            final Intent intent = new Intent(requireContext(), DocumentActivity.class);
+            intent.putExtra(Document.EXTRA_FILE, noteFile);
+            startActivity(intent);
+        }
 
         return noteFile;
     }

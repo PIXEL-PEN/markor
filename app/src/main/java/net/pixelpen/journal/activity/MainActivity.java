@@ -65,6 +65,7 @@ public class MainActivity extends AutumnBaseActivity {
     private YearFragment _year;
     private MoreFragment _more;
     private FloatingActionButton _fab;
+    private FloatingActionButton _quickFab;
     /** Toolbar items whose visibility follows the tab. */
     private MenuItem _searchItem;
     private MenuItem _homeItem;
@@ -97,6 +98,8 @@ public class MainActivity extends AutumnBaseActivity {
         _viewPager = findViewById(R.id.main__view_pager_container);
         _fab = findViewById(R.id.fab_add_new_item);
         _fab.setOnClickListener(this::onClickFab);
+        _quickFab = findViewById(R.id.fab_quick_note);
+        _quickFab.setOnClickListener(this::onClickQuickFab);
 
 
 
@@ -551,6 +554,33 @@ public class MainActivity extends AutumnBaseActivity {
         }
     }
 
+    /**
+     * Write the note from its title alone and stay on the Calendar.
+     *
+     * <p>The same file as the + button makes, minus the editor. Titles run to 252 characters so
+     * that the tree can be skimmed without opening anything, which means a good many entries are
+     * complete the moment the title is typed; those were being shown a document containing one
+     * date stamp and nothing else, and finishing meant backing out of it.
+     *
+     * <p>No tab switch either. The + button jumps to the Tree because the editor has just
+     * covered the screen and backing out of it should land somewhere that shows the new note.
+     * Nothing has covered anything here, and someone writing title-only notes is usually writing
+     * several, so the form stays where it is with the date and category still set.
+     */
+    public void onClickQuickFab(final View view) {
+        if (_journal == null) {
+            return;
+        }
+        final File created = _journal.captureNoteTitleOnly();
+        if (created == null) {
+            return;
+        }
+        if (_tree != null) {
+            // Not shown now, but the tree should have it next time it draws.
+            _tree.revealPathTo(created);
+        }
+    }
+
     @Override
     public void onBackPressed() {
         // Check if fragment handled back press
@@ -639,8 +669,10 @@ public class MainActivity extends AutumnBaseActivity {
         // have none. The timeline's own is on its own screen now.
         if (pos == tabIdToPos(R.id.nav_journal)) {
             _fab.show();
+            _quickFab.show();
         } else {
             _fab.hide();
+            _quickFab.hide();
         }
 
         // Rescan the Tree each time it is shown. The pager keeps fragments alive, so without

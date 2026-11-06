@@ -281,6 +281,17 @@ public final class YearOverview {
         }
     }
 
+    /**
+     * The year's personal-growth note, whether or not it exists yet.
+     *
+     * <p>A single file beside the month folders rather than a folder of notes, because this is
+     * one piece of prose for the year: achievements, what was learned, what is hoped for. The
+     * highlights are the enumerable part and already have their own folder.
+     */
+    public File growthFile() {
+        return (yearDir == null) ? null : new File(yearDir, "Growth " + year + ".md");
+    }
+
     /** The folder for this year's highlights, whether or not it exists yet. */
     public File highlightsDir() {
         return (yearDir == null) ? null : new File(yearDir, "Highlights " + year);
