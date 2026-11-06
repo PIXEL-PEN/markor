@@ -141,7 +141,6 @@ work. If not, see <https://creativecommons.org/publicdomain/zero/1.0/>.
     <string name="pref_key__todotxt__add_completion_date_for_todos" translatable="false">pref_key__todotxt__add_completion_date_for_todos</string>
     <string name="pref_key__todotxt__append_contexts_and_projects_on_end_of_task" translatable="false">pref_key__todotxt__append_contexts_and_projects_on_end_of_task</string>
     <string name="pref_key__todotxt__last_used_archive_filename" translatable="false">pref_key__todotxt__last_used_archive_filename</string>
-    <string name="pref_key__is_preview_first" translatable="false">pref_key__is_preview_first</string>
     <string name="pref_key__is_render_rtl" translatable="false">pref_key__is_render_rtl</string>
     <string name="pref_key__is_highlighting_activated" translatable="false">pref_key__is_highlighting_activated</string>
     <string name="pref_key__is_dynamic_highlighting_activated" translatable="false">pref_key__is_dynamic_highlighting_activated</string>

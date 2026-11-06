@@ -603,10 +603,11 @@ public class CalendarFragment extends AutumnBaseFragment
         // ActivityNotFoundException when it was not, inside a try block that only caught
         // IOException. Launching DocumentActivity directly is what FolderBrowserActivity already
         // did, and needs no uri permissions at all.
+        // Boolean.FALSE, not a bare intent. A bare intent leaves the mode to
+        // getDocumentPreviewState, which now answers view mode, and a brand new empty note
+        // would open as a rendered blank page.
         if (openEditor) {
-            final Intent intent = new Intent(requireContext(), DocumentActivity.class);
-            intent.putExtra(Document.EXTRA_FILE, noteFile);
-            startActivity(intent);
+            DocumentActivity.launch(requireActivity(), noteFile, Boolean.FALSE, null);
         }
 
         return noteFile;

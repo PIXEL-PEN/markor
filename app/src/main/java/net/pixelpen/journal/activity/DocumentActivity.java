@@ -194,7 +194,15 @@ public class DocumentActivity extends AutumnBaseActivity {
             if (startLine != null) {
                 // If a line is requested, open in edit mode so the line is shown
                 startInPreview = false;
-            } else if (intent.getBooleanExtra(Document.EXTRA_DO_PREVIEW, false) || file.getName().startsWith("index.")) {
+            } else if (intent.hasExtra(Document.EXTRA_DO_PREVIEW)) {
+                // hasExtra, not getBooleanExtra(.., false). Read with a false fallback, an
+                // explicit false was indistinguishable from no extra at all, so startInPreview
+                // stayed null and the caller's instruction was dropped. It did no visible harm
+                // while the fallback was edit mode too, but every launch(.., Boolean.FALSE, ..)
+                // -- a new note, the growth note, a jump to a line -- was relying on luck.
+                // launch(activity, intent) above already tests with hasExtra; now both agree.
+                startInPreview = intent.getBooleanExtra(Document.EXTRA_DO_PREVIEW, false);
+            } else if (file.getName().startsWith("index.")) {
                 startInPreview = true;
             }
 

@@ -355,7 +355,8 @@ public class FileBrowserActivity extends AutumnBaseActivity {
             return;
         }
         if (net.gsantner.opoc.util.GsFileUtils.isTextFile(f)) {
-            DocumentActivity.launch(this, f, Boolean.FALSE, null);
+            // Browsing, so view mode. The top bar toggle switches to editing.
+            DocumentActivity.launch(this, f, Boolean.TRUE, null);
             return;
         }
         shareFile(f);

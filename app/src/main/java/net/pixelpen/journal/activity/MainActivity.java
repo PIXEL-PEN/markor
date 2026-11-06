@@ -144,11 +144,6 @@ public class MainActivity extends AutumnBaseActivity {
 
         reduceViewpagerSwipeSensitivity();
 
-        // noinspection PointlessBooleanExpression - Send Test intent
-        if (BuildConfig.IS_TEST_BUILD && false) {
-            DocumentActivity.launch(this, new File("/sdcard/Documents/mordor/aa-beamer.md"), true, null);
-        }
-
         // Always on. The setting that switched these also switched the QuickNote and ToDo
         // launchers, which no longer exist; share-into and PROCESS_TEXT are how other apps
         // reach Autumn and are not an optional extra.

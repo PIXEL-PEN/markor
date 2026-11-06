@@ -314,7 +314,6 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
         saveDocument(false);
         _webView.onPause();
         _appSettings.addRecentFile(_document.file);
-        _appSettings.setDocumentPreviewState(_document.path, _isPreviewVisible);
         _appSettings.setLastEditPosition(_document.path, TextViewUtils.getSelection(_hlEditor)[0]);
         super.onPause();
     }

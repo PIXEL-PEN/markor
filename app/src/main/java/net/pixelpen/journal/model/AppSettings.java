@@ -73,10 +73,6 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return getBool(R.string.pref_key__load_last_directory_at_startup, false);
     }
 
-    public boolean isPreferViewMode() {
-        return getBool(R.string.pref_key__is_preview_first, false);
-    }
-
     public void setNotebookDirectory(final File file) {
         setString(R.string.pref_key__notebook_directory, GsFileUtils.getPath(file));
     }
@@ -422,7 +418,6 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
     private static final String PREF_PREFIX_EDIT_POS_CHAR = "PREF_PREFIX_EDIT_POS_CHAR";
     private static final String PREF_PREFIX_WRAP_STATE = "PREF_PREFIX_WRAP_STATE";
     private static final String PREF_PREFIX_HIGHLIGHT_STATE = "PREF_PREFIX_HIGHLIGHT_STATE";
-    private static final String PREF_PREFIX_PREVIEW_STATE = "PREF_PREFIX_PREVIEW_STATE";
     private static final String PREF_PREFIX_INDENT_SIZE = "PREF_PREFIX_INDENT_SIZE";
     private static final String PREF_PREFIX_FONT_SIZE = "PREF_PREFIX_FONT_SIZE";
     private static final String PREF_PREFIX_FILE_FORMAT = "PREF_PREFIX_FILE_FORMAT";
@@ -564,19 +559,17 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         }
     }
 
-    public void setDocumentPreviewState(final String path, final boolean isViewMode) {
-        setBool(PREF_PREFIX_PREVIEW_STATE + path, isViewMode);
-    }
-
+    /**
+     * Which mode a document opens in when the caller has not said. Browsing opens in view
+     * mode: tapping a note in the Tree, the Home browser or a link inside another note is
+     * reading, not writing. Writing entry points pass Boolean.FALSE to launch() instead --
+     * a new note from the Calendar, the year growth note, a jump to a line.
+     * <p>
+     * No preference backs this and the mode is not remembered per document. The top bar
+     * toggle is the control, and it is one tap.
+     */
     public boolean getDocumentPreviewState(final String path) {
-        // Use global setting as default
-        final boolean _default = isPreferViewMode();
-        // Always open in preview state when prefer preview mode is enabled
-        if (_default || !fexists(path)) {
-            return _default;
-        } else {
-            return getBool(PREF_PREFIX_PREVIEW_STATE + path, _default);
-        }
+        return true;
     }
 
     public void setDocumentHighlightState(final String path, final boolean state) {
