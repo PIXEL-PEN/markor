@@ -180,6 +180,14 @@ public final class YearOverview {
         final List<Month> months = new ArrayList<>();
         for (final String folder : MONTH_FOLDERS) {
             final File monthDir = new File(yearDir, folder);
+            // Every category's notes into one list, then ordered once.
+            //
+            // This used to sort inside each category and append them category after category,
+            // so a month read as all of General oldest-first, then all of Work, then the rest.
+            // Grouped by folder and alphabetical within it, which from the outside looks like no
+            // order at all. The Tree puts newest first because that is the order this archive
+            // exists to preserve, and the Year screen showing the same notes in a different
+            // sequence is just two answers to one question.
             final List<Event> events = new ArrayList<>();
             for (final String cat : cats) {
                 final File catDir = new File(monthDir, cat);
@@ -187,17 +195,29 @@ public final class YearOverview {
                 if (notes == null) {
                     continue;
                 }
-                final List<File> sorted = new ArrayList<>();
                 for (final File n : notes) {
                     if (n.isFile() && isNote(n.getName())) {
-                        sorted.add(n);
+                        final Long about = stampOf(n);
+                        events.add(new Event(n, stripExtension(n.getName()), cat,
+                                (about != null) ? about : 0L));
                     }
                 }
-                Collections.sort(sorted, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
-                for (final File n : sorted) {
-                    events.add(new Event(n, stripExtension(n.getName()), cat));
-                }
             }
+            // Newest first. A note with no readable stamp sorts last rather than to the top,
+            // where a zero would otherwise put it; name is the tiebreak so two notes written in
+            // the same minute keep a stable order between draws.
+            Collections.sort(events, (a, b) -> {
+                if (a.aboutMillis != b.aboutMillis) {
+                    if (a.aboutMillis == 0L) {
+                        return 1;
+                    }
+                    if (b.aboutMillis == 0L) {
+                        return -1;
+                    }
+                    return Long.compare(b.aboutMillis, a.aboutMillis);
+                }
+                return a.file.getName().compareToIgnoreCase(b.file.getName());
+            });
             months.add(new Month(monthDir.isDirectory() ? monthDir : null,
                     displayName(folder), events));
         }

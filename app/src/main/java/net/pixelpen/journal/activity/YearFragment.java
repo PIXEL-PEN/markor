@@ -62,7 +62,8 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
     private YearMonthAdapter _adapter;
 
     private YearOverview _year;
-    private boolean _highlightsOpen = true;
+    /** Shut on opening: the months are what the screen is for, and the strip pushes them down. */
+    private boolean _highlightsOpen = false;
     private TextView _growthToggle;
     private TextView _growth;
     /** Shut by default: it is a paragraph, and it would push the months off the screen. */
