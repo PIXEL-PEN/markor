@@ -16,7 +16,6 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
@@ -27,22 +26,13 @@ import androidx.preference.PreferenceScreen;
 
 import net.pixelpen.journal.ApplicationObject;
 import net.pixelpen.journal.R;
-import net.pixelpen.journal.frontend.AutumnDialogFactory;
-import net.pixelpen.journal.frontend.filebrowser.AutumnFileBrowserFactory;
 import net.pixelpen.journal.model.AppSettings;
-import net.pixelpen.journal.util.BackupUtils;
-import net.pixelpen.journal.util.AutumnContextUtils;
 import net.gsantner.opoc.frontend.base.GsActivityBase;
 import net.gsantner.opoc.frontend.base.GsPreferenceFragmentBase;
-import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserOptions;
 import net.gsantner.opoc.frontend.settings.GsFontPreferenceCompat;
-import net.gsantner.opoc.util.GsContextUtils;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 
-import other.writeily.widget.WrMarkorWidgetProvider;
 
 public class SettingsActivity extends AutumnBaseActivity {
 
@@ -151,19 +141,6 @@ public class SettingsActivity extends AutumnBaseActivity {
 
         @Override
         public void doUpdatePreferences() {
-            String remove = "/storage/emulated/0/";
-            updateSummary(R.string.pref_key__notebook_directory,
-                    _cu.htmlToSpanned("<small><small>" + _appSettings.getNotebookDirectory().getAbsolutePath().replace(remove, "") + "</small></small>")
-            );
-
-
-            final String fileDescFormat = _appSettings.getString(R.string.pref_key__file_description_format, "");
-            if (fileDescFormat.equals("")) {
-                updateSummary(R.string.pref_key__file_description_format, getString(R.string.default_));
-            } else {
-                updateSummary(R.string.pref_key__file_description_format, fileDescFormat);
-            }
-
             setPreferenceVisible(R.string.pref_key__is_multi_window_enabled, Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP);
             // The experimental-features gate hid tab width and line spacing behind a
             // checkbox. They are ordinary editor settings, not experiments, so they are
@@ -185,22 +162,6 @@ public class SettingsActivity extends AutumnBaseActivity {
             } else if (eq(key, R.string.pref_key__app_theme)) {
                 _appSettings.applyAppTheme();
                 getActivity().finish();
-            } else if (eq(key, R.string.pref_key__file_description_format)) {
-                try {
-                    new SimpleDateFormat(prefs.getString(key, ""), Locale.getDefault());
-                } catch (IllegalArgumentException e) {
-                    Toast.makeText(getContext(), e.getLocalizedMessage() + "\n\n" + getString(R.string.loading_default_value), Toast.LENGTH_SHORT).show();
-                    prefs.edit().putString(key, "").commit();
-                }
-            } else if (eq(key, R.string.pref_key__share_into_format)) {
-                try {
-                    Toast.makeText(context, GsContextUtils.instance.formatDateTime(context, prefs.getString(key, ""), System.currentTimeMillis()), Toast.LENGTH_SHORT).show();
-                } catch (IllegalArgumentException e) {
-                    Toast.makeText(context, e.getLocalizedMessage() + "\n\n" + getString(R.string.loading_default_value), Toast.LENGTH_SHORT).show();
-                }
-            } else if (eq(key, R.string.pref_key__notebook_directory)) {
-                // The todo widget went with the ToDo file; only the launcher widget is left.
-                WrMarkorWidgetProvider.updateLauncherWidgets();
             }
         }
 
@@ -210,23 +171,6 @@ public class SettingsActivity extends AutumnBaseActivity {
             final FragmentManager fragManager = getActivity().getSupportFragmentManager();
             switch (keyResId) {
 
-                case R.string.pref_key__notebook_directory: {
-                    AutumnFileBrowserFactory.showFolderDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
-                        @Override
-                        public void onFsViewerSelected(String request, File file, final Integer lineNumber) {
-                            _appSettings.setNotebookDirectory(file);
-                            _appSettings.setRecreateMainRequired(true);
-                            doUpdatePreferences();
-                        }
-
-                        @Override
-                        public void onFsViewerConfig(GsFileBrowserOptions.Options dopt) {
-                            dopt.titleText = R.string.select_storage_folder;
-                            dopt.rootFolder = _appSettings.getNotebookDirectory();
-                        }
-                    }, fragManager, getActivity());
-                    return true;
-                }
                 case R.string.pref_key__basic_color_scheme_markor: {
                     _appSettings.setEditorBasicColor(true, R.color.white, R.color.dark_grey);
                     _appSettings.setEditorBasicColor(false, R.color.dark_grey, R.color.light__background);
@@ -269,14 +213,6 @@ public class SettingsActivity extends AutumnBaseActivity {
                 case R.string.pref_key__orgmode__reorder_actions:
                 case R.string.pref_key__todotxt__reorder_actions: {
                     startActivity(new Intent(getActivity(), ActionButtonSettingsActivity.class).putExtra(ActionButtonSettingsActivity.EXTRA_FORMAT_KEY, keyResId));
-                    break;
-                }
-                case R.string.pref_key__backup_settings: {
-                    BackupUtils.showBackupWriteToDialog(getContext(), getFragmentManager());
-                    break;
-                }
-                case R.string.pref_key__restore_settings: {
-                    BackupUtils.showBackupSelectFromDialog(getContext(), getFragmentManager());
                     break;
                 }
             }

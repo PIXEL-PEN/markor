@@ -259,9 +259,15 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return getBool(R.string.pref_key__is_keep_screen_on, true);
     }
 
-    /** Prefix wrapped around text shared into the app. Used by DocumentShareIntoFragment. */
+    /**
+     * What wraps text shared into the app: a rule, then the text.
+     *
+     * <p>Was an editable template. The dialog asked for a format string containing {{text}} and
+     * literal backslash-n, which is a small language to learn in exchange for choosing a
+     * separator; the default is what nearly everyone would have typed anyway.
+     */
     public String getShareIntoPrefix() {
-        return getString(R.string.pref_key__share_into_format, "\\n----\\n{{text}}");
+        return "\\n----\\n{{text}}";
     }
 
     public boolean isDisallowScreenshots() {
