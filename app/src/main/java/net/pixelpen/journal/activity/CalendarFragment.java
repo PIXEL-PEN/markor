@@ -362,6 +362,34 @@ public class CalendarFragment extends AutumnBaseFragment
         int idxDefault = indexOfIgnoreCase(cats, DEFAULT_CATEGORY);
         spinnerCategory.setSelection(idxDefault >= 0 ? idxDefault : 0, false);
         lastRealCategorySelection = spinnerCategory.getSelectedItemPosition();
+        // Seeded, not chosen: record it so the event it raises is not mistaken for a choice.
+        _categoryReportedToTree = lastRealCategorySelection;
+    }
+
+    /**
+     * The position last reported to the tree, so a genuine move can be told from a redraw.
+     *
+     * <p>Not {@code firstFire}: that flag is re-armed every time the listener is re-attached,
+     * which {@link #bindCategories} does on every rebind. It is disarmed by the programmatic
+     * setSelection that follows -- but only when that call actually changes the index. Rebinding
+     * while the same category is selected fires nothing, leaves the flag armed, and the user's
+     * next real choice is swallowed as though it were the programmatic one.
+     *
+     * <p>Comparing positions needs no such luck. The programmatic setSelection updates this field
+     * synchronously, so by the time its event arrives the position already matches and the move
+     * reads as what it is: not a choice.
+     */
+    private int _categoryReportedToTree = -1;
+
+    /** Tell the tree which category to open, if and only if the selection actually moved. */
+    private void reportCategoryToTree(final int position) {
+        if (position == _categoryReportedToTree) {
+            return;
+        }
+        _categoryReportedToTree = position;
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).onCategoryChosen(currentTargetDir());
+        }
     }
 
     private void attachCategorySpinnerListener() {
@@ -370,18 +398,22 @@ public class CalendarFragment extends AutumnBaseFragment
 
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                final String chosen = (String) parent.getItemAtPosition(position);
+
+                // Above the firstFire guard on purpose. That flag is re-armed on every rebind
+                // and is only disarmed by a programmatic setSelection that actually moves; a
+                // rebind on the already-selected category leaves it armed, and it would eat this.
+                // Comparing positions does not need the flag to have been disarmed.
+                if (!ADD_CATEGORY_ITEM.equals(chosen)) {
+                    reportCategoryToTree(position);
+                }
+
                 if (firstFire) { firstFire = false; return; }
-                String chosen = (String) parent.getItemAtPosition(position);
                 if (ADD_CATEGORY_ITEM.equals(chosen)) {
                     spinnerCategory.setSelection(lastRealCategorySelection, false);
                     showAddCategoryDialog();
                 } else {
                     lastRealCategorySelection = position;
-                    // Choosing a category says where work is happening, so the tree opens it on
-                    // the next visit. Only here: a plain return to the tree must change nothing.
-                    if (getActivity() instanceof MainActivity) {
-                        ((MainActivity) getActivity()).onCategoryChosen(currentTargetDir());
-                    }
                 }
             }
 

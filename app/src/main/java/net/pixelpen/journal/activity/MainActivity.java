@@ -604,10 +604,17 @@ public class MainActivity extends AutumnBaseActivity {
      * tree fragment belongs to this activity's pager and may not exist yet.
      */
     public void onCategoryChosen(final java.io.File dir) {
+        // The pager builds the Tree on demand, so at app start there may be nothing to tell yet.
+        // Held here and handed over when the tab is opened, rather than dropped.
+        _pendingTreeCategory = dir;
         if (_tree != null) {
             _tree.expandCategoryOnNextDraw(dir);
+            _pendingTreeCategory = null;
         }
     }
+
+    /** A category chosen before the Tree fragment existed. */
+    private java.io.File _pendingTreeCategory;
 
     private void reloadCurrentTab() {
         final int pos = getCurrentPos();
@@ -666,6 +673,10 @@ public class MainActivity extends AutumnBaseActivity {
         if (pos == tabIdToPos(R.id.nav_tree) && _tree != null) {
             if (_journal != null) {
                 _tree.focusOn(_journal.currentTargetDir());
+            }
+            if (_pendingTreeCategory != null) {
+                _tree.expandCategoryOnNextDraw(_pendingTreeCategory);
+                _pendingTreeCategory = null;
             }
             _tree.reload();
         } else if (_tree != null) {
