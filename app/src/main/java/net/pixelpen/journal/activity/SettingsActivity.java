@@ -208,16 +208,6 @@ public class SettingsActivity extends AutumnBaseActivity {
                     }
                     return true;
                 }
-                case R.string.pref_key__more_info__contributors_public_info: {
-                    try {
-                        _cu.showDialogWithHtmlTextView(getActivity(), R.string.contributors, new GsSimpleMarkdownParser().parse(
-                                getResources().openRawResource(R.raw.contributors),
-                                "", GsSimpleMarkdownParser.FILTER_ANDROID_TEXTVIEW).getHtml());
-                    } catch (final IOException e) {
-                        e.printStackTrace();
-                    }
-                    return true;
-                }
                 case R.string.pref_key__more_info__copy_build_information: {
                     _cu.setClipboard(getContext(), preference.getSummary());
                     try {

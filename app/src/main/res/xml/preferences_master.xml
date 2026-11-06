@@ -263,11 +263,11 @@
          obligation rather than a courtesy: this is Apache 2.0 code with third-party
          dependencies and the attribution has to be reachable from inside the app. -->
     <PreferenceCategory android:title="@string/about">
-        <Preference
-            android:icon="@drawable/ic_info_black_24dp"
-            android:key="@string/pref_key__more_info__contributors_public_info"
-            android:summary="@string/contributors_public_add_yourself_description"
-            android:title="@string/contributors" />
+        <!-- Contributors was a 56-line roster of Markor contributors carrying 33 GitHub
+             links, inviting you to add yourself. Apache 2.0 asks that copyright and
+             attribution notices be retained, which the licence rows below do; it does not
+             ask for a contributor roster, and a list of web links does not belong in an
+             app with no network access. The roster stays in CONTRIBUTORS.md. -->
         <Preference
             android:icon="@drawable/ic_copyright_black_24dp"
             android:key="@string/pref_key__more_info__project_license"

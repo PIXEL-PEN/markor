@@ -1,3 +1,13 @@
+**Apache License, Version 2.0**  
+* Markor
+~° Copyright 2017-2025 Gregor Santner
+~° Autumn is a derivative work of Markor.
+~° Apache 2.0 permits redistribution of a
+~° derivative under the GNU GPL version 3,
+~° which is Autumn's licence. The Apache
+~° notices on inherited files are retained.
+~° <http://www.apache.org/licenses/LICENSE-2.0>
+
 **The MIT License (MIT)**  
 * KaTex
 ~° Copyright KaTex authors
