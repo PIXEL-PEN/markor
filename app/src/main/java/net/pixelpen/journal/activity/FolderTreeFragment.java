@@ -173,6 +173,21 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
     private String _seededCategory;
 
     /**
+     * A category to open on the next draw, and only then.
+     *
+     * <p>Opening used to be inferred: the tree compared the Calendar's current category against
+     * the one it opened last and unfolded it whenever they differed. Leaving the tree clears that
+     * record, so merely coming back counted as a difference and the category sprang open again
+     * every single time. Inference cannot tell "the user chose this" from "the user walked past".
+     *
+     * <p>So it is told instead. Choosing a category in the dropdown sets this; writing a note
+     * goes through the reveal path, which opens what it reveals. Anything else -- switching tabs,
+     * returning from the Year screen, rotating -- sets nothing, and the tree stays as the user
+     * left it: collapsed.
+     */
+    private String _pendingCategoryExpand;
+
+    /**
      * Open the year and the month, and nothing below them.
      *
      * <p>The previous version opened the path all the way down to the category and ran on every
@@ -209,21 +224,38 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         // category on every single reload and so unfolded everything ever selected: this only
         // acts when the selection actually changes, and closes the one it opened last. At most
         // one category is ever open because of this, which is what keeps it from accumulating.
-        final File focus = _focus;
-        final String wanted = (focus != null && isUnder(root, focus)) ? focus.getAbsolutePath() : null;
-        final boolean changed = (wanted == null) ? (_seededCategory != null) : !wanted.equals(_seededCategory);
-        if (!changed) {
+        final String wanted = _pendingCategoryExpand;
+        if (wanted == null) {
+            // Nothing asked for. A plain visit leaves the tree exactly as it was.
             return;
         }
-        if (_seededCategory != null) {
+        _pendingCategoryExpand = null;
+
+        final File target = new File(wanted);
+        if (!isUnder(root, target)) {
+            // Left over from another archive root; it could never draw.
+            return;
+        }
+        if (_seededCategory != null && !_seededCategory.equals(wanted)) {
+            // Close the one opened by the previous request, so two cannot show at once when no
+            // tab switch has intervened to collapse them.
             _expanded.remove(_seededCategory);
         }
         _seededCategory = wanted;
-        if (wanted != null) {
-            for (File f = focus; f != null && isUnder(root, f); f = f.getParentFile()) {
-                _expanded.add(f.getAbsolutePath());
-            }
+        for (File f = target; f != null && isUnder(root, f); f = f.getParentFile()) {
+            _expanded.add(f.getAbsolutePath());
         }
+    }
+
+    /**
+     * Open this category the next time the tree draws.
+     *
+     * <p>Called when the Calendar's dropdown changes, which is a deliberate statement about where
+     * work is happening. Nothing else calls it, which is what keeps a plain return to the tree
+     * from unfolding anything.
+     */
+    public void expandCategoryOnNextDraw(final File dir) {
+        _pendingCategoryExpand = (dir == null) ? null : dir.getAbsolutePath();
     }
 
     /**
@@ -283,8 +315,7 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
                 it.remove();
             }
         }
-        // So the next visit opens whatever the dropdown points at, rather than deciding it is
-        // already open and doing nothing.
+        // Nothing is open now, so there is nothing left to close on the next request.
         _seededCategory = null;
     }
 

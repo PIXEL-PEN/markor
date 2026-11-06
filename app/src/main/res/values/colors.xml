@@ -42,6 +42,8 @@
     <color name="cal_day_marked_bg">#E4EAF0</color>
     <color name="cal_card_bg">#FBFCFD</color>
     <color name="cal_card_border">#DCE3EA</color>
+    <color name="cal_chip_bg">#EDF1F6</color>
+    <color name="cal_chip_border">#B6C2D0</color>
     <color name="icons">#FFFFFF</color>
     <color name="divider">#B6B6B6</color>
 

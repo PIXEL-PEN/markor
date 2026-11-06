@@ -597,6 +597,18 @@ public class MainActivity extends AutumnBaseActivity {
      * <p>Called on resume. Journal and More hold no file listing of their own, so they are not
      * here; the three that do are.
      */
+    /**
+     * The Calendar's category dropdown changed; open that category next time the tree draws.
+     *
+     * <p>Routed through here rather than the Calendar reaching for the tree itself, because the
+     * tree fragment belongs to this activity's pager and may not exist yet.
+     */
+    public void onCategoryChosen(final java.io.File dir) {
+        if (_tree != null) {
+            _tree.expandCategoryOnNextDraw(dir);
+        }
+    }
+
     private void reloadCurrentTab() {
         final int pos = getCurrentPos();
         if (pos == tabIdToPos(R.id.nav_tree) && _tree != null) {
@@ -657,8 +669,9 @@ public class MainActivity extends AutumnBaseActivity {
             }
             _tree.reload();
         } else if (_tree != null) {
-            // Leaving the Tree closes every category, so coming back shows exactly one open: the
-            // one the dropdown points at. Cheaper to state than to track.
+            // Leaving the Tree closes every category. Coming back shows none open: only choosing
+            // a category or writing a note reopens one, and neither is what leaving and
+            // returning is.
             _tree.collapseCategories();
         }
 

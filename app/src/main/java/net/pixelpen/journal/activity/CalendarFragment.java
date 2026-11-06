@@ -377,6 +377,11 @@ public class CalendarFragment extends AutumnBaseFragment
                     showAddCategoryDialog();
                 } else {
                     lastRealCategorySelection = position;
+                    // Choosing a category says where work is happening, so the tree opens it on
+                    // the next visit. Only here: a plain return to the tree must change nothing.
+                    if (getActivity() instanceof MainActivity) {
+                        ((MainActivity) getActivity()).onCategoryChosen(currentTargetDir());
+                    }
                 }
             }
 
