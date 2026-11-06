@@ -64,7 +64,12 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
-final String[] ROOT_TO_RAW_COPYFILES = ["README.md", "CHANGELOG.md", "CONTRIBUTORS.md", "LICENSE.txt", "LICENSE.md", "LICENSE"]
+// Only two of these have a reader left. R.raw.readme is referenced by
+// ApplicationObject and R.raw.license.txt is what the About screen's licence row shows.
+// CHANGELOG.md and CONTRIBUTORS.md were being copied into the APK and read by a launch
+// dialog and an About row that are both gone, so they stayed in the binary as stale
+// documents. CONTRIBUTORS.md is deleted; the changelog stays in the repo only.
+final String[] ROOT_TO_RAW_COPYFILES = ["README.md", "LICENSE.txt"]
 task copyRepoFiles(type: Copy) {
     from rootProject.files(ROOT_TO_RAW_COPYFILES)
     into "app/src/main/res/raw"
