@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyEvent;
-import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 
@@ -28,9 +27,6 @@ public abstract class AutumnBaseActivity extends GsActivityBase<AppSettings, Aut
             getWindow().setExitTransition(null);
         }
         _cu.setAppLanguage(this, _appSettings.getLanguage());
-        if (_appSettings.isHideSystemStatusbar()) {
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        }
     }
 
     protected boolean onReceiveKeyPress(GsFragmentBase fragment, int keyCode, KeyEvent event) {

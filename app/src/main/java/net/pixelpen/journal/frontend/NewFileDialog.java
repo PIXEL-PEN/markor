@@ -154,11 +154,12 @@ public class NewFileDialog extends DialogFragment {
 
         // Setup template spinner and action
         // -----------------------------------------------------------------------------------------
-        final List<File> snippets = appSettings.getSnippetFiles();
+        // Built-in templates only. User snippets used to be listed here as well, between the
+        // empty file and the built-ins, which is why the index arithmetic below had to account
+        // for their count. Snippets are gone.
         final List<Pair<String, String>> templates = appSettings.getBuiltinTemplates();
         final ArrayAdapter<String> templateAdapter = new ArrayAdapter<>(activity, android.R.layout.simple_spinner_dropdown_item);
         templateAdapter.add(activity.getString(R.string.empty_file));
-        templateAdapter.addAll(GsCollectionUtils.map(snippets, File::getName));
         templateAdapter.addAll(GsCollectionUtils.map(templates, p -> p.first));
         templateSpinner.setAdapter(templateAdapter);
 
@@ -271,13 +272,8 @@ public class NewFileDialog extends DialogFragment {
             // -------------------------------------------------------------------------------------
             final int ti = templateSpinner.getSelectedItemPosition();
             final String template;
-            if (ti == 0) {
-                template = "";
-            } else if (ti <= snippets.size()) {
-                template = GsFileUtils.readTextFileFast(snippets.get(ti - 1)).first;
-            } else {
-                template = templates.get(ti - snippets.size() - 1).second;
-            }
+            // Position 0 is the empty file, so the built-ins start at 1.
+            template = (ti == 0) ? "" : templates.get(ti - 1).second;
 
             final Pair<String, Integer> content = getTemplateContent(template, title);
             // -------------------------------------------------------------------------------------

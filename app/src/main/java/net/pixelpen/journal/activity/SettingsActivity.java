@@ -168,7 +168,6 @@ public class SettingsActivity extends AutumnBaseActivity {
             );
             updateSummary(R.string.pref_key__exts_to_always_open_in_this_app, _appSettings.getString(R.string.pref_key__exts_to_always_open_in_this_app, ""));
 
-            updateSummary(R.string.pref_key__snippet_directory_path, _appSettings.getSnippetsDirectory().getAbsolutePath());
 
             final String fileDescFormat = _appSettings.getString(R.string.pref_key__file_description_format, "");
             if (fileDescFormat.equals("")) {
@@ -242,22 +241,6 @@ public class SettingsActivity extends AutumnBaseActivity {
         public Boolean onPreferenceClicked(Preference preference, String key, int keyResId) {
             final FragmentManager fragManager = getActivity().getSupportFragmentManager();
             switch (keyResId) {
-                case R.string.pref_key__snippet_directory_path: {
-                    AutumnFileBrowserFactory.showFolderDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
-                        @Override
-                        public void onFsViewerSelected(String request, File file, final Integer lineNumber) {
-                            _appSettings.setSnippetDirectory(file);
-                            doUpdatePreferences();
-                        }
-
-                        @Override
-                        public void onFsViewerConfig(GsFileBrowserOptions.Options dopt) {
-                            dopt.titleText = R.string.snippet_directory;
-                            dopt.rootFolder = _appSettings.getNotebookDirectory();
-                        }
-                    }, fragManager, getActivity());
-                    return true;
-                }
 
                 case R.string.pref_key__notebook_directory: {
                     AutumnFileBrowserFactory.showFolderDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {

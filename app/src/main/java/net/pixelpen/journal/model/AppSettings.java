@@ -184,16 +184,6 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return new File(getDefaultNotebookFile(), rstr(R.string.todo_default_filename));
     }
 
-    public File getSnippetsDirectory() {
-        final File _default = new File(getNotebookDirectory(), ".app/snippets");
-        final File snf = new File(getString(R.string.pref_key__snippet_directory_path, _default.getAbsolutePath()));
-        return snf.isDirectory() && snf.canRead() ? snf : _default;
-    }
-
-    public void setSnippetDirectory(final File folder) {
-        setString(R.string.pref_key__snippet_directory_path, GsFileUtils.getPath(folder));
-    }
-
     public String getFontFamily() {
         return getString(R.string.pref_key__font_family, rstr(R.string.default_font_family));
     }
@@ -287,10 +277,6 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return ret;
     }
 
-    public boolean isHideSystemStatusbar() {
-        return getBool(R.string.pref_key__theming_hide_system_statusbar, false);
-    }
-
     public boolean isSpecialFileLaunchersEnabled() {
         if (BuildConfig.IS_TEST_BUILD) {
             return false;
@@ -299,7 +285,9 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
     }
 
     public boolean isKeepScreenOn() {
-        return getBool(R.string.pref_key__is_keep_screen_on, !BuildConfig.IS_TEST_BUILD);
+        // Was !IS_TEST_BUILD, so it defaulted off in debug and on in release -- which meant
+        // the build actually used day to day was the one without it.
+        return getBool(R.string.pref_key__is_keep_screen_on, true);
     }
 
     public boolean isDisallowScreenshots() {
@@ -839,10 +827,6 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return getBool(R.string.pref_key__filesystem_folder_first, true);
     }
 
-    public String getNavigationBarColor() {
-        return getString(R.string.pref_key__navigationbar_color, "#000000");
-    }
-
     public String getAppStartupFolderMenuId() {
         return getString(R.string.pref_key__app_start_folder, "notebook");
     }
@@ -1054,24 +1038,6 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return getBool(R.string.pref_key__wikitext_dynamic_notebook_root, false);
     }
 
-    public boolean isOpenLinksWithChromeCustomTabs() {
-        return getBool(R.string.pref_key__open_links_with_chrome_custom_tabs, true);
-    }
-
-    public String getShareIntoPrefix() {
-        return getString(R.string.pref_key__share_into_format, "\\n----\\n{{text}}");
-    }
-
-    public @NonNull
-    File getAttachmentFolder(final File file) {
-        final File parent = file.getParentFile();
-        if (parent == null) {
-            return getNotebookDirectory();
-        }
-        final String child = getString(R.string.pref_key__attachment_folder_name, "_res").trim();
-        return GsTextUtils.isNullOrEmpty(child) ? parent : new File(parent, child);
-    }
-
     public List<Pair<String, String>> getBuiltinTemplates() {
         final List<Pair<String, String>> templates = new ArrayList<>();
         final String templateAssetDir = "templates";
@@ -1090,20 +1056,6 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         }
 
         return templates;
-    }
-
-    // Read all files in snippets folder with appropriate extension
-    // Create a map of snippet title -> text
-    public List<File> getSnippetFiles() {
-        final File dir = getSnippetsDirectory();
-        if (dir != null && dir.isDirectory()) {
-            final File[] files = dir.listFiles(f -> f.isFile() && GsFileUtils.isTextFile(f));
-            if (files != null) {
-                Arrays.sort(files, (f1, f2) -> f1.getName().compareToIgnoreCase(f2.getName()));
-                return Arrays.asList(files);
-            }
-        }
-        return Collections.emptyList();
     }
 
     public void setTypeTemplate(final @StringRes int format, final String template) {

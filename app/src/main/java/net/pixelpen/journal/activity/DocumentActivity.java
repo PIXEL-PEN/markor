@@ -39,7 +39,6 @@ import net.gsantner.opoc.util.GsFileUtils;
 
 import java.io.File;
 
-import other.so.AndroidBug5497Workaround;
 
 public class DocumentActivity extends AutumnBaseActivity {
 
@@ -138,10 +137,6 @@ public class DocumentActivity extends AutumnBaseActivity {
         AppSettings.clearDebugLog();
         setContentView(R.layout.document__activity);
         _toolbar = findViewById(R.id.toolbar);
-
-        if (_appSettings.isHideSystemStatusbar()) {
-            AndroidBug5497Workaround.assistActivity(this);
-        }
 
         setSupportActionBar(findViewById(R.id.toolbar));
         _fragManager = getSupportFragmentManager();

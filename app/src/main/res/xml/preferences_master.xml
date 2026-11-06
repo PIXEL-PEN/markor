@@ -123,23 +123,23 @@
         android:summary="@string/miscellaneous"
         android:title="@string/other">
 
-        <PreferenceCategory android:title="@string/general">
-            <ListPreference
-                android:defaultValue="#000000"
-                android:dialogTitle="@string/navigationbar_color"
-                android:entries="@array/pref_arrdisp__navigationbar_color"
-                android:entryValues="@array/pref_arrkeys__navigationbar_color"
-                android:icon="@drawable/ic_invert_colors_black_24dp"
-                android:key="@string/pref_key__navigationbar_color"
-                android:summary="%1$s"
-                android:title="@string/navigationbar_color" />
+        <!--
+          What was here and why it is not:
 
-            <CheckBoxPreference
-                android:defaultValue="false"
-                android:icon="@drawable/ic_visibility_off_black_24dp"
-                android:key="@string/pref_key__theming_hide_system_statusbar"
-                android:summary="@string/hide_statusbar_at_this_view"
-                android:title="@string/hide_statusbar" />
+            Navigation bar colour  - getNavigationBarColor() had no callers. The setting stored
+                                     a value and changed nothing.
+            Hide status bar        - a fullscreen toggle for a screen that keeps an app bar and
+                                     a bottom nav either way. Distraction-free reading, if it is
+                                     wanted, is a feature rather than a checkbox.
+            Attachment folder      - named "_res" and no longer decided anything: attachments go
+                                     to Images/<year> and Files/<year> under the home folder, and
+                                     the only caller left was a fallback. A setting that claims
+                                     to control where files go and does not is worse than none.
+            Chrome Custom Tabs     - one boolean about how a tapped link opens. The link still
+                                     opens; it just always uses the default browser now.
+            Snippet folder         - the snippets feature is gone with it.
+        -->
+        <PreferenceCategory android:title="@string/general">
 
             <CheckBoxPreference
                 android:defaultValue="false"
@@ -159,24 +159,6 @@
                 android:icon="@drawable/ic_share_black_24dp"
                 android:key="@string/pref_key__share_into_format"
                 android:title="@string/share_into_format" />
-
-            <androidx.preference.EditTextPreference
-                android:defaultValue="_res"
-                android:dialogMessage="@string/attachment_folder_name_desc"
-                android:icon="@drawable/ic_attach_file_black_24dp"
-                android:key="@string/pref_key__attachment_folder_name"
-                android:title="@string/attachment_folder_name" />
-
-            <Preference
-                android:icon="@drawable/baseline_snippet_folder_24"
-                android:key="@string/pref_key__snippet_directory_path"
-                android:title="@string/snippet_directory" />
-
-            <CheckBoxPreference
-                android:defaultValue="true"
-                android:icon="@drawable/ic_open_in_browser_black_24dp"
-                android:key="@string/pref_key__open_links_with_chrome_custom_tabs"
-                android:title="@string/chrome_custom_tabs" />
         </PreferenceCategory>
 
         <PreferenceCategory android:title="@string/file_browser">

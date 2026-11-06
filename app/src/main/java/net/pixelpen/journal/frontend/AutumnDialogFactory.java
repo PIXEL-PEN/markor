@@ -959,25 +959,6 @@ public class AutumnDialogFactory {
         }
     }
 
-    public static void showInsertSnippetDialog(final Activity activity, final GsCallback.a1<String> callback) {
-        final DialogOptions dopt = baseConf(activity);
-
-        final List<File> snippets = as().getSnippetFiles();
-
-        dopt.data = GsCollectionUtils.map(snippets, File::getName);
-        dopt.isSearchEnabled = true;
-        dopt.titleText = R.string.insert_snippet;
-        dopt.messageText = Html.fromHtml("<small><small>" + as().getSnippetsDirectory().getAbsolutePath() + "</small></small>");
-        dopt.positionCallback = (ind) -> callback.callback(GsFileUtils.readTextFileFast(snippets.get(ind.get(0))).first);
-        dopt.neutralButtonText = R.string.folder;
-        dopt.neutralButtonCallback = (dialog) -> {
-            dialog.dismiss();
-            DocumentActivity.launch(activity, as().getSnippetsDirectory(), null, null);
-        };
-        dopt.longPressCallback = (pos) -> DocumentActivity.launch(activity, snippets.get(pos), null, null);
-        GsSearchOrCustomTextDialog.showMultiChoiceDialogWithSearchFilterUI(activity, dopt);
-    }
-
     public static void showNotebookFilterDialog(
             final Activity activity,
             @Nullable GsSearchOrCustomTextDialog.DialogState state,

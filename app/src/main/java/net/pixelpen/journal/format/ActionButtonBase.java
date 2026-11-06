@@ -70,7 +70,6 @@ public abstract class ActionButtonBase {
     private Activity _activity;
     private AutumnContextUtils _cu;
     private final int _buttonHorizontalMargin;
-    private String _lastSnip;
 
     protected HighlightingEditor _hlEditor;
     protected WebView _webView;
@@ -165,7 +164,6 @@ public abstract class ActionButtonBase {
                 new ActionItem(R.string.abid_common_new_line_below, R.drawable.ic_baseline_keyboard_return_24, R.string.start_new_line_below),
                 new ActionItem(R.string.abid_common_move_text_one_line_up, R.drawable.ic_baseline_arrow_upward_24, R.string.move_text_one_line_up).setRepeatable(true),
                 new ActionItem(R.string.abid_common_move_text_one_line_down, R.drawable.ic_baseline_arrow_downward_24, R.string.move_text_one_line_down).setRepeatable(true),
-                new ActionItem(R.string.abid_common_insert_snippet, R.drawable.ic_baseline_file_copy_24, R.string.insert_snippet),
                 new ActionItem(R.string.abid_common_special_key, R.drawable.ic_keyboard_black_24dp, R.string.special_key),
                 new ActionItem(R.string.abid_common_time, R.drawable.ic_access_time_black_24dp, R.string.date_and_time),
                 new ActionItem(R.string.abid_common_open_link_browser, R.drawable.ic_open_in_browser_black_24dp, R.string.open_link),
@@ -676,13 +674,6 @@ public abstract class ActionButtonBase {
                 runRenumberOrderedListIfRequired();
                 return true;
             }
-            case R.string.abid_common_insert_snippet: {
-                AutumnDialogFactory.showInsertSnippetDialog(_activity, (snip) -> {
-                    _hlEditor.insertOrReplaceTextOnCursor(TextViewUtils.interpolateSnippet(snip, _document.title, TextViewUtils.getSelectedText(_hlEditor)));
-                    _lastSnip = snip;
-                });
-                return true;
-            }
             case R.string.abid_common_open_link_browser: {
                 final int sel = TextViewUtils.getSelection(_hlEditor)[0];
                 if (sel < 0) {
@@ -803,12 +794,6 @@ public abstract class ActionButtonBase {
             case R.string.abid_common_move_text_one_line_up:
             case R.string.abid_common_move_text_one_line_down: {
                 TextViewUtils.showSelection(_hlEditor);
-                return true;
-            }
-            case R.string.abid_common_insert_snippet: {
-                if (!TextUtils.isEmpty(_lastSnip)) {
-                    _hlEditor.insertOrReplaceTextOnCursor(TextViewUtils.interpolateSnippet(_lastSnip, _document.title, TextViewUtils.getSelectedText(_hlEditor)));
-                }
                 return true;
             }
             case R.string.abid_common_insert_audio: {

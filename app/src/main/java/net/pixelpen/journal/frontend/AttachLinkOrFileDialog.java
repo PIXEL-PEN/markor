@@ -343,7 +343,11 @@ public class AttachLinkOrFileDialog {
                 } catch (final Exception e) {
                     // If the shared folder cannot be made, fall back to the old behaviour rather
                     // than losing the attachment.
-                    attachmentDir = as.getAttachmentFolder(document);
+                    // Last resort only, and no longer configurable: a setting naming this
+                    // folder implied it decided where attachments go, which it has not since
+                    // they moved to Images/<year> and Files/<year>.
+                    final File parent = document.getParentFile();
+                    attachmentDir = (parent == null) ? notebookDir : new File(parent, "_res");
                 }
                 final File local = copyFileToAttachmentDir(attachment, attachmentDir);
                 path = GsFileUtils.relativePath(document, local);

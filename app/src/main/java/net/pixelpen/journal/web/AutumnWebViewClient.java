@@ -51,12 +51,11 @@ public class AutumnWebViewClient extends GsWebViewClient {
                 }
                 DocumentActivity.launch(_activity, file, null, null);
             } else {
-                AutumnContextUtils su = new AutumnContextUtils(_activity);
-                AppSettings settings = ApplicationObject.settings();
-                if (!settings.isOpenLinksWithChromeCustomTabs() || (settings.isOpenLinksWithChromeCustomTabs() && !su.openWebpageInChromeCustomTab(context, url))) {
-                    su.openWebpageInExternalBrowser(context, url);
-                    return true;
-                }
+                // Straight to the default browser. There used to be a setting choosing
+                // between this and a Chrome Custom Tab, which is a lot of configuration for
+                // one question nobody asked, in an app that does not go online itself.
+                new AutumnContextUtils(_activity).openWebpageInExternalBrowser(context, url);
+                return true;
             }
         } catch (Exception ignored) {
         }
