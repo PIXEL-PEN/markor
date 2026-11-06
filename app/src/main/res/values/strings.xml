@@ -568,6 +568,9 @@
     <!-- %1$d is a file count. -->
     <string name="backup_done">%1$d files packed. Choose where to keep it.</string>
     <string name="backup_failed">Backup failed.</string>
+    <string name="enter_note_title">Enter note title..</string>
+    <string name="previous_month">Previous month</string>
+    <string name="next_month">Next month</string>
     <string name="timeline_images">Images</string>
     <string name="remove">Remove</string>
     <string name="year_entry_remove_image">Take this picture off the year? The file stays in the archive.</string>

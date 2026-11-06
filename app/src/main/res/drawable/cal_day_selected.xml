@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The selected day. A filled disc, the app's accent, matching the FAB. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="@color/cal_accent" />
+    <size android:width="34dp" android:height="34dp" />
+</shape>

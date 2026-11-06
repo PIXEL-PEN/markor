@@ -9,7 +9,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.CalendarView;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
@@ -68,7 +67,7 @@ public class CalendarFragment extends AutumnBaseFragment
 
     private EditText inputNoteTitle;
     private Spinner spinnerCategory;
-    private CalendarView calendarView;
+    private net.pixelpen.journal.view.MonthGrid calendarView;
     private final Calendar selectedCalendarDate = Calendar.getInstance();
 
     private ArrayAdapter<String> categoryAdapter;
@@ -97,10 +96,10 @@ public class CalendarFragment extends AutumnBaseFragment
         bindCategories(false);
 
         // Calendar date change
-        calendarView.setOnDateChangeListener((cv, year, month, dayOfMonth) -> {
-            selectedCalendarDate.set(Calendar.YEAR, year);
-            selectedCalendarDate.set(Calendar.MONTH, month);
-            selectedCalendarDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+        calendarView.setOnDateSelectedListener(picked -> {
+            selectedCalendarDate.set(Calendar.YEAR, picked.get(Calendar.YEAR));
+            selectedCalendarDate.set(Calendar.MONTH, picked.get(Calendar.MONTH));
+            selectedCalendarDate.set(Calendar.DAY_OF_MONTH, picked.get(Calendar.DAY_OF_MONTH));
         });
 
         // Reset and Submit used to be buttons in the form here. Submit is now the FAB, and reset

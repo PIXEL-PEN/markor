@@ -26,7 +26,22 @@
     <color name="primary">#1E2135</color>
     <color name="primary_dark">#161828</color>
     <color name="primary_light">#CED9DD</color>
-    <color name="accent">#F04B4B</color>
+    <!--
+      The app's accent. Was #F04B4B red; now the same slate blue-grey the Year and Timeline
+      headers use, so the calendar's selected day, the FAB and the active bottom-nav tab are one
+      colour instead of three opinions.
+    -->
+    <color name="accent">#44546A</color>
+
+    <!-- Calendar grid -->
+    <color name="cal_accent">#44546A</color>
+    <color name="cal_title">#2B3545</color>
+    <color name="cal_day">#30383F</color>
+    <color name="cal_weekday">#8A95A1</color>
+    <color name="cal_day_selected_text">#FFFFFF</color>
+    <color name="cal_day_marked_bg">#E4EAF0</color>
+    <color name="cal_card_bg">#FBFCFD</color>
+    <color name="cal_card_border">#DCE3EA</color>
     <color name="icons">#FFFFFF</color>
     <color name="divider">#B6B6B6</color>
 

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A day with something written on it. Faint on purpose: it should read as texture across the
+     month, not compete with the selection. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="@color/cal_day_marked_bg" />
+    <size android:width="34dp" android:height="34dp" />
+</shape>

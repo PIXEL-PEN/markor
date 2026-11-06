@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The grid sits on a soft card rather than the old flat grey block running edge to edge. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/cal_card_bg" />
+    <stroke android:width="1dp" android:color="@color/cal_card_border" />
+    <corners android:radius="10dp" />
+</shape>
