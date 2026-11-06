@@ -160,30 +160,6 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return false;
     }
 
-    public File getQuickNoteFile() {
-        return new File(getString(R.string.pref_key__quicknote_filepath, getDefaultQuickNoteFile().getAbsolutePath()));
-    }
-
-    public void setQuickNoteFile(final File file) {
-        setString(R.string.pref_key__quicknote_filepath, GsFileUtils.getPath(file));
-    }
-
-    public File getDefaultQuickNoteFile() {
-        return new File(getDefaultNotebookFile(), rstr(R.string.quicknote_default_filename));
-    }
-
-    public File getTodoFile() {
-        return new File(getString(R.string.pref_key__todo_filepath, getDefaultTodoFile().getAbsolutePath()));
-    }
-
-    public void setTodoFile(final File file) {
-        setString(R.string.pref_key__todo_filepath, GsFileUtils.getPath(file));
-    }
-
-    public File getDefaultTodoFile() {
-        return new File(getDefaultNotebookFile(), rstr(R.string.todo_default_filename));
-    }
-
     public String getFontFamily() {
         return getString(R.string.pref_key__font_family, rstr(R.string.default_font_family));
     }
@@ -275,13 +251,6 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
             ret[i] = Integer.parseInt(v.get(i));
         }
         return ret;
-    }
-
-    public boolean isSpecialFileLaunchersEnabled() {
-        if (BuildConfig.IS_TEST_BUILD) {
-            return false;
-        }
-        return getBool(R.string.pref_key__is_launcher_for_special_files_enabled, false);
     }
 
     public boolean isKeepScreenOn() {
@@ -417,17 +386,14 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
             return;
         }
         final String path = GsFileUtils.getPath(file);
-        if (!file.equals(getTodoFile()) && !file.equals(getQuickNoteFile())) {
-            ArrayList<String> recent = getRecentDocuments();
-            recent.add(0, path);
-            recent.remove(GsFileUtils.getPath(getTodoFile()));
-            recent.remove(GsFileUtils.getPath(getQuickNoteFile()));
-            recent.remove("");
-            recent.remove(null);
-
-            setInt(path, getInt(path, 0, _prefCache) + 1, _prefCache);
-            setRecentDocuments(recent);
-        }
+        // The guard here used to exclude the ToDo and QuickNote scratch files, which were
+        // pinned as shortcuts and so would have crowded out everything else in Recent.
+        final ArrayList<String> recent = getRecentDocuments();
+        recent.add(0, path);
+        recent.remove("");
+        recent.remove(null);
+        setInt(path, getInt(path, 0, _prefCache) + 1, _prefCache);
+        setRecentDocuments(recent);
         ShortcutUtils.setShortcuts(_context);
     }
 
@@ -499,10 +465,8 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         if (file == null || !file.exists()) {
             return;
         }
-        if (!file.equals(getTodoFile()) && !file.equals(getQuickNoteFile())) {
-            setInt(PREF_PREFIX_VIEW_SCROLL_X + GsFileUtils.getPath(file), scrollX, _prefCache);
-            setInt(PREF_PREFIX_VIEW_SCROLL_Y + GsFileUtils.getPath(file), scrollY, _prefCache);
-        }
+        setInt(PREF_PREFIX_VIEW_SCROLL_X + GsFileUtils.getPath(file), scrollX, _prefCache);
+        setInt(PREF_PREFIX_VIEW_SCROLL_Y + GsFileUtils.getPath(file), scrollY, _prefCache);
     }
 
     public void setDocumentWrapState(final String path, final boolean state) {
@@ -832,10 +796,6 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return getBool(R.string.pref_key__filesystem_folder_first, true);
     }
 
-    public String getAppStartupFolderMenuId() {
-        return getString(R.string.pref_key__app_start_folder, "notebook");
-    }
-
     public File getFolderToLoadByMenuId(String itemId) {
         List<Pair<File, String>> appDataPublicDirs = _cu.getAppDataPublicDirs(_context, false, true, false);
         switch (itemId) {
@@ -944,10 +904,6 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return getBool(R.string.pref_key__editor_tab_to_indent, false);
     }
 
-    public boolean isExperimentalFeaturesEnabled() {
-        return getBool(R.string.pref_key__is_enable_experimental_features, BuildConfig.IS_TEST_BUILD);
-    }
-
     public boolean isHighlightBiggerHeadings() {
         return getBool(R.string.pref_key__editor_markdown_bigger_headings_3, false);
     }
@@ -960,20 +916,20 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return getString(R.string.pref_key__editor_unordered_list_character, "-");
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
+    /**
+     * The passphrase for encrypted notes. Always empty.
+     *
+     * <p>Encryption was removed with its setting, and that setting was the only way a passphrase
+     * could ever be stored, so there is nothing for PasswordStore to load. This is not a stub
+     * pretending to work: it reports a true fact, that no passphrase exists, and every caller
+     * already handles that -- Document toasts and declines, the search dialogs simply cannot
+     * open .jenc files.
+     *
+     * <p>The .jenc machinery itself is still present across seven files. Taking it out properly
+     * is its own job, and leaving it compiled but unreachable is the lesser harm meanwhile.
+     */
     public char[] getDefaultPassword() {
-        return new PasswordStore(getContext()).loadKey(R.string.pref_key__default_encryption_password);
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public boolean isDefaultPasswordSet() {
-        final char[] key = getDefaultPassword();
-        return (key != null && key.length > 0);
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public void setDefaultPassword(String password) {
-        new PasswordStore(getContext()).storeKey(password, R.string.pref_key__default_encryption_password);
+        return new char[0];
     }
 
     public boolean getNewFileDialogLastUsedEncryption() {

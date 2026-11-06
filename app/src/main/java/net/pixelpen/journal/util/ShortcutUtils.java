@@ -34,8 +34,6 @@ import java.util.List;
 public class ShortcutUtils {
 
     private static final String ID_PREFIX = "shortcut_";
-    private static final String ID_TO_DO = ID_PREFIX + "to_do";
-    private static final String ID_QUICK_NOTE = ID_PREFIX + "quick_note";
 
     private static final int MAX_RECENT_DOCUMENTS = 1;
 
@@ -63,36 +61,9 @@ public class ShortcutUtils {
             final List<ShortcutInfo> newShortcuts = new ArrayList<>();
             final AppSettings appSettings = ApplicationObject.settings();
 
-            // To-Do shortcut
-            final Intent openTodo = new Intent(context, OpenFromShortcutOrWidgetActivity.class)
-                    .setAction(Intent.ACTION_EDIT)
-                    .setData(Uri.fromFile(appSettings.getTodoFile()))
-                    .putExtra(Document.EXTRA_FILE_LINE_NUMBER, -1)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_ANIMATION);
-
-            final ShortcutInfo shortcutToDo = new ShortcutInfo.Builder(context, ID_TO_DO)
-                    .setShortLabel(createShortLabel(context.getString(R.string.todo)))
-                    .setLongLabel(createLongLabel(context.getString(R.string.todo)))
-                    .setIcon(Icon.createWithResource(context, R.mipmap.ic_shortcut_todo))
-                    .setIntent(openTodo)
-                    .build();
-            newShortcuts.add(shortcutToDo);
-
-            // QuickNote shortcut
-            final Intent openQuickNote = new Intent(context, OpenFromShortcutOrWidgetActivity.class)
-                    .setAction(Intent.ACTION_EDIT)
-                    .setData(Uri.fromFile(appSettings.getQuickNoteFile()))
-                    .putExtra(Document.EXTRA_FILE_LINE_NUMBER, -1)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_ANIMATION);
-
-            final ShortcutInfo shortcutQuickNote = new ShortcutInfo.Builder(context, ID_QUICK_NOTE)
-                    .setShortLabel(createShortLabel(context.getString(R.string.quicknote)))
-                    .setLongLabel(createLongLabel(context.getString(R.string.quicknote)))
-                    .setIcon(Icon.createWithResource(context, R.mipmap.ic_shortcut_quicknote))
-                    .setIntent(openQuickNote)
-                    .build();
-            newShortcuts.add(shortcutQuickNote);
-
+            // The To-Do and QuickNote shortcuts were here. Both pointed at a single
+            // configurable scratch file, which is Markor's model rather than this one: entries
+            // here belong to a date and a category, and Autumn's own quick note writes one.
             // Recent documents (max 1)
             final List<String> recentDocuments = appSettings.getRecentDocuments();
             for (int i = 0; i < Math.min(MAX_RECENT_DOCUMENTS, recentDocuments.size()); i++) {

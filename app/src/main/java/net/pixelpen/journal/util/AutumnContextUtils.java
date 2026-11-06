@@ -24,8 +24,6 @@ import androidx.annotation.RequiresApi;
 
 import net.pixelpen.journal.BuildConfig;
 import net.pixelpen.journal.R;
-import net.pixelpen.journal.activity.openeditor.OpenEditorQuickNoteActivity;
-import net.pixelpen.journal.activity.openeditor.OpenEditorTodoActivity;
 import net.pixelpen.journal.activity.openeditor.OpenFromShortcutOrWidgetActivity;
 import net.pixelpen.journal.activity.openeditor.OpenShareIntoActivity;
 import net.pixelpen.journal.model.Document;
@@ -43,9 +41,14 @@ public class AutumnContextUtils extends GsContextUtils {
         }
     }
 
+    /**
+     * Show or hide the secondary launcher entries.
+     *
+     * <p>Two of these used to open the QuickNote and ToDo scratch files and were switched by a
+     * "Special documents" setting. Both are gone; what is left is share-into and the
+     * PROCESS_TEXT alias, which are not optional extras but how other apps reach this one.
+     */
     public <T extends GsContextUtils> T applySpecialLaunchersVisibility(final Context context, boolean extraLaunchersEnabled) {
-        setLauncherActivityEnabled(context, OpenEditorQuickNoteActivity.class, extraLaunchersEnabled);
-        setLauncherActivityEnabled(context, OpenEditorTodoActivity.class, extraLaunchersEnabled);
         setLauncherActivityEnabled(context, OpenShareIntoActivity.class, extraLaunchersEnabled);
         setLauncherActivityEnabledFromString(context, aliasDocumentProcessTextName(), extraLaunchersEnabled);
         return thisp();

@@ -56,7 +56,6 @@ import net.pixelpen.journal.model.AppSettings;
 import net.pixelpen.journal.model.Document;
 import net.pixelpen.journal.util.AutumnContextUtils;
 import net.pixelpen.journal.web.AutumnWebViewClient;
-import net.pixelpen.journal.widget.TodoWidgetProvider;
 import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserOptions;
 import net.gsantner.opoc.frontend.settings.GsFontPreferenceCompat;
 import net.gsantner.opoc.frontend.textview.TextViewUndoRedo;
@@ -317,10 +316,6 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
         _appSettings.addRecentFile(_document.file);
         _appSettings.setDocumentPreviewState(_document.path, _isPreviewVisible);
         _appSettings.setLastEditPosition(_document.path, TextViewUtils.getSelection(_hlEditor)[0]);
-
-        if (_document.path.equals(_appSettings.getTodoFile().getAbsolutePath())) {
-            TodoWidgetProvider.updateTodoWidgets();
-        }
         super.onPause();
     }
 
@@ -337,7 +332,6 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
         _cu.tintMenuItems(menu, true, Color.WHITE);
         _cu.setSubMenuIconsVisibility(menu, true);
 
-        final boolean isExperimentalFeaturesEnabled = _appSettings.isExperimentalFeaturesEnabled();
         final boolean isText = !_document.isBinaryFileNoTextLoading();
 
         menu.findItem(R.id.action_undo).setVisible(isText && _appSettings.isEditorHistoryEnabled());

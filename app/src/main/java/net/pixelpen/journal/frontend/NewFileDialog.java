@@ -115,14 +115,15 @@ public class NewFileDialog extends DialogFragment {
         final EditText formatEdit = root.findViewById(R.id.new_file_dialog__name_format);
         final TextView formatSpinner = root.findViewById(R.id.new_file_dialog__name_format_spinner);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && appSettings.isDefaultPasswordSet()) {
-            encryptCheckbox.setChecked(appSettings.getNewFileDialogLastUsedEncryption());
-        } else {
-            encryptCheckbox.setVisibility(View.GONE);
-        }
+        // Encryption is gone: there is no passphrase to encrypt with any more, and a
+        // per-file passphrase is a way to lose a lifetime archive to a forgotten word.
+        encryptCheckbox.setVisibility(View.GONE);
 
         utf8BomCheckbox.setChecked(appSettings.getNewFileDialogLastUsedUtf8Bom());
-        utf8BomCheckbox.setVisibility(appSettings.isExperimentalFeaturesEnabled() ? View.VISIBLE : View.GONE);
+        // Was gated behind the experimental-features checkbox, which no longer exists. A byte
+        // order mark on a markdown file is a niche need, so it stays hidden rather than
+        // becoming visible to everyone by accident.
+        utf8BomCheckbox.setVisibility(View.GONE);
         titleEdit.requestFocus();
         new Handler().postDelayed(new GsContextUtils.DoTouchView(titleEdit), 200);
 

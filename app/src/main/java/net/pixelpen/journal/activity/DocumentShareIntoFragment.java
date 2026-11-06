@@ -513,14 +513,6 @@ public class DocumentShareIntoFragment extends AutumnBaseFragment {
                     searchForTarget();
                     return true;
                 }
-                case R.string.pref_key__share_into__quicknote: {
-                    attachOrCopyAndClose(_appSettings.getQuickNoteFile(), false);
-                    break;
-                }
-                case R.string.pref_key__share_into__todo: {
-                    attachOrCopyAndClose(_appSettings.getTodoFile(), false);
-                    break;
-                }
                 case R.string.pref_key__share_into__most_recent_document: {
                     attachOrCopyAndClose(mostRecentFile, false);
                     break;

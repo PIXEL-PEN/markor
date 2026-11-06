@@ -19,69 +19,27 @@
         android:summary="@string/files_and_folders"
         android:title="@string/general">
 
-        <PreferenceCategory android:title="@string/save_location">
-            <Preference
-                android:icon="@drawable/ic_save_black_24dp"
-                android:key="@string/pref_key__notebook_directory"
-                android:title="@string/notebook" />
-            <Preference
-                android:icon="@drawable/ic_lightning_black_24dp"
-                android:key="@string/pref_key__quicknote_filepath"
-                android:summary="@string/document_to_be_loaded_and_saved_as_witharg"
-                android:title="@string/quicknote" />
-            <Preference
-                android:icon="@drawable/ic_assignment_turned_in_black_24dp"
-                android:key="@string/pref_key__todo_filepath"
-                android:summary="@string/document_to_be_loaded_and_saved_as_witharg"
-                android:title="@string/todo" />
-        </PreferenceCategory>
+        <!--
+          Save Location is gone entirely.
 
-        <PreferenceCategory android:title="@string/miscellaneous">
-            <androidx.preference.EditTextPreference
-                android:defaultValue="@string/empty_string"
-                android:dialogMessage="@string/always_open_files_with_this_app_when_list_contains_file_extension"
-                android:icon="@drawable/ic_open_in_browser_black_24dp"
-                android:key="@string/pref_key__exts_to_always_open_in_this_app"
-                android:title="@string/always_open_with_this_app" />
-
-            <!-- "Start on which tab" removed along with the QuickNote and ToDo tabs: its option
-                 list was Notebook/ToDo/QuickNote, two of which no longer exist. AppSettings
-                 .getAppStartupTab() still tolerates a stored legacy value and falls back to
-                 Notebook. -->
-
-            <ListPreference
-                android:defaultValue="notebook"
-                android:dialogTitle="@string/app_start_folder"
-                android:entries="@array/pref_arrdisp__files_startup_folder"
-                android:entryValues="@array/pref_arrkeys__files_startup_folder"
-                android:icon="@drawable/ic_file_gray_24dp"
-                android:key="@string/pref_key__app_start_folder"
-                android:summary="%1$s"
-                android:title="@string/app_start_folder" />
-            <Preference
-                android:icon="@drawable/ic_lock_outline_black_24dp"
-                android:key="@string/pref_key__set_encryption_password"
-                android:title="@string/file_encryption_password" />
-        </PreferenceCategory>
+            Notebook   - getNotebookDirectory() silently re-points any path it recognises as
+                         one of ours back to the canonical folder, but honours an arbitrary one.
+                         So the only thing this control could actually do was strand the archive
+                         somewhere the rest of the app does not look. The folder comes from
+                         BuildConfig.STORAGE_ROOT_NAME and is not a preference.
+            Quicknote  - Markor's single scratch file. Autumn has its own quick note, which
+                         writes a dated entry into the archive; two unrelated things under one
+                         name.
+            ToDo       - a task list, which is not what this app is.
+        -->
 
 
-        <PreferenceCategory android:title="@string/search">
-            <ListPreference
-                android:defaultValue="0"
-                android:dialogTitle="@string/max_search_depth"
-                android:entries="@array/pref_arrdisp__search_depth"
-                android:entryValues="@array/pref_arrkeys__search_depth"
-                android:icon="@drawable/ic_baseline_account_tree_24"
-                android:key="@string/pref_key__max_search_depth"
-                android:summary="%1$s"
-                android:title="@string/max_search_depth" />
-            <androidx.preference.EditTextPreference
-                android:defaultValue=""
-                android:dialogMessage="@string/do_not_search_specified_files_and_folders"
-                android:icon="@drawable/ic_baseline_rule_folder_24"
-                android:key="@string/pref_key__filesearch_ignorelist"
-                android:title="@string/ignore_list" />
-        </PreferenceCategory>
+
+        <!--
+          Search is gone. Max search depth read getMaxSearchDepth(), which had no callers at
+          all: Autumn's ArchiveSearch walks the archive with its own cap of twelve. The ignore
+          list belonged to Markor's file search, not to the search on the Tree and Year screens.
+        -->
 
 
         <PreferenceCategory android:title="@string/features">
@@ -99,20 +57,10 @@
                 android:title="@string/dynamic_highlighting" />
             <CheckBoxPreference
                 android:defaultValue="false"
-                android:icon="@drawable/ic_widgets_black_24dp"
-                android:key="@string/pref_key__is_launcher_for_special_files_enabled"
-                android:title="@string/special_documents" />
-            <CheckBoxPreference
-                android:defaultValue="false"
                 android:icon="@drawable/ic_border_outer_black_24dp"
                 android:key="@string/pref_key__is_multi_window_enabled"
                 android:summary="@string/open_new_documents_always_in_new_window"
                 android:title="@string/multiple_windows" />
-            <CheckBoxPreference
-                android:defaultValue="false"
-                android:icon="@drawable/ic_bug_report_black_24dp"
-                android:key="@string/pref_key__is_enable_experimental_features"
-                android:title="@string/experimental_features" />
         </PreferenceCategory>
 
     </PreferenceScreen>

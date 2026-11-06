@@ -32,7 +32,6 @@ import net.pixelpen.journal.frontend.filebrowser.AutumnFileBrowserFactory;
 import net.pixelpen.journal.model.AppSettings;
 import net.pixelpen.journal.util.BackupUtils;
 import net.pixelpen.journal.util.AutumnContextUtils;
-import net.pixelpen.journal.widget.TodoWidgetProvider;
 import net.gsantner.opoc.frontend.base.GsActivityBase;
 import net.gsantner.opoc.frontend.base.GsPreferenceFragmentBase;
 import net.gsantner.opoc.frontend.filebrowser.GsFileBrowserOptions;
@@ -156,17 +155,6 @@ public class SettingsActivity extends AutumnBaseActivity {
             updateSummary(R.string.pref_key__notebook_directory,
                     _cu.htmlToSpanned("<small><small>" + _appSettings.getNotebookDirectory().getAbsolutePath().replace(remove, "") + "</small></small>")
             );
-            updateSummary(R.string.pref_key__quicknote_filepath,
-                    _cu.htmlToSpanned("<small><small>" + _appSettings.getQuickNoteFile().getAbsolutePath().replace(remove, "") + "</small></small>")
-            );
-            updateSummary(R.string.pref_key__todo_filepath,
-                    _cu.htmlToSpanned("<small><small>" + _appSettings.getTodoFile().getAbsolutePath().replace(remove, "") + "</small></small>")
-            );
-            updatePreference(R.string.pref_key__is_launcher_for_special_files_enabled, null,
-                    ("Launcher (" + getString(R.string.special_documents) + ")"),
-                    getString(R.string.app_drawer_launcher_special_files_description), true
-            );
-            updateSummary(R.string.pref_key__exts_to_always_open_in_this_app, _appSettings.getString(R.string.pref_key__exts_to_always_open_in_this_app, ""));
 
 
             final String fileDescFormat = _appSettings.getString(R.string.pref_key__file_description_format, "");
@@ -177,23 +165,9 @@ public class SettingsActivity extends AutumnBaseActivity {
             }
 
             setPreferenceVisible(R.string.pref_key__is_multi_window_enabled, Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP);
-
-            setPreferenceVisible(R.string.pref_key__set_encryption_password, Build.VERSION.SDK_INT >= Build.VERSION_CODES.M);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && _appSettings.isDefaultPasswordSet()) {
-                updateSummary(R.string.pref_key__set_encryption_password, getString(R.string.hidden_password));
-            }
-
-            final int[] experimentalKeys = new int[]{
-                    R.string.pref_key__swipe_to_change_mode,
-                    R.string.pref_key__todotxt__hl_delay,
-                    R.string.pref_key__markdown__hl_delay_v2,
-                    R.string.pref_key__theming_hide_system_statusbar,
-                    R.string.pref_key__tab_width_v2,
-                    R.string.pref_key__editor_line_spacing,
-            };
-            for (final int keyId : experimentalKeys) {
-                setPreferenceVisible(keyId, _appSettings.isExperimentalFeaturesEnabled());
-            }
+            // The experimental-features gate hid tab width and line spacing behind a
+            // checkbox. They are ordinary editor settings, not experiments, so they are
+            // simply visible now and the gate is gone.
         }
 
         @SuppressLint("ApplySharedPref")
@@ -211,12 +185,6 @@ public class SettingsActivity extends AutumnBaseActivity {
             } else if (eq(key, R.string.pref_key__app_theme)) {
                 _appSettings.applyAppTheme();
                 getActivity().finish();
-            } else if (eq(key, R.string.pref_key__theming_hide_system_statusbar)) {
-                activityRetVal = RESULT.RESTART_REQ;
-                _appSettings.setRecreateMainRequired(true);
-            } else if (eq(key, R.string.pref_key__is_launcher_for_special_files_enabled)) {
-                boolean extraLaunchersEnabled = prefs.getBoolean(key, false);
-                new AutumnContextUtils(getActivity()).applySpecialLaunchersVisibility(getActivity(), extraLaunchersEnabled);
             } else if (eq(key, R.string.pref_key__file_description_format)) {
                 try {
                     new SimpleDateFormat(prefs.getString(key, ""), Locale.getDefault());
@@ -230,9 +198,9 @@ public class SettingsActivity extends AutumnBaseActivity {
                 } catch (IllegalArgumentException e) {
                     Toast.makeText(context, e.getLocalizedMessage() + "\n\n" + getString(R.string.loading_default_value), Toast.LENGTH_SHORT).show();
                 }
-            } else if (eq(key, R.string.pref_key__notebook_directory, R.string.pref_key__quicknote_filepath, R.string.pref_key__todo_filepath)) {
+            } else if (eq(key, R.string.pref_key__notebook_directory)) {
+                // The todo widget went with the ToDo file; only the launcher widget is left.
                 WrMarkorWidgetProvider.updateLauncherWidgets();
-                TodoWidgetProvider.updateTodoWidgets();
             }
         }
 
@@ -257,42 +225,6 @@ public class SettingsActivity extends AutumnBaseActivity {
                             dopt.rootFolder = _appSettings.getNotebookDirectory();
                         }
                     }, fragManager, getActivity());
-                    return true;
-                }
-                case R.string.pref_key__quicknote_filepath: {
-                    AutumnFileBrowserFactory.showFileDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
-                        @Override
-                        public void onFsViewerSelected(String request, File file, final Integer lineNumber) {
-                            _appSettings.setQuickNoteFile(file);
-                            _appSettings.setRecreateMainRequired(true);
-                            doUpdatePreferences();
-                        }
-
-                        @Override
-                        public void onFsViewerConfig(GsFileBrowserOptions.Options dopt) {
-                            dopt.titleText = R.string.quicknote;
-                            dopt.rootFolder = _appSettings.getNotebookDirectory();
-                            dopt.newDirButtonEnable = false;
-                        }
-                    }, fragManager, getActivity(), AutumnFileBrowserFactory.IsMimeText);
-                    return true;
-                }
-                case R.string.pref_key__todo_filepath: {
-                    AutumnFileBrowserFactory.showFileDialog(new GsFileBrowserOptions.SelectionListenerAdapter() {
-                        @Override
-                        public void onFsViewerSelected(String request, File file, final Integer lineNumber) {
-                            _appSettings.setTodoFile(file);
-                            _appSettings.setRecreateMainRequired(true);
-                            doUpdatePreferences();
-                        }
-
-                        @Override
-                        public void onFsViewerConfig(GsFileBrowserOptions.Options dopt) {
-                            dopt.titleText = R.string.todo;
-                            dopt.rootFolder = _appSettings.getNotebookDirectory();
-                            dopt.newDirButtonEnable = false;
-                        }
-                    }, fragManager, getActivity(), AutumnFileBrowserFactory.IsMimeText);
                     return true;
                 }
                 case R.string.pref_key__basic_color_scheme_markor: {
@@ -337,10 +269,6 @@ public class SettingsActivity extends AutumnBaseActivity {
                 case R.string.pref_key__orgmode__reorder_actions:
                 case R.string.pref_key__todotxt__reorder_actions: {
                     startActivity(new Intent(getActivity(), ActionButtonSettingsActivity.class).putExtra(ActionButtonSettingsActivity.EXTRA_FORMAT_KEY, keyResId));
-                    break;
-                }
-                case R.string.pref_key__set_encryption_password: {
-                    AutumnDialogFactory.showSetPasswordDialog(getActivity());
                     break;
                 }
                 case R.string.pref_key__backup_settings: {
