@@ -16,52 +16,23 @@
     android:layout_height="match_parent"
     android:title="@string/more">
 
+    <!--
+      Every entry that opened a browser is gone: the app page, bug reports, help, rate this app,
+      translate, join community and source code. The app has no INTERNET permission, and a
+      screen offering seven ways out to the web is the opposite of what an offline archive
+      should look like even when the browser does the fetching.
 
-    <Preference
-        android:key="@string/pref_key__more_info__app"
-        android:title="@string/app_name"
-        tools:icon="@drawable/ic_launcher"
-        tools:summary="Version v0.5" />
-
-    <Preference
-        android:icon="@drawable/ic_bug_report_black_24dp"
-        android:key="@string/pref_key__more_info__bug_reports"
-        android:summary="@string/bug_reports_suggest_improvements"
-        android:title="@string/do_you_have_a_question_or_problem" />
+      What stays is local and stays for a reason. The licences are an obligation, not a
+      courtesy: this is Apache 2.0 code with third-party dependencies, and the attribution has
+      to be reachable from inside the app.
+    -->
 
     <Preference
         android:icon="@drawable/ic_settings_black_24dp"
         android:key="@string/pref_key__more_info__settings"
         android:title="@string/settings" />
 
-    <Preference
-        android:icon="@drawable/ic_info_black_24dp"
-        android:key="@string/pref_key__more_info__help"
-        android:title="@string/help" />
-
-    <Preference
-        android:icon="@drawable/ic_thumb_up_black_24dp"
-        android:key="@string/pref_key__more_info__rate_app"
-        android:title="@string/rate_this_app" />
-
-    <PreferenceCategory
-        android:key="@string/pref_key__more_info__project_team"
-        android:title="@string/project_team" />
-
-    <PreferenceCategory
-        android:key="@string/pref_key__more_info__project_community"
-        android:title="@string/community">
-
-        <Preference
-            android:icon="@drawable/ic_translate_black_24dp"
-            android:key="@string/pref_key__more_info__translate"
-            android:summary="@string/help_translating_this_app"
-            android:title="@string/translate" />
-
-        <Preference
-            android:icon="@drawable/ic_group_black_24dp"
-            android:key="@string/pref_key__more_info__join_community"
-            android:title="@string/join_community" />
+    <PreferenceCategory android:title="@string/about">
 
         <Preference
             android:icon="@drawable/ic_info_black_24dp"
@@ -81,12 +52,6 @@
             android:icon="@drawable/ic_copyright_black_24dp"
             android:key="@string/pref_key__more_info__open_source_licenses"
             android:title="@string/open_source_licenses" />
-
-        <Preference
-            android:icon="@drawable/ic_code_black_24dp"
-            android:key="@string/pref_key__more_info__source_code"
-            android:summary="@string/contribute_code_to_this_project_anybody_welcome"
-            android:title="@string/source_code" />
 
 
         <Preference

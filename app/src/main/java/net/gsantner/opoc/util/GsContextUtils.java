@@ -53,8 +53,6 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.VectorDrawable;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaScannerConnection;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -453,22 +451,6 @@ public class GsContextUtils {
         } catch (Exception ignored) {
         }
         return sb.toString();
-    }
-
-    /**
-     * Get internet connection state - the permission ACCESS_NETWORK_STATE is required
-     *
-     * @return True if internet connection available
-     */
-    @SuppressLint("MissingPermission")
-    public boolean isConnectedToInternet(final Context context) {
-        try {
-            ConnectivityManager con = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo activeNetInfo = con == null ? null : con.getActiveNetworkInfo();
-            return activeNetInfo != null && activeNetInfo.isConnectedOrConnecting();
-        } catch (Exception ignored) {
-            throw new RuntimeException("Error: Developer forgot to declare a permission");
-        }
     }
 
     /**
@@ -1067,19 +1049,6 @@ public class GsContextUtils {
         }
     }
 
-    /*
-    Check if Wifi is connected. Requires these permissions in AndroidManifest:
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-     */
-    @SuppressLint("MissingPermission")
-    public boolean isWifiConnected(final Context context, boolean... enabledOnly) {
-        final boolean doEnabledCheckOnly = enabledOnly != null && enabledOnly.length > 0 && enabledOnly[0];
-        final ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        final NetworkInfo wifiInfo = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-        return wifiInfo != null && (doEnabledCheckOnly ? wifiInfo.isAvailable() : wifiInfo.isConnected());
-    }
-
     // Returns if the device is currently in portrait orientation (landscape=false)
     @SuppressWarnings("deprecation")
     public boolean isDeviceOrientationPortrait(final Context context) {
@@ -1359,51 +1328,6 @@ public class GsContextUtils {
             intent.putExtra(Intent.EXTRA_TITLE, file.getName());
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             startActivity(context, intent);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Request installation of APK specified by file
-     * Permission required:
-     * <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-     *
-     * @param file The apk file to install
-     */
-    public boolean requestApkInstallation(final Context context, final File file) {
-        if (file == null || !file.getName().toLowerCase().endsWith(".apk")) {
-            return false;
-        }
-
-        Uri fileUri = null;
-        try {
-            fileUri = FileProvider.getUriForFile(context, getFileProvider(context), file);
-        } catch (Exception ignored) {
-            try {
-                fileUri = Uri.fromFile(file);
-            } catch (Exception ignored2) {
-            }
-        }
-
-        if (fileUri != null) {
-            final String MIME_TYPE_APK = "application/vnd.android.package-archive";
-
-            boolean hasRequestInstallPackagesPermission = true;
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.getPackageManager().canRequestPackageInstalls();
-                }
-            } catch (Exception ignored) {
-                hasRequestInstallPackagesPermission = false;
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !hasRequestInstallPackagesPermission) {
-                shareStream(context, file, MIME_TYPE_APK);
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                startActivity(context, new Intent(Intent.ACTION_INSTALL_PACKAGE).setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION).setDataAndType(fileUri, MIME_TYPE_APK));
-            } else {
-                startActivity(context, new Intent(Intent.ACTION_VIEW).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK).setDataAndType(fileUri, MIME_TYPE_APK));
-            }
             return true;
         }
         return false;

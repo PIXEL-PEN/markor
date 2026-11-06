@@ -213,7 +213,6 @@ public class DatetimeFormatDialog {
 
         // set builder and implement buttons to discard and submit
         builder.setView(viewRoot)
-                .setNeutralButton(R.string.help, (dlgI, which) -> cu.openWebpageInExternalBrowser(activity, "https://developer.android.com/reference/java/text/SimpleDateFormat#date-and-time-patterns"))
                 .setNegativeButton(R.string.cancel, null)
                 .setPositiveButton(android.R.string.ok, (dlgI, which) -> {
                     final String current = formatEditText.getText().toString();

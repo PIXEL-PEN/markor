@@ -60,41 +60,8 @@ public class MoreInfoFragment extends GsPreferenceFragmentBase<AppSettings> {
         Activity activity = getActivity();
         if (isAdded() && preference.hasKey()) {
             switch (keyResId) {
-                case R.string.pref_key__more_info__app: {
-                    _cu.openWebpageInExternalBrowser(getContext(), getString(R.string.app_web_url));
-                    return true;
-                }
                 case R.string.pref_key__more_info__settings: {
                     _cu.animateToActivity(activity, SettingsActivity.class, false, 124);
-                    return true;
-                }
-                case R.string.pref_key__more_info__rate_app: {
-                    _cu.showGooglePlayEntryForThisApp(getContext());
-                    return true;
-                }
-
-                case R.string.pref_key__more_info__join_community: {
-                    _cu.openWebpageInExternalBrowser(getContext(), getString(R.string.app_community_url));
-                    return true;
-                }
-                case R.string.pref_key__more_info__help: {
-                    // Was String.format("https://github.com/gsantner/%s#readme", app_name
-                    // lower-cased) -- an upstream URL built from OUR app name, so renaming the
-                    // app pointed Help at a repository that does not exist. Same class of bug as
-                    // the home folder being derived from app_name.
-                    _cu.openWebpageInExternalBrowser(getContext(), getString(R.string.app_source_code_url));
-                    return true;
-                }
-                case R.string.pref_key__more_info__bug_reports: {
-                    _cu.openWebpageInExternalBrowser(getContext(), getString(R.string.app_bugreport_url));
-                    return true;
-                }
-                case R.string.pref_key__more_info__translate: {
-                    _cu.openWebpageInExternalBrowser(getContext(), getString(R.string.app_translate_url));
-                    return true;
-                }
-                case R.string.pref_key__more_info__source_code: {
-                    _cu.openWebpageInExternalBrowser(getContext(), getString(R.string.app_source_code_url));
                     return true;
                 }
                 case R.string.pref_key__more_info__project_license: {
@@ -138,11 +105,6 @@ public class MoreInfoFragment extends GsPreferenceFragmentBase<AppSettings> {
     }
 
     @Override
-    protected boolean isAllowedToTint(Preference pref) {
-        return !getString(R.string.pref_key__more_info__app).equals(pref.getKey());
-    }
-
-    @Override
     public synchronized void doUpdatePreferences() {
         super.doUpdatePreferences();
         Context context = getContext();
@@ -153,12 +115,6 @@ public class MoreInfoFragment extends GsPreferenceFragmentBase<AppSettings> {
         String tmp;
         Preference pref;
         updateSummary(R.string.pref_key__more_info__project_license, getString(R.string.app_license_name));
-
-        // Basic app info
-        if ((pref = findPreference(R.string.pref_key__more_info__app)) != null && pref.getSummary() == null) {
-            pref.setIcon(R.drawable.ic_launcher);
-            pref.setSummary(String.format(locale, "%s\nVersion v%s (%d)", _cu.getAppIdFlavorSpecific(context), _cu.getAppVersionName(context), _cu.bcint(context, "VERSION_CODE", 0)));
-        }
 
         // Extract some build information and publish in summary
         if ((pref = findPreference(R.string.pref_key__more_info__copy_build_information)) != null && pref.getSummary() == null) {
@@ -172,28 +128,5 @@ public class MoreInfoFragment extends GsPreferenceFragmentBase<AppSettings> {
             pref.setSummary(_cu.htmlToSpanned(summary.trim().replace("\n", "<br/>")));
         }
 
-        // Extract project team from raw ressource, where 1 person = 4 lines
-        // 1) Name/Title, 2) Description/Summary, 3) Link/View-Intent, 4) Empty line
-        if ((pref = findPreference(R.string.pref_key__more_info__project_team)) != null && ((PreferenceGroup) pref).getPreferenceCount() == 0) {
-            String[] data = (_cu.readTextfileFromRawRes(context, R.raw.project_team, "", "").trim() + "\n\n").split("\n");
-            for (int i = 0; i + 2 < data.length; i += 4) {
-                Preference person = new Preference(context);
-                person.setTitle(data[i]);
-                person.setSummary(data[i + 1]);
-                person.setIcon(R.drawable.ic_person_black_24dp);
-                try {
-                    Uri uri = Uri.parse(data[i + 2]);
-                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    person.setIntent(intent);
-                } catch (Exception ignored) {
-                }
-                appendPreference(person, (PreferenceGroup) pref);
-            }
-        }
-
-        if ((pref = findPreference(R.string.pref_key__more_info__help)) != null) {
-            pref.setTitle(getString(R.string.help) + " / FAQ");
-        }
     }
 }

@@ -76,11 +76,6 @@ public class DocumentActivity extends AutumnBaseActivity {
             return;
         }
 
-        if (GsFileUtils.getFilenameExtension(file).equals(".apk")) {
-            GsContextUtils.instance.requestApkInstallation(activity, file);
-            return;
-        }
-
         if (!forceOpenInThisApp && file.isFile() && !FormatRegistry.isFileSupported(file)) {
             askUserIfWantsToOpenFileInThisApp(activity, file);
             return;
@@ -253,7 +248,6 @@ public class DocumentActivity extends AutumnBaseActivity {
         final String notSupportedMessage = (getString(R.string.filemanager_doesnot_supply_required_data__appspecific) + "\n\n" + getString(R.string.sync_to_local_folder_notice)).replace("\n", "<br/>");
         new AlertDialog.Builder(this, R.style.Theme_AppCompat_DayNight_Dialog_Rounded)
                 .setMessage(Html.fromHtml(notSupportedMessage))
-                .setNegativeButton(R.string.more_info, (di, i) -> _cu.openWebpageInExternalBrowser(this, getString(R.string.sync_client_support_issue_url)))
                 .setPositiveButton(android.R.string.ok, null)
                 .setOnDismissListener((dialogInterface) -> finish())
                 .create().show();

@@ -174,6 +174,12 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
         webSettings.setAllowFileAccess(true);
+        // Belt and braces with the missing INTERNET permission. A note holding a remote image
+        // or an iframe renders without it rather than reaching for it; the permission already
+        // makes that impossible, and this makes it impossible on purpose rather than by
+        // omission, so restoring the permission some day cannot quietly restore the fetching.
+        webSettings.setBlockNetworkLoads(true);
+        webSettings.setBlockNetworkImage(true);
         webSettings.setAllowContentAccess(true);
         webSettings.setAllowFileAccessFromFileURLs(true);
         webSettings.setAllowUniversalAccessFromFileURLs(false);

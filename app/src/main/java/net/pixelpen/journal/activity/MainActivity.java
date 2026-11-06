@@ -45,7 +45,6 @@ import net.pixelpen.journal.model.ArchiveBackup;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.concurrent.TimeUnit;
 
 import other.writeily.widget.WrMarkorWidgetProvider;
 
@@ -112,7 +111,9 @@ public class MainActivity extends AutumnBaseActivity {
         });
 
         setSupportActionBar(findViewById(R.id.toolbar));
-        optShowRate();
+        // optShowRate() was here: a third-party nag that counted launches and then offered a
+        // trip to the Play store. An archive that asks its owner for a review is the wrong
+        // relationship, and the only thing in the app that reached for a store page.
 
         // Taps on the bar's empty background are swallowed so they cannot reach anything behind
         // it. The navigation icon and the menu items keep their own listeners, so the search icon
@@ -231,17 +232,6 @@ public class MainActivity extends AutumnBaseActivity {
             intent.putExtra(Document.EXTRA_FILE, file);
             // intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
             GsContextUtils.instance.animateToActivity(activity, intent, finishfromActivity, null);
-        }
-    }
-
-    private void optShowRate() {
-        try {
-            new com.pixplicity.generate.Rate.Builder(this)
-                    .setTriggerCount(4)
-                    .setMinimumInstallTime((int) TimeUnit.MINUTES.toMillis(30))
-                    .setFeedbackAction(() -> _cu.showGooglePlayEntryForThisApp(MainActivity.this))
-                    .build().count().showRequest();
-        } catch (Exception ignored) {
         }
     }
 

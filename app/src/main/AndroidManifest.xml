@@ -16,10 +16,26 @@
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!--
+      No INTERNET permission, deliberately.
+
+      This is an offline archive, and the strongest way to say so is to make it unable to do
+      otherwise: without the permission the WebView preview cannot fetch a remote image, no
+      library can quietly call home, and the guarantee holds even for code nobody has read.
+      It is also visible to the user on the Play listing, where a promise in a description is
+      not.
+
+      Nothing needed it. GsNetworkUtils had no callers, isConnectedToInternet and
+      isWifiConnected had none either, and opening a link hands off to the browser through an
+      Intent, which needs no permission of ours. The WebView also blocks network loads at the
+      settings level, so a note containing a remote image fails closed rather than relying on
+      the permission alone.
+
+      REQUEST_INSTALL_PACKAGES went with it: that existed so Markor could install an .apk it
+      had been handed, which is not something a journal does.
+    -->
     <uses-permission android:name="android.permission.INSTALL_SHORTCUT" />
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <uses-permission
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
