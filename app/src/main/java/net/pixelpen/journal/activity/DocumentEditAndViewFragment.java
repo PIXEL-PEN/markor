@@ -15,6 +15,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Layout;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -282,19 +283,7 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
 
         _hlEditor.recomputeHighlighting(); // Run before setting scroll position
         TextViewUtils.setSelectionAndShow(_hlEditor, startPos);
-
-        // And again once a layout pass has happened.
-        //
-        // setSelectionAndShow does nothing at all unless the position is within edit.length(),
-        // and showSelection needs the editor and its scroll container to have been measured
-        // before it can work out where to scroll. On the way in from a search result neither is
-        // reliably true yet: the cursor ends up on the right line while the view stays at the
-        // top, which reads as the jump not working. There is also a posted runnable that resets
-        // the editor's minimum height, and a relayout from that would undo an earlier scroll.
-        //
-        // Cheap to repeat and harmless when the first call already succeeded.
-        final int showPos = startPos;
-        _hlEditor.post(() -> TextViewUtils.setSelectionAndShow(_hlEditor, showPos));
+        showWhenSettled(startPos, SHOW_ATTEMPTS, 0);
 
         _hlEditor.post(() -> _hlEditor.animate().alpha(1).setDuration(500).start());
     }
@@ -307,6 +296,65 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
             _editTextUndoRedoHelper.setTextView(_hlEditor);
         }
         super.onResume();
+    }
+
+    /** Frames of grace for the scroll to settle, and the gap between tries. */
+    private static final int SHOW_ATTEMPTS = 8;
+    private static final long SHOW_RETRY_MS = 50;
+
+    /**
+     * Scroll to a position, and keep asking until it sticks.
+     *
+     * <p>showSelection returns silently when the editor has no Layout yet, and computes the
+     * wrong region when the scroll container has not been measured. Worse, a scroll that does
+     * land can be undone a moment later: recomputeHighlighting changes span sizes and so line
+     * heights, and the global-layout listener that matches the editor's minimum height to the
+     * scroll view forces a relayout of its own. Earlier attempts fired once, then once more in
+     * a post. That caught the not-measured-yet case and none of the rest, which is why a
+     * search result put the cursor on the right line and left the view at the top.
+     *
+     * <p>Guessing at how many frames it takes is what kept failing, because it depends on the
+     * document: highlighting a long note costs more passes than a short one. So do not guess --
+     * ask, then look at whether the line is actually on screen, and ask again if it is not.
+     *
+     * <p>Two consecutive successes are required before it stops, because the first can be a
+     * false positive: the line sits in view against a layout that highlighting is about to
+     * change underneath it. Bounded at {@link #SHOW_ATTEMPTS} tries so it always terminates,
+     * and it stops the moment it has really landed, so it cannot fight someone scrolling.
+     */
+    private void showWhenSettled(final int pos, final int attemptsLeft, final int okStreak) {
+        if (attemptsLeft <= 0 || okStreak >= 2 || !isAdded()) {
+            return;
+        }
+        _hlEditor.postDelayed(() -> {
+            if (!isAdded()) {
+                return;
+            }
+            if (isPositionShown(pos)) {
+                showWhenSettled(pos, attemptsLeft - 1, okStreak + 1);
+            } else {
+                TextViewUtils.setSelectionAndShow(_hlEditor, pos);
+                showWhenSettled(pos, attemptsLeft - 1, 0);
+            }
+        }, SHOW_RETRY_MS);
+    }
+
+    /** Whether the line holding pos is wholly inside the scroll view's visible window. */
+    private boolean isPositionShown(final int pos) {
+        final Layout layout = _hlEditor.getLayout();
+        if (layout == null || _verticalScrollView == null) {
+            return false;
+        }
+        final int height = _verticalScrollView.getHeight();
+        if (height <= 0) {
+            return false;
+        }
+        final int p = Math.max(0, Math.min(pos, _hlEditor.length()));
+        final int line = layout.getLineForOffset(p);
+        final int top = _hlEditor.getTop() + layout.getLineTop(line);
+        final int bottom = _hlEditor.getTop() + layout.getLineBottom(line);
+        final int windowTop = _verticalScrollView.getScrollY();
+        return top >= windowTop && bottom <= windowTop + height;
     }
 
     @Override
