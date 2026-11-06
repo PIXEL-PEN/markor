@@ -290,6 +290,11 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return getBool(R.string.pref_key__is_keep_screen_on, true);
     }
 
+    /** Prefix wrapped around text shared into the app. Used by DocumentShareIntoFragment. */
+    public String getShareIntoPrefix() {
+        return getString(R.string.pref_key__share_into_format, "\\n----\\n{{text}}");
+    }
+
     public boolean isDisallowScreenshots() {
         return getBool(R.string.pref_key__is_disallow_screenshots, false);
     }
