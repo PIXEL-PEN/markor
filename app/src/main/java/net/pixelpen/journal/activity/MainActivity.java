@@ -487,20 +487,17 @@ public class MainActivity extends AutumnBaseActivity {
             setTaskDescription(new ActivityManager.TaskDescription(getString(R.string.app_name)));
         }
 
-        // Intro dialog and show changelog etc
-        final boolean firstStart = IntroActivity.optStart(this);
-        try {
-            if (!firstStart && _appSettings.isAppCurrentVersionFirstStart(true)) {
-                GsSimpleMarkdownParser smp = GsSimpleMarkdownParser.get().setDefaultSmpFilter(GsSimpleMarkdownParser.FILTER_ANDROID_TEXTVIEW);
-                String html = "";
-                html += smp.parse(getString(R.string.copyright_license_text_official).replace("\n", "  \n"), "").getHtml();
-                html += "<br/><br/><br/><big><big>" + getString(R.string.changelog) + "</big></big><br/>" + smp.parse(getResources().openRawResource(R.raw.changelog), "", GsSimpleMarkdownParser.FILTER_ANDROID_TEXTVIEW);
-                html += "<br/><br/><br/><big><big>" + getString(R.string.licenses) + "</big></big><br/>" + smp.parse(getResources().openRawResource(R.raw.licenses_3rd_party), "").getHtml();
-                _cu.showDialogWithHtmlTextView(this, 0, html);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // The intro runs once on a genuinely fresh install. What used to follow it was a
+        // dialog of copyright text, the whole changelog and every third-party licence,
+        // shown whenever isAppCurrentVersionFirstStart saw a new versionCode.
+        //
+        // versionCode is new Date().format('yyMMdd'), so it changes every day. Any build
+        // made on a later day than the last one installed looked like a version upgrade and
+        // the wall of text came up again -- which is why it appeared on what felt like an
+        // ordinary launch. It is gone. The licences live in Settings, under About, where
+        // someone looking for them can find them; nobody opening a journal wants a changelog
+        // first.
+        IntroActivity.optStart(this);
     }
 
 

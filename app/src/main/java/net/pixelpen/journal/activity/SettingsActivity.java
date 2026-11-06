@@ -16,6 +16,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
@@ -209,14 +210,11 @@ public class SettingsActivity extends AutumnBaseActivity {
                     return true;
                 }
                 case R.string.pref_key__more_info__copy_build_information: {
+                    // Copies the row's own summary, which is the build information. Upstream
+                    // also opened the changelog here, which is why a row called "Build
+                    // information" answered with a release history. It does not any more.
                     _cu.setClipboard(getContext(), preference.getSummary());
-                    try {
-                        _cu.showDialogWithHtmlTextView(getActivity(), R.string.changelog,
-                                new GsSimpleMarkdownParser().parse(
-                                        getResources().openRawResource(R.raw.changelog),
-                                        "", GsSimpleMarkdownParser.FILTER_ANDROID_TEXTVIEW).getHtml());
-                    } catch (final Exception ignored) {
-                    }
+                    Toast.makeText(getContext(), R.string.clipboard, Toast.LENGTH_SHORT).show();
                     return true;
                 }
             }
