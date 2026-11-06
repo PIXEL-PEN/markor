@@ -403,37 +403,19 @@ public class MainActivity extends AutumnBaseActivity {
      * shows the same structure. Nothing is done with what the picker returns: this is for looking,
      * and no access beyond the home folder is wanted or asked for.
      */
+    /**
+     * Open the Autumn folder in the app's own browser.
+     *
+     * <p>Was a hand-off to whatever file manager the device had, via ACTION_VIEW on a
+     * DocumentsContract URI with ACTION_OPEN_DOCUMENT_TREE as the fallback. Both put the archive
+     * behind someone else's picker: read-mostly, inconsistent between devices, and no help for
+     * the thing this is actually for, which is deleting a folder typed in by mistake.
+     */
     private void openHomeFolderInAndroid() {
         if (_searchItem != null && _searchItem.isActionViewExpanded()) {
             _searchItem.collapseActionView();
         }
-
-        // "primary:Documents/Autumn", or "Autumn (dev)" on a debug install. Built through
-        // DocumentsContract so the space and brackets are encoded properly rather than by hand.
-        final String docId = "primary:Documents/" + net.pixelpen.journal.BuildConfig.STORAGE_ROOT_NAME;
-        final android.net.Uri folder = android.provider.DocumentsContract.buildDocumentUri(
-                "com.android.externalstorage.documents", docId);
-
-        final Intent view = new Intent(Intent.ACTION_VIEW);
-        view.setDataAndType(folder, "vnd.android.document/directory");
-        view.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        try {
-            startActivity(view);
-            return;
-        } catch (final Exception ignored) {
-            // No file manager answers ACTION_VIEW for a directory on this device.
-        }
-
-        final Intent pick = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            pick.putExtra(android.provider.DocumentsContract.EXTRA_INITIAL_URI, folder);
-        }
-        try {
-            startActivity(pick);
-        } catch (final Exception e) {
-            android.widget.Toast.makeText(this, R.string.error_could_not_open_file,
-                    android.widget.Toast.LENGTH_SHORT).show();
-        }
+        FileBrowserActivity.launch(this, null);
     }
 
     /**

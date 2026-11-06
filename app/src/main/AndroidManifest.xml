@@ -92,6 +92,12 @@
             android:parentActivityName=".activity.MainActivity" />
 
         <activity
+            android:name=".activity.FileBrowserActivity"
+            android:exported="false"
+            android:label="@string/home"
+            android:parentActivityName=".activity.MainActivity" />
+
+        <activity
             android:name=".activity.ImageViewerActivity"
             android:exported="false"
             android:theme="@style/AppTheme.Viewer" />
