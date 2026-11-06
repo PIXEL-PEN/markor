@@ -230,8 +230,15 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return keys;
     }
 
+    /**
+     * Always on, and no longer a preference. Standard Markdown folds a single newline into
+     * the paragraph before it, so a journal entry typed with one Enter between lines renders
+     * as one block of text. View mode is now what browsing opens in, so that block is what
+     * you would normally see. The converter answers this by appending two spaces to every
+     * newline, which is the Markdown hard line break.
+     */
     public boolean isMarkdownNewlineNewparagraphEnabled() {
-        return getBool(R.string.pref_key__markdown_newline_newparagraph, false);
+        return true;
     }
 
     public boolean isMarkdownTableOfContentsEnabled() {
