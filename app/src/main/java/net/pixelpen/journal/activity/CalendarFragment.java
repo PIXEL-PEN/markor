@@ -381,6 +381,32 @@ public class CalendarFragment extends AutumnBaseFragment
      */
     private int _categoryReportedToTree = -1;
 
+    /**
+     * Put the dropdown back to General.
+     *
+     * <p>Called when this tab is opened from anywhere else. A category is a statement about the
+     * entry being written now, not a mode the app stays in: left as it was, a note typed days
+     * later lands in whatever was last browsed, which is a filing mistake nothing on screen warns
+     * about.
+     *
+     * <p>The reset is recorded as already-reported, so the selection event it raises is not
+     * mistaken for a choice and does not open anything in the tree.
+     */
+    public void resetCategoryToDefault() {
+        if (spinnerCategory == null || spinnerCategory.getAdapter() == null) {
+            return;
+        }
+        final List<String> cats = loadCategoriesForSpinner();
+        final int idx = indexOfIgnoreCase(cats, DEFAULT_CATEGORY);
+        final int target = (idx >= 0) ? idx : 0;
+        if (target >= spinnerCategory.getAdapter().getCount()) {
+            return;
+        }
+        lastRealCategorySelection = target;
+        _categoryReportedToTree = target;
+        spinnerCategory.setSelection(target, false);
+    }
+
     /** Tell the tree which category to open, if and only if the selection actually moved. */
     private void reportCategoryToTree(final int position) {
         if (position == _categoryReportedToTree) {

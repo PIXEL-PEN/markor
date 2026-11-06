@@ -44,6 +44,10 @@
     <color name="cal_card_border">#DCE3EA</color>
     <color name="cal_chip_bg">#EDF1F6</color>
     <color name="cal_chip_border">#B6C2D0</color>
+
+    <!-- Bottom bar, on the navy @color/primary -->
+    <color name="nav_active">#CBDAEE</color>
+    <color name="nav_inactive">#8C97A6</color>
     <color name="icons">#FFFFFF</color>
     <color name="divider">#B6B6B6</color>
 

@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The selected day. A filled disc, the app's accent, matching the FAB. -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-    <solid android:color="@color/cal_accent" />
-    <size android:width="34dp" android:height="34dp" />
-</shape>
+<!--
+  The selected day.
+
+  Wrapped in a layer-list with an explicit size and centre gravity, because a bare shape used as
+  a background is stretched to the view's bounds. A day cell is a seventh of the screen wide and
+  38dp tall, so the circle came out as a flattened oval. The layer-list draws it at a fixed size
+  inside those bounds instead, which keeps it round whatever the cell measures.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:width="30dp"
+        android:height="30dp"
+        android:gravity="center">
+        <shape android:shape="oval">
+            <solid android:color="@color/cal_accent" />
+        </shape>
+    </item>
+</layer-list>

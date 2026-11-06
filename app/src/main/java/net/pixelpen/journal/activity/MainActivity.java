@@ -670,6 +670,13 @@ public class MainActivity extends AutumnBaseActivity {
         // Calendar screen is asked for this rather than the Tree guessing, because only it knows
         // the selected date and category -- and a backdated entry should open the month it was
         // filed under, not today's.
+        if (pos == tabIdToPos(R.id.nav_journal) && _journal != null) {
+            // Arriving at the Calendar from anywhere starts a fresh entry, so the dropdown starts
+            // where a fresh entry should: General. Browsing a category in the tree must not
+            // quietly become the filing destination for the next thing written.
+            _journal.resetCategoryToDefault();
+        }
+
         if (pos == tabIdToPos(R.id.nav_tree) && _tree != null) {
             if (_journal != null) {
                 _tree.focusOn(_journal.currentTargetDir());

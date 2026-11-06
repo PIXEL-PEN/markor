@@ -1,16 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-    /*#######################################################
-    *
- *   Maintained 2017-2025 by Gregor Santner <gsantner AT mailbox DOT org>
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Bottom bar tints.
 
-    *
-    *   License: Apache 2.0
-    *  https://github.com/gsantner/opoc/#licensing
-    *  https://www.apache.org/licenses/LICENSE-2.0
-    *
-    #########################################################*/
+  The accent used to be red, which stood out against the navy bar. It is a slate blue-grey now,
+  and the same value that reads clearly on the white calendar is nearly invisible here: dark on
+  dark. So the bar uses light tints of that hue rather than the hue itself, and the unselected
+  tabs are muted rather than plain white, which is what made the selected one hard to pick out.
 -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:color="@color/accent" android:state_checked="true" />
-    <item android:color="@color/white" />
+    <item android:color="@color/nav_active" android:state_checked="true" />
+    <item android:color="@color/nav_inactive" />
 </selector>
