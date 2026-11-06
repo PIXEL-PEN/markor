@@ -1,4 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The adaptive icon's background layer, drawn behind the leaf by
+  mipmap-anydpi-v26/ic_launcher.xml. A launcher icon cannot be transparent: adaptive icons
+  always composite over this, so the only question is which colour.
+
+  Alternatives, kept because choosing one took longer than writing them down:
+
+    #FFFFFF  white        clean, and what the artwork was drawn against
+    #00695C  dark teal    the leaf lifts off it; was the debug-only colour until the DEV
+                          markers came out, and worth a second look
+    #1E2135  navy         matches the app bar and the bottom nav
+    #FDF8EE  cream        warmer white, closer to the note background
+
+  Only the legacy pre-API-26 icons need regenerating to match a change here; they are flat
+  bitmaps with the background already composited in, unlike the adaptive layers.
+-->
 <resources>
     <color name="ic_launcher_background">#FFFFFF</color>
 </resources>
