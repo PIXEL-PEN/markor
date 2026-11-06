@@ -26,11 +26,6 @@
         <item translatable="false">dark-black</item>
     </string-array>
 
-    <string-array name="pref_arrdisp__editor_basic_color_schemes" translatable="false">
-        <item translatable="false">@string/editor_basic_color_scheme_markor</item>
-        <item translatable="false">@string/editor_basic_color_scheme_black_or_white</item>
-        <item translatable="false">@string/editor_basic_color_scheme_solarized</item>
-    </string-array>
 
     <string-array name="pref_arrdisp__bottomnav" translatable="false">
         <item translatable="false">@string/notebook</item>

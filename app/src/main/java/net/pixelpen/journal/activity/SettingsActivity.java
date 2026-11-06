@@ -171,41 +171,6 @@ public class SettingsActivity extends AutumnBaseActivity {
             final FragmentManager fragManager = getActivity().getSupportFragmentManager();
             switch (keyResId) {
 
-                case R.string.pref_key__basic_color_scheme_markor: {
-                    _appSettings.setEditorBasicColor(true, R.color.white, R.color.dark_grey);
-                    _appSettings.setEditorBasicColor(false, R.color.dark_grey, R.color.light__background);
-                    break;
-                }
-                case R.string.pref_key__basic_color_scheme_blackorwhite: {
-                    _appSettings.setEditorBasicColor(true, R.color.white, R.color.black);
-                    _appSettings.setEditorBasicColor(false, R.color.black, R.color.white);
-                    break;
-                }
-                case R.string.pref_key__basic_color_scheme_solarized: {
-                    _appSettings.setEditorBasicColor(true, R.color.solarized_fg, R.color.solarized_bg_dark);
-                    _appSettings.setEditorBasicColor(false, R.color.solarized_fg, R.color.solarized_bg_light);
-                    break;
-                }
-                case R.string.pref_key__basic_color_scheme_gruvbox: {
-                    _appSettings.setEditorBasicColor(true, R.color.gruvbox_fg_dark, R.color.gruvbox_bg_dark);
-                    _appSettings.setEditorBasicColor(false, R.color.gruvbox_fg_light, R.color.gruvbox_bg_light);
-                    break;
-                }
-                case R.string.pref_key__basic_color_scheme_nord: {
-                    _appSettings.setEditorBasicColor(true, R.color.nord_fg_dark, R.color.nord_bg_dark);
-                    _appSettings.setEditorBasicColor(false, R.color.nord_fg_light, R.color.nord_bg_light);
-                    break;
-                }
-                case R.string.pref_key__basic_color_scheme_greenscale: {
-                    _appSettings.setEditorBasicColor(true, R.color.green_dark, R.color.black);
-                    _appSettings.setEditorBasicColor(false, R.color.green_light, R.color.white);
-                    break;
-                }
-                case R.string.pref_key__basic_color_scheme_sepia: {
-                    _appSettings.setEditorBasicColor(true, R.color.sepia_bg_light__fg_dark, R.color.sepia_fg_light__bg_dark);
-                    _appSettings.setEditorBasicColor(false, R.color.sepia_fg_light__bg_dark, R.color.sepia_bg_light__fg_dark);
-                    break;
-                }
                 case R.string.pref_key__plaintext__reorder_actions:
                 case R.string.pref_key__asciidoc__reorder_actions:
                 case R.string.pref_key__markdown__reorder_actions:
@@ -217,10 +182,6 @@ public class SettingsActivity extends AutumnBaseActivity {
                 }
             }
 
-            if (key.startsWith("pref_key__editor_basic_color_scheme") && !key.contains("_fg_") && !key.contains("_bg_")) {
-                _appSettings.setRecreateMainRequired(true);
-                restartActivity();
-            }
             return null;
         }
 

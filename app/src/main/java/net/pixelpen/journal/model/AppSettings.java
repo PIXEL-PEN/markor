@@ -64,10 +64,8 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         _cu = new AutumnContextUtils(context);
         _isDeviceGoodHardware = _cu.isDeviceGoodHardware(context);
 
-        if (getInt(R.string.pref_key__basic_color_scheme__bg_light, -999) == -999) {
-            setEditorBasicColor(true, R.color.white, R.color.dark_grey);
-            setEditorBasicColor(false, R.color.dark_grey, R.color.light__background);
-        }
+        // First run used to seed editor foreground and background here. Nothing reads those
+        // preferences now; the editor takes its colours from the theme.
         return this;
     }
 
@@ -675,18 +673,23 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return true;//getBool(R.string.pref_key__editor_history_enabled3, true);
     }
 
+    /**
+     * Editor text colour, from the theme.
+     *
+     * <p>Used to read a stored override chosen in Settings, picking a different preference for
+     * dark mode. Both overrides are gone; values-night already maps primary_text, so resolving
+     * the resource gives the right answer for the current configuration without asking.
+     */
     public int getEditorForegroundColor() {
-        final boolean night = GsContextUtils.instance.isDarkModeEnabled(_context);
-        return getInt(night ? R.string.pref_key__basic_color_scheme__fg_dark : R.string.pref_key__basic_color_scheme__fg_light, rcolor(R.color.primary_text));
+        return rcolor(R.color.primary_text);
     }
 
+    /** Editor background, from the theme. The black variant is a theme, not an override. */
     public int getEditorBackgroundColor() {
-        final boolean night = GsContextUtils.instance.isDarkModeEnabled(_context);
-        int c = getInt(night ? R.string.pref_key__basic_color_scheme__bg_dark : R.string.pref_key__basic_color_scheme__bg_light, rcolor(R.color.background));
         if (getAppThemeName().contains("black")) {
-            c = Color.BLACK;
+            return Color.BLACK;
         }
-        return c;
+        return rcolor(R.color.background);
     }
 
     public void applyAppTheme() {
@@ -695,13 +698,6 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
 
     public String getAppThemeName() {
         return getString(R.string.pref_key__app_theme, _context.getString(R.string.app_theme_system));
-    }
-
-    public void setEditorBasicColor(boolean forDarkMode, @ColorRes int fgColor, @ColorRes int bgColor) {
-        int resIdFg = forDarkMode ? R.string.pref_key__basic_color_scheme__fg_dark : R.string.pref_key__basic_color_scheme__fg_light;
-        int resIdBg = forDarkMode ? R.string.pref_key__basic_color_scheme__bg_dark : R.string.pref_key__basic_color_scheme__bg_light;
-        setInt(resIdFg, rcolor(fgColor));
-        setInt(resIdBg, rcolor(bgColor));
     }
 
     public boolean isMultiWindowEnabled() {

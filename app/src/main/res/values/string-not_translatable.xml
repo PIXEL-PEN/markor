@@ -49,14 +49,6 @@ work. If not, see <https://creativecommons.org/publicdomain/zero/1.0/>.
 
     <string name="katex_latex" translatable="false">KaTex (LaTex)\n$ a^2 + b^2 = c^2 $</string>
     <string name="app_theme_system" translatable="false">system</string>
-    <string name="editor_basic_color_scheme_markor" translatable="false">Autumn</string>
-    <string name="editor_basic_color_scheme_black_or_white" translatable="false">Black or White</string>
-    <string name="editor_basic_color_scheme_amoled" translatable="false">AMOLED</string>
-    <string name="editor_basic_color_scheme_solarized" translatable="false">Solarized</string>
-    <string name="editor_basic_color_scheme_nord" translatable="false">Nord</string>
-    <string name="editor_basic_color_scheme_gruvbox" translatable="false">Gruvbox</string>
-    <string name="editor_basic_color_scheme_greenscale" translatable="false">Greenscale</string>
-    <string name="editor_basic_color_scheme_sepia" translatable="false">Sepia</string>
 
     <string name="hexcode" translatable="false">Hexcode</string>
     <string name="markup_formats_supported_list" translatable="false">Markdown, todo.txt, Plaintext</string>
@@ -210,18 +202,6 @@ work. If not, see <https://creativecommons.org/publicdomain/zero/1.0/>.
     <string name="pref_key__markdown_newline_newparagraph" translatable="false">pref_key__markdown_newline_newparagraph</string>
     <string name="pref_key__markdown_table_of_contents_enabled_levels" translatable="false">pref_key__markdown_table_of_contents_enabled_levels</string>
     <string name="pref_key__is_launcher_for_special_files_enabled" translatable="false">pref_key__is_launcher_for_special_files_enabled</string>
-    <string name="pref_key__basic_color_scheme__bg_light" translatable="false">pref_key__basic_color_scheme__bg_light</string>
-    <string name="pref_key__basic_color_scheme__fg_light" translatable="false">pref_key__basic_color_scheme__fg_light</string>
-    <string name="pref_key__basic_color_scheme__bg_dark" translatable="false">pref_key__basic_color_scheme__bg_dark</string>
-    <string name="pref_key__basic_color_scheme__fg_dark" translatable="false">pref_key__basic_color_scheme__fg_dark</string>
-    <string name="pref_key__basic_color_scheme_solarized" translatable="false">pref_key__basic_color_scheme_solarized</string>
-    <string name="pref_key__basic_color_scheme_nord" translatable="false">pref_key__basic_color_scheme_nord</string>
-    <string name="pref_key__basic_color_scheme_blackorwhite" translatable="false">pref_key__basic_color_scheme_blackorwhite</string>
-    <string name="pref_key__basic_color_scheme_amoled" translatable="false">pref_key__basic_color_scheme_amoled</string>
-    <string name="pref_key__basic_color_scheme_markor" translatable="false">pref_key__basic_color_scheme_markor</string>
-    <string name="pref_key__basic_color_scheme_gruvbox" translatable="false">pref_key__basic_color_scheme_gruvbox</string>
-    <string name="pref_key__basic_color_scheme_greenscale" translatable="false">pref_key__basic_color_scheme_greenscale</string>
-    <string name="pref_key__basic_color_scheme_sepia" translatable="false">pref_key__basic_color_scheme_sepia</string>
     <string name="pref_key__is_keep_screen_on" translatable="false">pref_key__keep_screen_on</string>
     <string name="pref_key__is_disallow_screenshots" translatable="false">pref_key__is_disallow_screenshots</string>
     <string name="pref_key__snippet_directory_path" translatable="false">pref_key__snippet_directory_path</string>
