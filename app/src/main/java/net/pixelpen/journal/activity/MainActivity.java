@@ -547,23 +547,22 @@ public class MainActivity extends AutumnBaseActivity {
      * complete the moment the title is typed; those were being shown a document containing one
      * date stamp and nothing else, and finishing meant backing out of it.
      *
-     * <p>No tab switch either. The + button jumps to the Tree because the editor has just
-     * covered the screen and backing out of it should land somewhere that shows the new note.
-     * Nothing has covered anything here, and someone writing title-only notes is usually writing
-     * several, so the form stays where it is with the date and category still set.
+     * <p>The month's file opens afterwards, in view mode, so you can see the entry landed on
+     * top of the others. That is the whole feedback loop: a quicknote is written without
+     * deciding anything, so the only thing worth confirming is that it is there.
+     *
+     * <p>No tree reveal. Quicknotes are not in the category tree -- Quicknotes/ sits beside
+     * Images/ and Files/, and revealPathTo expects a category path.
      */
     public void onClickQuickFab(final View view) {
         if (_journal == null) {
             return;
         }
-        final File created = _journal.captureNoteTitleOnly();
-        if (created == null) {
+        final File written = _journal.captureQuicknote();
+        if (written == null) {
             return;
         }
-        if (_tree != null) {
-            // Not shown now, but the tree should have it next time it draws.
-            _tree.revealPathTo(created);
-        }
+        DocumentActivity.launch(this, written, Boolean.TRUE, null);
     }
 
     @Override

@@ -20,6 +20,7 @@ import android.widget.Toast;
 import net.pixelpen.journal.R;
 import net.pixelpen.journal.model.CreationIndex;
 import net.pixelpen.journal.model.Document;
+import net.pixelpen.journal.model.Quicknote;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -130,6 +131,39 @@ public class CalendarFragment extends AutumnBaseFragment
      */
     public File captureNoteTitleOnly() {
         return createNoteFileAndSeedContent(false);
+    }
+
+    /**
+     * A quicknote. Trivia: the shop, the salesperson, the thing you will want next week and
+     * never again. It goes into the month's shared Quicknotes file rather than a note of its
+     * own, newest first, and it takes no category -- see {@link Quicknote} for why that is a
+     * decision rather than an omission.
+     *
+     * <p>The date comes from the Calendar screen's selection, not from the clock, so a
+     * quicknote can be put against the day it is about. The time of day is the clock's, which
+     * keeps several entries on one day in order.
+     *
+     * @return the month file written, for the caller to open, or null if nothing was written.
+     */
+    public File captureQuicknote() {
+        final String text = inputNoteTitle.getText().toString().trim();
+        if (text.isEmpty()) {
+            Toast.makeText(requireContext(), "Please enter a quicknote.", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+        final Calendar calendar =
+                NoteTimestamp.combineSelectedDateWithCurrentTime(selectedCalendarDate);
+        final File written = Quicknote.write(
+                ApplicationObject.settings().getNotebookDirectory(), calendar, text);
+        if (written == null) {
+            Toast.makeText(requireContext(), "Could not write the quicknote.",
+                    Toast.LENGTH_SHORT).show();
+            return null;
+        }
+        // Only now, with the write known to have succeeded. The early returns above leave the
+        // text where it is on purpose.
+        resetForm();
+        return written;
     }
 
     /**
