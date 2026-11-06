@@ -480,16 +480,7 @@
     <string name="fab_open_calendar">Open Calendar</string>
 
         <string name="manage_categories">Manage categories</string>
-        <string name="preview">Preview</string>
-        <string name="confirm">Confirm</string>
-        <string name="action">Action</string>
-        <string name="from">From</string>
-        <string name="target">Target</string>
-        <string name="new_name">New name</string>
         <string name="new_name_hint">Enter new category name</string>
-        <string name="force_move_uncategorized">Force delete: move files to â€œUncategorizedâ€</string>
-        <string name="undo_will_revert_last_op">Will undo the last category operation.</string>
-        <string name="invalid_action">Invalid action</string>
         <string name="items">Items</string>
 
         <string name="app_name">Autumn</string>
@@ -569,6 +560,21 @@
     <string name="backup_done">%1$d files packed. Choose where to keep it.</string>
     <string name="backup_failed">Backup failed.</string>
     <string name="enter_note_title">Enter note title..</string>
+    <string name="add_category">Add category</string>
+    <string name="add">Add</string>
+    <string name="rename">Rename</string>
+    <string name="done">Done</string>
+    <string name="move_and_delete">Move and delete</string>
+    <string name="no_categories_yet">No categories yet.</string>
+    <string name="category_unused">Not used yet</string>
+    <string name="category_empty">No notes</string>
+    <string name="category_detail">%1$s across %2$s</string>
+    <string name="rename_category">Rename \u201c%1$s\u201d</string>
+    <string name="delete_category_title">Delete \u201c%1$s\u201d</string>
+    <string name="delete_category_confirm">Delete the category \u201c%1$s\u201d? It holds no notes.</string>
+    <string name="delete_category_move">\u201c%1$s\u201d holds %2$s. Move them to:</string>
+    <string name="delete_category_nowhere">\u201c%1$s\u201d holds notes and there is nowhere to move them. Add another category first.</string>
+    <string name="category_action_failed">That did not work. %1$s</string>
     <string name="previous_month">Previous month</string>
     <string name="next_month">Next month</string>
     <string name="timeline_images">Images</string>

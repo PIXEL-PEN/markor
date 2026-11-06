@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One category, with what it holds and what can be done to it. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/mc_row_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="@color/cal_title"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/mc_row_detail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/cal_weekday"
+            android:textSize="13sp" />
+
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/mc_row_rename"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:background="?android:selectableItemBackgroundBorderless"
+        android:contentDescription="@string/rename"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_edit_black_24dp" />
+
+    <ImageButton
+        android:id="@+id/mc_row_delete"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:background="?android:selectableItemBackgroundBorderless"
+        android:contentDescription="@string/delete"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_delete_black_24dp" />
+
+</LinearLayout>

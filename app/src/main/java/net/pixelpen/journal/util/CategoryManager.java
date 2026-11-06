@@ -41,7 +41,6 @@ public class CategoryManager {
 
     private static final String PREFS = "category_prefs";
     private static final String PREF_KEY = "custom_categories";
-    private static final String UNDO_FILE = ".category_undo.json";
 
     // ---------- Result DTO ----------
     public static class Result {
@@ -102,19 +101,14 @@ public class CategoryManager {
         if (dryRun) return Result.preview("Preview rename", preview.size(), preview);
 
         try {
-            JSONArray undo = new JSONArray();
             for (File src : srcFolders) {
                 File tgt = new File(src.getParent(), to);
                 JSONObject moveGroup = moveDirPreserveMtimes(src, tgt);
-                // log one high-level move for undo
-                undo.put(new JSONObject().put("type","move").put("from", src.getAbsolutePath()).put("to", tgt.getAbsolutePath()));
                 // also include per-file ops to be extra safe (optional)
                 if (moveGroup != null && moveGroup.has("ops")) {
                     JSONArray ops = moveGroup.getJSONArray("ops");
-                    for (int i = 0; i < ops.length(); i++) undo.put(ops.get(i));
                 }
             }
-            writeUndo(undo);
             return Result.ok("Renamed", preview.size(), preview);
         } catch (Exception e) { return Result.error(e.getMessage()); }
     }
@@ -130,30 +124,18 @@ public class CategoryManager {
         if (dryRun) return Result.preview("Preview merge", preview.size(), preview);
 
         try {
-            JSONArray undo = new JSONArray();
             for (File src : srcFolders) {
                 File tgt = new File(src.getParent(), target);
                 if (!tgt.exists()) // simple rename if target doesn’t exist
                 {
-                    JSONObject mv = moveDirPreserveMtimes(src, tgt);
-                    undo.put(new JSONObject().put("type","move").put("from", src.getAbsolutePath()).put("to", tgt.getAbsolutePath()));
-                    if (mv != null && mv.has("ops")) {
-                        JSONArray ops = mv.getJSONArray("ops");
-                        for (int i = 0; i < ops.length(); i++) undo.put(ops.get(i));
-                    }
+                    moveDirPreserveMtimes(src, tgt);
                 } else {
                     // merge file-by-file into existing target
-                    JSONObject mg = mergeIntoPreserveMtimes(src, tgt);
-                    if (mg != null && mg.has("ops")) {
-                        JSONArray ops = mg.getJSONArray("ops");
-                        for (int i = 0; i < ops.length(); i++) undo.put(ops.get(i));
-                    }
+                    mergeIntoPreserveMtimes(src, tgt);
                     // delete emptied source
                     deleteEmptyDirs(src);
-                    undo.put(new JSONObject().put("type","mkdir").put("path", src.getAbsolutePath())); // recreate on undo
                 }
             }
-            writeUndo(undo);
             return Result.ok("Merged", preview.size(), preview);
         } catch (Exception e) { return Result.error(e.getMessage()); }
     }
@@ -177,17 +159,11 @@ public class CategoryManager {
         if (dryRun) return Result.preview("Preview delete", preview.size(), preview);
 
         try {
-            JSONArray undo = new JSONArray();
             for (File src : srcFolders) {
                 if (forceMoveToUncategorized) {
                     File tgt = new File(src.getParent(), fallback);
-                    JSONObject mg = mergeIntoPreserveMtimes(src, tgt);
-                    if (mg != null && mg.has("ops")) {
-                        JSONArray ops = mg.getJSONArray("ops");
-                        for (int i = 0; i < ops.length(); i++) undo.put(ops.get(i)); // per-file moves
-                    }
+                    mergeIntoPreserveMtimes(src, tgt);
                     deleteEmptyDirs(src);
-                    undo.put(new JSONObject().put("type","mkdir").put("path", src.getAbsolutePath()));
                 } else {
                     // only delete if empty
                     File[] content = src.listFiles();
@@ -195,63 +171,39 @@ public class CategoryManager {
                         return Result.error("Folder not empty: " + src.getAbsolutePath() + " (use force)");
                     }
                     if (src.delete()) {
-                        undo.put(new JSONObject().put("type","mkdir").put("path", src.getAbsolutePath()));
                     }
                 }
             }
-            writeUndo(undo);
             return Result.ok("Deleted", preview.size(), preview);
         } catch (Exception e) { return Result.error(e.getMessage()); }
     }
 
-    @NonNull
-    public static Result undoLast(Context ctx) {
-        File uf = new File(root(), UNDO_FILE);
-        if (!uf.exists()) return Result.error("No undo");
-        try {
-            JSONArray ops = readUndo(uf);
-            // reverse order
-            for (int i = ops.length() - 1; i >= 0; i--) {
-                JSONObject op = ops.getJSONObject(i);
-                String type = op.optString("type", "");
-                switch (type) {
-                    case "move": {
-                        File to = new File(op.getString("to"));
-                        File from = new File(op.getString("from"));
-                        // swap back
-                        movePathPreserveMtime(to, from);
-                        break;
-                    }
-                    case "filemove": {
-                        File to = new File(op.getString("to"));
-                        File from = new File(op.getString("from"));
-                        movePathPreserveMtime(to, from);
-                        break;
-                    }
-                    case "mkdir": {
-                        File p = new File(op.getString("path"));
-                        if (!p.exists()) //noinspection ResultOfMethodCallIgnored
-                            p.mkdirs();
-                        break;
-                    }
-                    case "rmdir": {
-                        File p = new File(op.getString("path"));
-                        deleteEmptyDirs(p);
-                        break;
-                    }
-                    default:
-                        // ignore
-                        break;
+    // ---------- Internals ----------
+    /**
+     * How much is filed under a category: {notes, months it appears in}.
+     *
+     * <p>So the dialog can say "12 notes across 3 months" before it offers to move or remove
+     * them. A category is a folder name repeated under every month that used it, so the second
+     * figure is the number of folders and the first is what they hold.
+     */
+    public static int[] countNotes(final String nameRaw) {
+        final String name = norm(nameRaw);
+        int notes = 0;
+        final List<File> folders = findCategoryFolders(name);
+        for (final File f : folders) {
+            final File[] kids = f.listFiles();
+            if (kids == null) {
+                continue;
+            }
+            for (final File k : kids) {
+                if (k.isFile() && !k.getName().startsWith(".")) {
+                    notes++;
                 }
             }
-            // clear undo after applying
-            //noinspection ResultOfMethodCallIgnored
-            uf.delete();
-            return Result.ok("Undo complete");
-        } catch (Exception e) { return Result.error(e.getMessage()); }
+        }
+        return new int[]{notes, folders.size()};
     }
 
-    // ---------- Internals ----------
     private static boolean valid(String name) {
         if (name == null) return false;
         String n = name.trim();
@@ -310,7 +262,7 @@ public class CategoryManager {
         if (!src.exists() || !src.isDirectory()) throw new Exception("Not a dir: " + src);
         if (dst.exists()) {
             // merge into dst
-            JSONObject mg = mergeIntoPreserveMtimes(src, dst);
+                    mergeIntoPreserveMtimes(src, dst);
             if (mg != null && mg.has("ops")) {
                 JSONArray mgops = mg.getJSONArray("ops");
                 for (int i = 0; i < mgops.length(); i++) ops.put(mgops.get(i));
@@ -470,22 +422,5 @@ public class CategoryManager {
                 cur.delete();
             }
         }
-    }
-
-    // ---------- Undo I/O ----------
-    private static void writeUndo(JSONArray undo) throws Exception {
-        File f = new File(root(), UNDO_FILE);
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(f, false))) {
-            bw.write(undo.toString(2));
-        }
-    }
-
-    private static JSONArray readUndo(File f) throws Exception {
-        StringBuilder sb = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new FileReader(f))) {
-            String line;
-            while ((line = br.readLine()) != null) sb.append(line).append('\n');
-        }
-        return new JSONArray(sb.toString());
     }
 }
