@@ -63,43 +63,6 @@
     </PreferenceScreen>
 
     <!-- Document browser screen -->
-    <PreferenceScreen
-        android:icon="@drawable/ic_border_outer_black_24dp"
-        android:summary="@string/miscellaneous"
-        android:title="@string/other">
-
-        <!--
-          What was here and why it is not:
-
-            Navigation bar colour  - getNavigationBarColor() had no callers. The setting stored
-                                     a value and changed nothing.
-            Hide status bar        - a fullscreen toggle for a screen that keeps an app bar and
-                                     a bottom nav either way. Distraction-free reading, if it is
-                                     wanted, is a feature rather than a checkbox.
-            Attachment folder      - named "_res" and no longer decided anything: attachments go
-                                     to Images/<year> and Files/<year> under the home folder, and
-                                     the only caller left was a fallback. A setting that claims
-                                     to control where files go and does not is worse than none.
-            Chrome Custom Tabs     - one boolean about how a tapped link opens. The link still
-                                     opens; it just always uses the default browser now.
-            Snippet folder         - the snippets feature is gone with it.
-        -->
-        <PreferenceCategory android:title="@string/general">
-
-            <CheckBoxPreference
-                android:defaultValue="false"
-                android:icon="@drawable/ic_screen_lock_portrait_black_24dp"
-                android:key="@string/pref_key__is_keep_screen_on"
-                android:title="@string/keep_screen_on" />
-
-            <CheckBoxPreference
-                android:defaultValue="false"
-                android:icon="@drawable/ic_lock_outline_black_24dp"
-                android:key="@string/pref_key__is_disallow_screenshots"
-                android:title="@string/disallow_screenshots" />
-        </PreferenceCategory>
-
-    </PreferenceScreen>
 
     <!-- Editor screen -->
     <PreferenceScreen
@@ -263,7 +226,21 @@
             </PreferenceCategory>
 
     <!-- Most important settings -->
+    <!-- Keep screen on and disallow screenshots used to sit behind an "Other" screen of
+         their own, two items deep. They are app-wide behaviour, so they belong next to the
+         theme. -->
     <PreferenceCategory android:title="@string/essential">
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:icon="@drawable/ic_screen_lock_portrait_black_24dp"
+            android:key="@string/pref_key__is_keep_screen_on"
+            android:title="@string/keep_screen_on" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:icon="@drawable/ic_lock_outline_black_24dp"
+            android:key="@string/pref_key__is_disallow_screenshots"
+            android:title="@string/disallow_screenshots" />
+
         <ListPreference
             android:defaultValue="@string/app_theme_system"
             android:dialogTitle="@string/theme"
@@ -279,6 +256,30 @@
              translated either. Picking a language produced a patchwork rather than a
              translated app. resConfigs in build.gradle now pins the build to English, so the
              folders stay in the repo for a real localisation pass later without shipping. -->
+    </PreferenceCategory>
+
+
+    <!-- Moved here from the More tab, which is now this screen. The licences are an
+         obligation rather than a courtesy: this is Apache 2.0 code with third-party
+         dependencies and the attribution has to be reachable from inside the app. -->
+    <PreferenceCategory android:title="@string/about">
+        <Preference
+            android:icon="@drawable/ic_info_black_24dp"
+            android:key="@string/pref_key__more_info__contributors_public_info"
+            android:summary="@string/contributors_public_add_yourself_description"
+            android:title="@string/contributors" />
+        <Preference
+            android:icon="@drawable/ic_copyright_black_24dp"
+            android:key="@string/pref_key__more_info__project_license"
+            android:title="@string/project_license" />
+        <Preference
+            android:icon="@drawable/ic_copyright_black_24dp"
+            android:key="@string/pref_key__more_info__open_source_licenses"
+            android:title="@string/open_source_licenses" />
+        <Preference
+            android:icon="@drawable/ic_code_black_24dp"
+            android:key="@string/pref_key__more_info__copy_build_information"
+            android:title="Build information" />
     </PreferenceCategory>
 
 </PreferenceScreen> <!-- Screen -->

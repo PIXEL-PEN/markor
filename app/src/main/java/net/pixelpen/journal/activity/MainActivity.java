@@ -578,7 +578,7 @@ public class MainActivity extends AutumnBaseActivity {
         }
     }
 
-    // Tabs: Journal, Tree, More. Order must match main__bottom_nav.xml.
+    // Tabs: Journal, Tree, Year, Settings. Order must match main__bottom_nav.xml.
     //
     // Notebook (Markor's file browser) was removed on request. Note that it was the only
     // way to rename, move or delete a note -- the Tree is tap-to-open only -- so that
@@ -637,7 +637,7 @@ public class MainActivity extends AutumnBaseActivity {
         if (pos == 0) return getString(R.string.calendar);
         if (pos == 1) return getString(R.string.tree);
         if (pos == 2) return getString(R.string.year);
-        if (pos == 3) return getString(R.string.more);
+        if (pos == 3) return getString(R.string.settings);
         return "";
     }
 

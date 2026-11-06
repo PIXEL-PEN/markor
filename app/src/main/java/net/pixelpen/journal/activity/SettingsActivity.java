@@ -27,11 +27,14 @@ import androidx.preference.PreferenceScreen;
 import net.pixelpen.journal.ApplicationObject;
 import net.pixelpen.journal.R;
 import net.pixelpen.journal.model.AppSettings;
+import net.gsantner.opoc.format.GsSimpleMarkdownParser;
 import net.gsantner.opoc.frontend.base.GsActivityBase;
 import net.gsantner.opoc.frontend.base.GsPreferenceFragmentBase;
 import net.gsantner.opoc.frontend.settings.GsFontPreferenceCompat;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Locale;
 
 
 public class SettingsActivity extends AutumnBaseActivity {
@@ -142,6 +145,8 @@ public class SettingsActivity extends AutumnBaseActivity {
         @Override
         public void doUpdatePreferences() {
             setPreferenceVisible(R.string.pref_key__is_multi_window_enabled, Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP);
+            updateSummary(R.string.pref_key__more_info__project_license, getString(R.string.app_license_name));
+            fillBuildInformationSummary();
             // The experimental-features gate hid tab width and line spacing behind a
             // checkbox. They are ordinary editor settings, not experiments, so they are
             // simply visible now and the gate is gone.
@@ -158,7 +163,16 @@ public class SettingsActivity extends AutumnBaseActivity {
 
             if (eq(key, R.string.pref_key__app_theme)) {
                 _appSettings.applyAppTheme();
-                getActivity().finish();
+                // This fragment is hosted twice: by SettingsActivity, and by the settings tab
+                // inside MainActivity. finish() is right for the activity -- it drops back to
+                // MainActivity, which recreates with the new theme -- and would close the app
+                // outright from the tab.
+                final Activity host = getActivity();
+                if (host instanceof SettingsActivity) {
+                    host.finish();
+                } else if (host != null) {
+                    host.recreate();
+                }
             }
         }
 
@@ -177,9 +191,74 @@ public class SettingsActivity extends AutumnBaseActivity {
                     startActivity(new Intent(getActivity(), ActionButtonSettingsActivity.class).putExtra(ActionButtonSettingsActivity.EXTRA_FORMAT_KEY, keyResId));
                     break;
                 }
+
+                // Ported from MoreInfoFragment, which is gone. All four open a local dialog;
+                // none of them reaches the network.
+                case R.string.pref_key__more_info__project_license: {
+                    _cu.showDialogWithRawFileInWebView(getActivity(), "license.txt", R.string.project_license);
+                    return true;
+                }
+                case R.string.pref_key__more_info__open_source_licenses: {
+                    try {
+                        _cu.showDialogWithHtmlTextView(getActivity(), R.string.licenses, new GsSimpleMarkdownParser().parse(
+                                getResources().openRawResource(R.raw.licenses_3rd_party),
+                                "", GsSimpleMarkdownParser.FILTER_ANDROID_TEXTVIEW).getHtml());
+                    } catch (final IOException e) {
+                        e.printStackTrace();
+                    }
+                    return true;
+                }
+                case R.string.pref_key__more_info__contributors_public_info: {
+                    try {
+                        _cu.showDialogWithHtmlTextView(getActivity(), R.string.contributors, new GsSimpleMarkdownParser().parse(
+                                getResources().openRawResource(R.raw.contributors),
+                                "", GsSimpleMarkdownParser.FILTER_ANDROID_TEXTVIEW).getHtml());
+                    } catch (final IOException e) {
+                        e.printStackTrace();
+                    }
+                    return true;
+                }
+                case R.string.pref_key__more_info__copy_build_information: {
+                    _cu.setClipboard(getContext(), preference.getSummary());
+                    try {
+                        _cu.showDialogWithHtmlTextView(getActivity(), R.string.changelog,
+                                new GsSimpleMarkdownParser().parse(
+                                        getResources().openRawResource(R.raw.changelog),
+                                        "", GsSimpleMarkdownParser.FILTER_ANDROID_TEXTVIEW).getHtml());
+                    } catch (final Exception ignored) {
+                    }
+                    return true;
+                }
             }
 
             return null;
+        }
+
+        /**
+         * Build information, assembled into the row's own summary so tapping it copies the
+         * text to the clipboard. Ported from MoreInfoFragment. The Flavor line can no longer
+         * appear -- there are no product flavours -- but bcstr returns empty and the line is
+         * skipped, so it costs nothing to leave the lookup in place.
+         */
+        private void fillBuildInformationSummary() {
+            final Context context = getContext();
+            if (context == null) {
+                return;
+            }
+            final Preference pref = findPreference(R.string.pref_key__more_info__copy_build_information);
+            if (pref == null || pref.getSummary() != null) {
+                return;
+            }
+            final Locale locale = Locale.getDefault();
+            String tmp;
+            String summary = String.format(locale, "\n<b>Package:</b> %s\n<b>Version:</b> v%s (%d)",
+                    _cu.getAppIdFlavorSpecific(context), _cu.getAppVersionName(context),
+                    _cu.bcint(context, "VERSION_CODE", 0));
+            summary += (tmp = _cu.bcstr(context, "BUILD_TYPE", "")).isEmpty() ? "" : ("\n<b>Build type:</b> " + tmp);
+            summary += (tmp = _cu.bcstr(context, "BUILD_DATE", "")).isEmpty() ? "" : ("\n<b>Build date:</b> " + tmp);
+            summary += (tmp = _cu.bcstr(context, "GITHASH", "")).isEmpty() ? "" : ("\n<b>VCS Hash:</b> " + tmp);
+            summary += (tmp = _cu.bcstr(context, "GITMSG", "")).isEmpty() ? "" : ("\n<b>VCS Msg:</b> " + tmp);
+            pref.setSummary(_cu.htmlToSpanned(summary.trim().replace("\n", "<br/>")));
         }
 
         @Override
