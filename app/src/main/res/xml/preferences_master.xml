@@ -273,12 +273,12 @@
             android:key="@string/pref_key__app_theme"
             android:summary="%1$s"
             android:title="@string/theme" />
-
-        <net.gsantner.opoc.frontend.settings.GsLanguagePreferenceCompat
-            android:icon="@drawable/ic_language_black_24dp"
-            android:key="@string/pref_key__language"
-            android:summary="@string/language_change_restart_description"
-            android:title="@string/language" />
+        <!-- Language is gone. There are 63 locale folders here, inherited from Markor, and
+             none of them carries Autumn's own strings: the Calendar, Tree, Year, Timeline and
+             category text is English only, and roughly a hundred upstream strings were never
+             translated either. Picking a language produced a patchwork rather than a
+             translated app. resConfigs in build.gradle now pins the build to English, so the
+             folders stay in the repo for a real localisation pass later without shipping. -->
     </PreferenceCategory>
 
 </PreferenceScreen> <!-- Screen -->

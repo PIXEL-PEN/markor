@@ -31,6 +31,11 @@ android {
 
         resValue "string", "manifest_package_id", "net.pixelpen.journal"
 
+        // English only. The 63 inherited locale folders are incomplete and carry none of
+        // Autumn's own strings, so shipping them advertised translations that do not exist.
+        // The folders stay in the repo; this keeps them out of the APK.
+        resConfigs "en"
+
         // Was set per-flavour; now per-build-type (true in debug, false in release).
         buildConfigField "boolean", "IS_TEST_BUILD", "false"
         // Kept defined though nothing reads it, so a future Play-specific branch has a hook.

@@ -156,10 +156,7 @@ public class SettingsActivity extends AutumnBaseActivity {
                 return;
             }
 
-            if (eq(key, R.string.pref_key__language)) {
-                activityRetVal = RESULT.RESTART_REQ;
-                _appSettings.setRecreateMainRequired(true);
-            } else if (eq(key, R.string.pref_key__app_theme)) {
+            if (eq(key, R.string.pref_key__app_theme)) {
                 _appSettings.applyAppTheme();
                 getActivity().finish();
             }

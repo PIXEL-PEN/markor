@@ -1,6 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- TODO, parked deliberately: Autumn's own eight colours have no night variant, so
+         they keep their light values when the theme goes dark. Checked, not guessed:
+
+           year_page_bg       #F4F4F4   Year sets its own background, so the screen stays
+           year_header        #005F73   internally readable but becomes a white island
+           year_highlight_bg  #E0FBFC   in an otherwise dark app
+           cal_title          #2B3545   Calendar, same, and its root background is
+           cal_weekday        #8A95A1   @android:color/white, hardcoded, not a resource
+           tree_meta          #6E6E6E   Tree inherits the theme background and goes dark
+                                        correctly; only this grey metadata gets dim
+           tl_page_bg         #EEF2F7   Timeline export is an HTML document in a browser.
+                                        White is arguably right. Leave it.
+           year_dropdown      #0A9396   mid-tone, likely survives either way
+
+         So the Tree is the screen that already behaves. The job is seven night variants
+         and replacing that hardcoded white in fragment_calendar.xml, then testing on
+         device. The Theme preference also offers "Auto (09:00 - 17:00)" and "Black",
+         upstream oddities that triple the testing surface. -->
+
+
     <!-- Named colors -->
     <color name="colorPrimary">@color/primary_dark</color>
     <color name="primary_text">@color/white</color>
