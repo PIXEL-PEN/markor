@@ -940,25 +940,6 @@ public class AutumnDialogFactory {
         GsSearchOrCustomTextDialog.showMultiChoiceDialogWithSearchFilterUI(activity, dopt);
     }
 
-    public static void showSetPasswordDialog(final Activity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            final DialogOptions dopt = new DialogOptions();
-            baseConf(activity, dopt);
-            dopt.isSearchEnabled = true;
-            dopt.titleText = R.string.file_encryption_password;
-            final boolean hasPassword = as().isDefaultPasswordSet();
-            dopt.messageText = hasPassword ? activity.getString(R.string.password_already_set_setting_a_new_password_will_overwrite) : "";
-            dopt.searchHintText = hasPassword ? R.string.hidden_password : R.string.empty_string;
-            dopt.callback = password -> {
-                if (!TextUtils.isEmpty(password)) {
-                    as().setDefaultPassword(password);
-                    Toast.makeText(activity, "✔️", Toast.LENGTH_SHORT).show();
-                }
-            };
-            GsSearchOrCustomTextDialog.showMultiChoiceDialogWithSearchFilterUI(activity, dopt);
-        }
-    }
-
     public static void showNotebookFilterDialog(
             final Activity activity,
             @Nullable GsSearchOrCustomTextDialog.DialogState state,
