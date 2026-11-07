@@ -56,6 +56,16 @@ Autumn exports your whole archive as a single scrolling web page: decades, then 
 
 Day to day you write one note at a time and the shape is invisible. The Timeline is where it becomes a life you can read in one pass — and where the thing that blurs, the order, is the one thing it cannot lose.
 
+It does not only hold the years you kept Autumn for. Older years can be reconstructed from photographs, from the drawer of things you kept, from relatives who remember differently. One phrase against a year is often enough to bring it back; the rest arrives slowly, out of order, over several rainy afternoons.
+
+## Contextual views
+
+What a thousand other journalling apps do is store what you wrote. The difference here is being able to ask the archive a question and get a shape back rather than a list.
+
+Filter a year to one category and scroll: which months were busy, which were empty, where things clustered. For a health category that is every appointment, clinic visit and pharmacy trip in order, with the dense months visible from the top of the screen and the actual detail — the drug, the dose, what was said — one tap away.
+
+That depends entirely on categories being entered faithfully. It is the only discipline Autumn asks of you, and it is where the value comes from.
+
 ## Other things it does
 
 * **Search** across the whole archive. `blue fridge` wants both words anywhere in a note, `"blue fridge"` wants the phrase, `/fridges?/` is a regular expression. Results show the matching line and open the note at it.

@@ -57,6 +57,11 @@ one is a chore that will put you off writing anything.
 That is what quicknotes are for. They are the place for things that are useful
 now and dispensable later, so the categories stay meaningful.
 
+Worth saying plainly: the category is what the Year screen and the Timeline are
+built on. Put an entry in the wrong one and it is not lost, but it will not show
+up where you go looking for it. Entered faithfully, they are what turns a pile of
+notes into something you can ask questions of.
+
 You can manage your categories from Settings. Renaming one moves every note
 inside it; deleting one asks where its notes should go.
 
@@ -85,6 +90,25 @@ moments, aspirations — the things that do not belong to one date.
 
 Below those, every month lists its entries, newest first. Tap any one to open
 it.
+
+### One category, one year, at a glance
+
+The dropdown at the top filters the whole year to a single category, and this is
+probably the most useful thing the app does.
+
+Pick one and scroll. A year of it fits in a few seconds of thumb, and what you
+get is not a list so much as a shape: which months were busy, which were empty,
+where things clustered. You see the pattern before you read a word of it.
+
+It earns its keep when something is going on. Choose a health category and the
+year lays itself out — every appointment, every clinic visit, every trip to the
+pharmacy, in order. The hard months are the dense ones; you can see them from
+the top of the screen. And when you need the actual detail, the name of a drug,
+a dose, a side effect, what the consultant actually said, it is one tap away in
+the note itself.
+
+The same works for anything you keep faithfully: a year of a project, a year of
+a relationship, a year of a house.
 
 You can add pictures to a year from the row under **Images**, which starts
 closed.
@@ -143,6 +167,29 @@ not something you can say of most things you could export to.
 
 Build one at the end of a year. It is the clearest view of that year you will
 get, and it costs nothing to keep a copy somewhere other than your phone.
+
+### Going backwards: the life log
+
+The Timeline does not only have to hold the years you kept Autumn for. You can
+reconstruct the ones before it, and that is a project worth doing slowly.
+
+Start with the pill. Each year on the Timeline carries its first highlight as a
+coloured tag beside the number, and one word is often enough to define a year:
+2020 is Covid, and you need nothing else for that year to come back. Put a
+single phrase against a year and you will find it starts pulling things with
+it — the graduation year, the first car, the year you fell in love, the year
+you moved.
+
+Then add bullets as they arrive. They will not arrive in order and they will not
+arrive all at once. Go through photographs. Go through the drawer of things you
+kept. Ask relatives, who remember different years from you and will contradict
+you usefully.
+
+Expect enormous gaps, and do not treat them as failure. Four entries in a year
+is not an empty year, it is four anchors, and the next thing you remember will
+attach itself to one of them. A life log is built and rebuilt over years. It is
+never finished, which is the point: there is always a rainy afternoon's work in
+it, and it is better every time you come back.
 
 ## Where your files are
 
