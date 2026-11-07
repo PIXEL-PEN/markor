@@ -96,10 +96,12 @@ public class GuideActivity extends AutumnBaseActivity {
                 continue;
             }
 
-            if (line.startsWith("## ")) {
-                container.addView(heading(line.substring(3), false));
+            if (line.startsWith("### ")) {
+                container.addView(heading(line.substring(4), 3));
+            } else if (line.startsWith("## ")) {
+                container.addView(heading(line.substring(3), 2));
             } else if (line.startsWith("# ")) {
-                container.addView(heading(line.substring(2), true));
+                container.addView(heading(line.substring(2), 1));
             } else if (isQuote) {
                 append(quote, line.substring(2));
             } else if (line.startsWith("- ")) {
@@ -138,11 +140,18 @@ public class GuideActivity extends AutumnBaseActivity {
         return t;
     }
 
-    private TextView heading(final String text, final boolean top) {
-        final TextView t = base(text, top ? 24 : 18,
-                top ? R.color.guide_title : R.color.guide_heading);
+    /**
+     * Levels 1 to 3. Three exists because the Year and Timeline sections each carry a part
+     * that needs its own title without being promoted to a section of the archive in its own
+     * right. Without it a "### " line fell through to the paragraph branch and was drawn as
+     * body text with its hashes still attached.
+     */
+    private TextView heading(final String text, final int level) {
+        final float size = level == 1 ? 24 : level == 2 ? 18 : 16.5f;
+        final TextView t = base(text, size,
+                level == 1 ? R.color.guide_title : R.color.guide_heading);
         t.setTypeface(t.getTypeface(), Typeface.BOLD);
-        margins(t, 0, top ? 8 : 30, 0, 10);
+        margins(t, 0, level == 1 ? 8 : level == 2 ? 30 : 20, 0, level == 3 ? 6 : 10);
         return t;
     }
 

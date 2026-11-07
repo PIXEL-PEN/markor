@@ -10,10 +10,32 @@ That is the particular failure this app is built for. It is not a planner and
 not a reminder: it takes what you write, files it under the day it belongs to,
 and gives the sequence back when you want it.
 
+What makes that useful is not the storing. Plenty of apps store what you wrote.
+The difference here is that you can put a question to the archive and get an
+answer with a shape to it: a year of one category, a decade on one page, a month
+read back in order. The writing is the easy half; being able to look at it from
+several distances is the half that pays.
+
 Everything is kept as ordinary files on your phone, in folders you can read
 without this app and without any other program. Nothing you write leaves the
 device — Autumn has no permission to use the network, so it cannot send your
 journal anywhere even by accident.
+
+## The Calendar screen
+
+This is what opens when you start the app, and it is deliberately almost empty.
+
+A single card shows today. That is the date anything you write now will be filed
+against, so it is worth a glance before you start. **Swipe the card**, or tap it,
+and a date picker comes up — which is how you back-date something you only
+remembered this evening. The card's colour follows the month, so after a while it
+tells you roughly where you are in the year before you read the word.
+
+Under it sits the note field, a category to choose, and the two write buttons.
+
+**Browse →** at the edge of the note field opens the Tree already pointed at
+whichever category is selected. It is the short way from writing to reading when
+you want to check what you said last time.
 
 ## Two ways to write
 
@@ -50,7 +72,8 @@ The category is what the Year screen and the Timeline are built on. It is how
 you get back to an entry years later without remembering when you wrote it.
 
 Things that are useful now and dispensable later do not need one. Those are what
-quicknotes are for.
+quicknotes are for. They are kept outside the year folders altogether, so they
+never turn up in the Year screen and never dilute it.
 
 You can manage your categories from Settings. Renaming one moves every note
 inside it; deleting one asks where its notes should go.
@@ -167,8 +190,8 @@ Start with one phrase for the whole year. The first highlight you give a year
 is shown beside its number on the Timeline, set off in colour, and one word is
 often enough to define a year: 2020 is Covid, and you need nothing else for that
 year to come back. Put a single phrase against a year and you will find it
-starts pulling things with it — the graduation year, the first car, the year you fell in love, the year
-you moved.
+starts pulling things with it — the graduation year, the first car, the year you
+fell in love, the year you moved.
 
 Then add bullets as they arrive. They will not arrive in order and they will not
 arrive all at once. Go through photographs. Go through the drawer of things you
