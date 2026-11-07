@@ -9,8 +9,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.Set;
 
 /**
@@ -46,6 +49,89 @@ public final class ArchiveSearch {
     }
 
     private ArchiveSearch() {
+    }
+
+    /**
+     * A parsed query.
+     *
+     * <p>Plain substring matching was the whole engine, so "blue fridge" found nothing unless
+     * those nine characters sat together. Markor could do better and this could not. Three
+     * forms now, in rising order of how often they are wanted:
+     *
+     * <pre>
+     *   blue fridge     every term must appear, in the title or anywhere in the body
+     *   "blue fridge"   that phrase, as written
+     *   /fridge?s/      a regular expression, case-insensitive
+     * </pre>
+     *
+     * <p>Terms AND rather than OR because a search that widens as you type more is not a
+     * search. Quotes nest inside the term list, so {@code milk "blue fridge"} is two
+     * conditions.
+     */
+    static final class Query {
+        final List<String> terms;
+        final Pattern regex;
+
+        private Query(final List<String> terms, final Pattern regex) {
+            this.terms = terms;
+            this.regex = regex;
+        }
+
+        boolean isEmpty() {
+            return regex == null && terms.isEmpty();
+        }
+
+        /** How many conditions this lowercased text satisfies. */
+        int score(final String lower) {
+            if (regex != null) {
+                return regex.matcher(lower).find() ? 1 : 0;
+            }
+            int n = 0;
+            for (final String t : terms) {
+                if (lower.contains(t)) {
+                    n++;
+                }
+            }
+            return n;
+        }
+
+        int conditions() {
+            return (regex != null) ? 1 : terms.size();
+        }
+    }
+
+    static Query parse(final String raw) {
+        final String q = (raw == null) ? "" : raw.trim();
+        if (q.length() > 2 && q.startsWith("/") && q.endsWith("/")) {
+            try {
+                return new Query(Collections.<String>emptyList(),
+                        Pattern.compile(q.substring(1, q.length() - 1),
+                                Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE));
+            } catch (final PatternSyntaxException e) {
+                // Half-typed regex. Fall through and treat it as text rather than showing
+                // nothing while the user is still typing the pattern.
+            }
+        }
+        final List<String> terms = new ArrayList<>();
+        final StringBuilder cur = new StringBuilder();
+        boolean quoted = false;
+        for (int i = 0; i < q.length(); i++) {
+            final char c = q.charAt(i);
+            if (c == '"') {
+                quoted = !quoted;
+            } else if (!quoted && Character.isWhitespace(c)) {
+                if (cur.length() > 0) {
+                    terms.add(cur.toString().toLowerCase(Locale.ROOT));
+                    cur.setLength(0);
+                }
+            } else {
+                cur.append(c);
+            }
+        }
+        if (cur.length() > 0) {
+            terms.add(cur.toString().toLowerCase(Locale.ROOT));
+        }
+        return new Query(terms, null);
     }
 
     /** One matching note. */
@@ -87,8 +173,8 @@ public final class ArchiveSearch {
         if (root == null || !root.isDirectory() || query == null) {
             return hits;
         }
-        final String needle = query.trim().toLowerCase(Locale.ROOT);
-        if (needle.isEmpty()) {
+        final Query parsed = parse(query);
+        if (parsed.isEmpty()) {
             return hits;
         }
 
@@ -129,14 +215,15 @@ public final class ArchiveSearch {
                 }
 
                 final String display = stripExtension(name);
-                final boolean titleMatch = display.toLowerCase(Locale.ROOT).contains(needle);
-                // Only open the file when the name did not already answer the question.
-                final int bodyLine = titleMatch ? -1 : findInBody(f, needle);
-                if (!titleMatch && bodyLine < 0) {
+                // The body is read even when the title already matches. It used to be
+                // skipped, which saved a read and cost the line number, so a title hit
+                // dropped you at the top of the note with nothing highlighted.
+                final Match m = findInFile(f, parsed, display.toLowerCase(Locale.ROOT));
+                if (m == null) {
                     continue;
                 }
                 hits.add(new Hit(f, display, relative(rootPath, f.getParentFile()),
-                        created(f, index), bodyLine >= 0, bodyLine));
+                        created(f, index), m.line >= 0, m.line));
             }
         }
 
@@ -164,43 +251,90 @@ public final class ArchiveSearch {
         return f.lastModified();
     }
 
-    /**
-     * Zero-based line of the first match in the body, or -1 if there is none.
-     *
-     * <p>Returns the line rather than just a yes, so opening a result can land on the match.
-     * Finding the note and then dumping the reader at the top of it is only half an answer when
-     * the note is long.
-     */
-    private static int findInBody(final File f, final String needle) {
-        if (f.length() > MAX_BODY_BYTES) {
-            return -1;
-        }
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
-            String line;
-            int n = 0;
-            while ((line = br.readLine()) != null) {
-                if (line.toLowerCase(Locale.ROOT).contains(needle)) {
-                    return n;
-                }
-                n++;
-            }
-            return -1;
-        } catch (final Exception e) {
-            // An unreadable note is not a match. Failing the whole search over one file would be
-            // worse than missing it.
-            return -1;
-        } finally {
-            try {
-                if (br != null) {
-                    br.close();
-                }
-            } catch (final Exception ignore) {
-                // Nothing useful to do if a read-only handle will not close.
-            }
+    /** A file that satisfied the query, and the best line to open it at. */
+    private static final class Match {
+        final int line;
+
+        Match(final int line) {
+            this.line = line;
         }
     }
+
+    /**
+     * Whether this file satisfies every condition, and where to land if so.
+     *
+     * <p>Conditions may be spread across the title and several lines: a note titled "Fridge"
+     * with "the blue one" in the body satisfies {@code blue fridge} without either half
+     * matching alone. So the title is checked first, the body is scanned once, and a
+     * condition is ticked off wherever it turns up.
+     *
+     * <p>The line chosen is the one satisfying the most conditions rather than the first to
+     * satisfy any, because with several terms the first mention is usually the least
+     * informative one. Ties go to the earlier line.
+     */
+    private static Match findInFile(final File f, final Query q, final String titleLower) {
+        final Set<String> outstanding = new HashSet<>(q.terms);
+        boolean regexSeen = false;
+
+        if (q.regex != null) {
+            regexSeen = q.regex.matcher(titleLower).find();
+        } else {
+            for (final String t : q.terms) {
+                if (titleLower.contains(t)) {
+                    outstanding.remove(t);
+                }
+            }
+        }
+
+        int bestLine = -1;
+        int bestScore = 0;
+
+        if (f.length() <= MAX_BODY_BYTES) {
+            BufferedReader br = null;
+            try {
+                br = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
+                String line;
+                int n = 0;
+                while ((line = br.readLine()) != null) {
+                    final String lower = line.toLowerCase(Locale.ROOT);
+                    final int score = q.score(lower);
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestLine = n;
+                    }
+                    if (q.regex != null) {
+                        regexSeen |= score > 0;
+                    } else if (!outstanding.isEmpty()) {
+                        for (final Iterator<String> it = outstanding.iterator(); it.hasNext(); ) {
+                            if (lower.contains(it.next())) {
+                                it.remove();
+                            }
+                        }
+                    }
+                    n++;
+                }
+            } catch (final Exception e) {
+                // An unreadable note is not a match. Failing the whole search over one file
+                // would be worse than missing it.
+                return null;
+            } finally {
+                try {
+                    if (br != null) {
+                        br.close();
+                    }
+                } catch (final Exception ignore) {
+                    // Nothing useful to do if a read-only handle will not close.
+                }
+            }
+        }
+
+        final boolean satisfied = (q.regex != null) ? regexSeen : outstanding.isEmpty();
+        if (!satisfied) {
+            return null;
+        }
+        return new Match(bestLine);
+    }
+
 
     private static String relative(final String rootPath, final File dir) {
         if (dir == null) {

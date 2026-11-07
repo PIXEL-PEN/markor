@@ -78,7 +78,7 @@ public class SearchActivity extends AutumnBaseActivity implements FolderTreeAdap
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS | MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
         final SearchView search = new SearchView(this);
         item.setActionView(search);
-        search.setQueryHint(getString(R.string.search));
+        search.setQueryHint(getString(R.string.search_hint));
         search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(final String query) {

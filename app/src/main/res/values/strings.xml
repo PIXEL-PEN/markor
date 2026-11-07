@@ -633,4 +633,5 @@
     <string name="browse">Browse</string>
     <string name="quicknote_none_yet">No quicknotes for this month yet</string>
     <string name="quicknote_saved">Quicknote saved</string>
+    <string name="search_hint">Search: words, \"a phrase\", /regex/</string>
 </resources>

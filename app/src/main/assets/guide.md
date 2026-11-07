@@ -99,6 +99,18 @@ The magnifier searches every note in the archive. Results show the matching line
 and its category, and tapping one opens the note at that line rather than at the
 top.
 
+Three ways to ask:
+
+- **blue fridge** finds notes containing both words. They do not have to be near
+  each other, or even on the same line: a note titled "Fridge" with "the blue
+  one" in the body is a match. More words narrow the search, never widen it.
+- **"blue fridge"** in quotes finds that phrase exactly as written.
+- **/fridges?/** between slashes is a regular expression, if you know them. A
+  half-typed one is treated as ordinary text rather than finding nothing.
+
+Searches ignore capitals, and a result lands on the line that matches the most of
+what you asked for.
+
 ## The timeline
 
 From the overflow menu, **Timeline** builds a single web page of your whole
