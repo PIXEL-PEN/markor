@@ -12,9 +12,14 @@ network, so it cannot send your journal anywhere even by accident.
 There are two buttons on the Calendar screen, and they do genuinely different
 things. Most of learning Autumn is knowing which one you want.
 
-**The plus button** makes a journal entry. You pick a date, pick a category,
-type a title, and the note opens so you can write. The entry gets a file of its
-own, filed under its category and year.
+**The plus button** makes a journal entry. The card at the top of the Calendar
+screen shows the date you are filing against — tap it to choose another, which is
+how you back-date something you forgot. Pick a category, type a title, and the
+note opens so you can write. The entry gets a file of its own, filed under its
+year, month and category.
+
+The colour of the card's header follows the month, so after a while it tells you
+roughly where you are in the year before you read the word.
 
 A title can run to 252 characters, which is long enough to be a whole thought.
 That is deliberate: it means you can often write the entire entry as the title
@@ -124,7 +129,7 @@ computer and can be printed or kept as an archive copy.
 
 Everything is under `Documents/Autumn` on your phone:
 
-- `<Category>/<Year>/` — journal entries
+- `<Year>/<Month>/<Category>/` — journal entries
 - `Quicknotes/<Year>/` — one document per month
 - `Images/<Year>/` and `Files/<Year>/` — pictures and attachments
 
