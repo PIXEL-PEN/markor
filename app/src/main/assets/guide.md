@@ -41,26 +41,16 @@ at the top, and that document opens so you can see it landed.
 > If you are not sure which to use: if you would mind losing it in a year, use
 > the plus. If you would not, use the lightning.
 
-## Categories, and whether you need them
+## Categories
 
 A category is a folder with a name you chose: Work, Family, Health, Travel,
 whatever the shape of your life is. Every journal entry goes in one.
 
-Categories are what make a journal searchable years later, and what the Year
-screen is built on. They are worth the small effort at the time of writing.
+The category is what the Year screen and the Timeline are built on. It is how
+you get back to an entry years later without remembering when you wrote it.
 
-But they are an effort, and not everything deserves one. You bought a fridge at
-a shop across town, the salesperson was unusually good, you may want the shop's
-name next month and never again. That is not a journal entry, and filing it like
-one is a chore that will put you off writing anything.
-
-That is what quicknotes are for. They are the place for things that are useful
-now and dispensable later, so the categories stay meaningful.
-
-Worth saying plainly: the category is what the Year screen and the Timeline are
-built on. Put an entry in the wrong one and it is not lost, but it will not show
-up where you go looking for it. Entered faithfully, they are what turns a pile of
-notes into something you can ask questions of.
+Things that are useful now and dispensable later do not need one. Those are what
+quicknotes are for.
 
 You can manage your categories from Settings. Renaming one moves every note
 inside it; deleting one asks where its notes should go.
@@ -173,11 +163,11 @@ get, and it costs nothing to keep a copy somewhere other than your phone.
 The Timeline does not only have to hold the years you kept Autumn for. You can
 reconstruct the ones before it, and that is a project worth doing slowly.
 
-Start with the pill. Each year on the Timeline carries its first highlight as a
-coloured tag beside the number, and one word is often enough to define a year:
-2020 is Covid, and you need nothing else for that year to come back. Put a
-single phrase against a year and you will find it starts pulling things with
-it — the graduation year, the first car, the year you fell in love, the year
+Start with one phrase for the whole year. The first highlight you give a year
+is shown beside its number on the Timeline, set off in colour, and one word is
+often enough to define a year: 2020 is Covid, and you need nothing else for that
+year to come back. Put a single phrase against a year and you will find it
+starts pulling things with it — the graduation year, the first car, the year you fell in love, the year
 you moved.
 
 Then add bullets as they arrive. They will not arrive in order and they will not
