@@ -51,7 +51,7 @@
         <!-- The day card. Rings straddle the top edge, so the card is inset to make room. -->
         <FrameLayout
             android:id="@+id/day_card_frame"
-            android:layout_width="190dp"
+            android:layout_width="171dp"
             android:layout_height="wrap_content"
             android:clipChildren="false"
             android:clipToPadding="false"
@@ -65,20 +65,20 @@
                 android:orientation="horizontal">
 
                 <View
-                    android:layout_width="7dp"
-                    android:layout_height="17dp"
-                    android:layout_marginEnd="24dp"
+                    android:layout_width="6dp"
+                    android:layout_height="15dp"
+                    android:layout_marginEnd="22dp"
                     android:background="@drawable/bg_day_card_ring" />
 
                 <View
-                    android:layout_width="7dp"
-                    android:layout_height="17dp"
-                    android:layout_marginEnd="24dp"
+                    android:layout_width="6dp"
+                    android:layout_height="15dp"
+                    android:layout_marginEnd="22dp"
                     android:background="@drawable/bg_day_card_ring" />
 
                 <View
-                    android:layout_width="7dp"
-                    android:layout_height="17dp"
+                    android:layout_width="6dp"
+                    android:layout_height="15dp"
                     android:background="@drawable/bg_day_card_ring" />
 
             </LinearLayout>
@@ -87,24 +87,24 @@
                 android:id="@+id/day_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="9dp"
                 android:clickable="true"
                 android:contentDescription="@string/day_card_description"
                 android:focusable="true"
                 android:background="@drawable/bg_day_card"
-                android:elevation="16dp"
+                android:elevation="15dp"
                 android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/day_card_month"
                     android:layout_width="match_parent"
-                    android:layout_height="30dp"
+                    android:layout_height="27dp"
                     android:background="@drawable/bg_day_card_band"
                     android:gravity="center_horizontal|bottom"
                     android:letterSpacing="0.18"
-                    android:paddingBottom="6dp"
+                    android:paddingBottom="5dp"
                     android:textColor="@android:color/white"
-                    android:textSize="9.5sp"
+                    android:textSize="8.5sp"
                     android:textStyle="bold"
                     tools:text="NOVEMBER 2026" />
 
@@ -114,9 +114,9 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_horizontal"
                     android:includeFontPadding="false"
-                    android:paddingTop="14dp"
+                    android:paddingTop="13dp"
                     android:textColor="@color/day_card_number"
-                    android:textSize="64sp"
+                    android:textSize="58sp"
                     android:textStyle="bold"
                     tools:text="7" />
 
@@ -125,10 +125,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_horizontal"
-                    android:paddingBottom="18dp"
-                    android:paddingTop="10dp"
+                    android:paddingBottom="16dp"
+                    android:paddingTop="9dp"
                     android:textColor="@color/day_card_weekday"
-                    android:textSize="14sp"
+                    android:textSize="12.5sp"
                     tools:text="Saturday" />
 
 
