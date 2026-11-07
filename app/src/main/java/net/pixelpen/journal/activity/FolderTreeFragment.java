@@ -113,8 +113,6 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         _adapter = new FolderTreeAdapter(this);
         _list.setLayoutManager(new LinearLayoutManager(requireContext()));
         _list.setAdapter(_adapter);
-        // Survives the view being rebuilt when the tab is revisited.
-        _adapter.setActiveCategory(_activeCategory);
         // Rows are rebuilt wholesale on expand and collapse, and the default change animation
         // makes that read as a flash rather than as a fold opening.
         _list.setItemAnimator(null);
@@ -189,9 +187,6 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
      */
     private String _pendingCategoryExpand;
 
-    /** Path of the category the Calendar is pointed at, for the band in the tree. */
-    private String _activeCategory;
-
     /**
      * Open the year and the month, and nothing below them.
      *
@@ -259,34 +254,8 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
      * work is happening. Nothing else calls it, which is what keeps a plain return to the tree
      * from unfolding anything.
      */
-    /**
-     * Mark a category without opening it.
-     *
-     * <p>Separate from expandCategoryOnNextDraw on purpose. Expanding is an event: it happens
-     * because a note was filed or the spinner moved, and it happens once. The band is a
-     * state: it says which category the Calendar is pointed at, which is true on every visit
-     * to this screen, including the visits where nothing changed.
-     *
-     * <p>Tying the two together is why the band never appeared. Opening the Tree without
-     * first touching the spinner raised no change event, so nothing was ever marked.
-     */
-    public void setActiveCategory(final File dir) {
-        _activeCategory = (dir == null) ? null : dir.getAbsolutePath();
-        if (_adapter != null) {
-            _adapter.setActiveCategory(_activeCategory);
-        }
-    }
-
     public void expandCategoryOnNextDraw(final File dir) {
         _pendingCategoryExpand = (dir == null) ? null : dir.getAbsolutePath();
-        // Kept after the expansion is consumed, unlike _pendingCategoryExpand. The band is
-        // not a one-shot: it says which category the Calendar is pointed at, and that is
-        // still true after the tree has drawn and after the category has been collapsed
-        // again on the way out.
-        _activeCategory = _pendingCategoryExpand;
-        if (_adapter != null) {
-            _adapter.setActiveCategory(_activeCategory);
-        }
     }
 
     /**

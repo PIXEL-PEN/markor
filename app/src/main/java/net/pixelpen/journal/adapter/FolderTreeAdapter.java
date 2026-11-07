@@ -41,9 +41,6 @@ import java.util.Locale;
  */
 public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    /** Absolute path of the category the Calendar is pointed at, or null. */
-    private String _activeCategory;
-
     private static final int TYPE_FOLDER = 0;
     private static final int TYPE_FILE = 1;
     private static final int TYPE_HEADER = 2;
@@ -222,8 +219,6 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         // Rotated, not swapped for a second glyph, so it turns the way the CSS transition did.
         h.arrow.setRotation(row.expanded ? 90f : 0f);
 
-        applyFolderBackground(h.itemView, _activeCategory != null
-                && _activeCategory.equals(row.entry.file.getAbsolutePath()));
         indent(h.itemView, row.depth);
 
         h.itemView.setOnClickListener(v -> {
@@ -259,45 +254,6 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         h.itemView.setOnClickListener(v -> open(v.getContext(), e.file, row.line));
         h.itemView.setOnLongClickListener(v ->
                 _listener != null && _listener.onFileLongPressed(e.file));
-    }
-
-    /**
-     * Mark the category the Calendar is pointed at. Null clears it.
-     *
-     * <p>Matched by path rather than by depth. The tree's depth numbering serves the type
-     * sizes and is not a reliable way to ask "is this row a category"; a path either is the
-     * active one or it is not.
-     */
-    public void setActiveCategory(final String path) {
-        if ((path == null) ? (_activeCategory == null) : path.equals(_activeCategory)) {
-            return;
-        }
-        _activeCategory = path;
-        notifyDataSetChanged();
-    }
-
-    /**
-     * Give the row its background, then its padding.
-     *
-     * <p>In that order, and not the other way round: setBackgroundResource replaces the
-     * view's padding with the new drawable's, so anything set beforehand is lost. The
-     * vertical and end values are restated here from item_tree_folder.xml rather than read
-     * back off the view, which on a recycled row would hand back whatever the last binding
-     * left behind. indent() sets the start afterwards and keeps these.
-     */
-    private void applyFolderBackground(final View view, final boolean active) {
-        final float density = view.getResources().getDisplayMetrics().density;
-        if (active) {
-            view.setBackgroundResource(R.drawable.bg_tree_active_category);
-        } else {
-            final TypedValue out = new TypedValue();
-            view.getContext().getTheme()
-                    .resolveAttribute(android.R.attr.selectableItemBackground, out, true);
-            view.setBackgroundResource(out.resourceId);
-        }
-        final int vertical = Math.round(10 * density);
-        view.setPaddingRelative(view.getPaddingStart(), vertical,
-                Math.round(16 * density), vertical);
     }
 
     private static void indent(final View view, final int depth) {

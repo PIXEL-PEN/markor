@@ -108,10 +108,6 @@
     <color name="tree_icon">#1C1C1C</color>
     <color name="tree_meta">#6E6E6E</color>
     <color name="tree_divider">#DDDDDD</color>
-    <!-- The category the Calendar is pointed at. Teal rather than tree_accent's orange,
-         which is the arrow's colour and would read as another arrow. -->
-    <color name="tree_active_band">#0A9396</color>
-    <color name="tree_active_bg">#E6F4F4</color>
 
     <!--
       Year overview. Taken from the stylesheet year.py generated, so the native screen reads as

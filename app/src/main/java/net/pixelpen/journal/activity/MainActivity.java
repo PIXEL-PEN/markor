@@ -803,12 +803,7 @@ public class MainActivity extends AutumnBaseActivity {
 
         if (pos == tabIdToPos(R.id.nav_tree) && _tree != null) {
             if (_journal != null) {
-                final java.io.File target = _journal.currentTargetDir();
-                _tree.focusOn(target);
-                // Every visit, not just the ones that follow a change. The band reflects
-                // where the Calendar is pointed, and that is worth showing even when you
-                // arrived here without touching anything.
-                _tree.setActiveCategory(target);
+                _tree.focusOn(_journal.currentTargetDir());
             }
             if (_pendingTreeCategory != null) {
                 _tree.expandCategoryOnNextDraw(_pendingTreeCategory);
