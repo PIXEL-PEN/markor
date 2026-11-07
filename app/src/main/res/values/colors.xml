@@ -149,4 +149,7 @@
     <color name="guide_body">#2B3545</color>
     <color name="guide_callout_bg">#E0FBFC</color>
     <color name="guide_callout_rule">#0A9396</color>
+    <!-- Quicknote is an action, not a tab, and is coloured apart from the three
+         destinations. Used by the bar icon fill and by the label span. -->
+    <color name="nav_quicknote">#FFD400</color>
 </resources>

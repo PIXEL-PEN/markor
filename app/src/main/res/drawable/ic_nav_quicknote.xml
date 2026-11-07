@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24.0"
+    android:viewportHeight="24.0">
+    <!-- The colour is a fill, not a tint, and that distinction is the whole point. The bar
+         tints nothing so the bolt can be yellow, and Material reads itemIconTint="@null" as
+         "these drawables have no tint", calling setTintList(icon, null) on every item, which
+         wipes a vector's own android:tint and blanked this bar once already. setTintList
+         cannot touch a fillColor. -->
+    <path
+        android:fillColor="#FFD400"
+        android:pathData="M14,1.5 L3.5,13.8 L9.8,13.8 L8.6,22.5 L20.5,9.2 L13.4,9.2 Z"/>
+</vector>

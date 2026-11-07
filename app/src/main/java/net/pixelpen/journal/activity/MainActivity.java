@@ -19,6 +19,9 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -599,11 +602,10 @@ public class MainActivity extends AutumnBaseActivity {
         if (_journal != null && _journal.hasQuicknoteText()) {
             final File written = _journal.captureQuicknote();
             if (written != null) {
-                // Filed, and that is all. Opening the month as well threw you off the
-                // Calendar after every jotting, which is the opposite of what a quicknote
-                // is for -- it should cost one tap and leave you where you were. Long-press
-                // is the way in when you actually want to read it.
-                Toast.makeText(this, R.string.quicknote_saved, Toast.LENGTH_SHORT).show();
+                // The month opens so you can see the entry landed on top, which is the
+                // confirmation. This is how it behaved originally; a toast replaced it for
+                // two commits and said less.
+                DocumentActivity.launch(this, written, Boolean.TRUE, null);
             }
             return;
         }
@@ -639,6 +641,18 @@ public class MainActivity extends AutumnBaseActivity {
      * in its path.
      */
     private void setUpQuicknoteNavItem() {
+        // itemTextColor is one state list for the whole bar, so the label cannot be coloured
+        // per item from XML. A span inside the title can, and the bar's TextView honours it.
+        // If it ever stops honouring it the label simply reverts to the bar's colour, which
+        // is a cosmetic loss rather than another blank bar.
+        final MenuItem qnItem = _bottomNav.getMenu().findItem(R.id.nav_quicknote);
+        if (qnItem != null && qnItem.getTitle() != null) {
+            final SpannableString title = new SpannableString(qnItem.getTitle());
+            title.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.nav_quicknote)),
+                    0, title.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+            qnItem.setTitle(title);
+        }
+
         final View qn = _bottomNav.findViewById(R.id.nav_quicknote);
         if (qn != null) {
             // Long-press would otherwise raise a tooltip. Consuming it gives the gesture
