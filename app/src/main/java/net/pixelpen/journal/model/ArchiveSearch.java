@@ -149,15 +149,26 @@ public final class ArchiveSearch {
          * so opening a result lands on the line rather than at the top of the note.
          */
         public final int line;
+        /**
+         * The matched line, tidied for display, or empty when the title matched and the body
+         * never mentioned it.
+         *
+         * <p>A result used to read "Aches, Medical-Health, line 6", which names the note and
+         * then asks you to take the match on trust. The line itself is the one piece of a
+         * result that answers why it is in the list.
+         */
+        public final String snippet;
 
         Hit(final File file, final String display, final String where,
-            final long createdMillis, final boolean inBody, final int line) {
+            final long createdMillis, final boolean inBody, final int line,
+            final String snippet) {
             this.file = file;
             this.display = display;
             this.where = where;
             this.createdMillis = createdMillis;
             this.inBody = inBody;
             this.line = line;
+            this.snippet = snippet;
         }
     }
 
@@ -223,7 +234,7 @@ public final class ArchiveSearch {
                     continue;
                 }
                 hits.add(new Hit(f, display, relative(rootPath, f.getParentFile()),
-                        created(f, index), m.line >= 0, m.line));
+                        created(f, index), m.line >= 0, m.line, m.text));
             }
         }
 
@@ -254,10 +265,35 @@ public final class ArchiveSearch {
     /** A file that satisfied the query, and the best line to open it at. */
     private static final class Match {
         final int line;
+        final String text;
 
-        Match(final int line) {
+        Match(final int line, final String text) {
             this.line = line;
+            this.text = text;
         }
+    }
+
+    /** Longest snippet worth putting on one line under a title. */
+    private static final int SNIPPET_CHARS = 72;
+
+    /**
+     * Tidy a matched line for display: drop the leading markup that would otherwise be the
+     * first thing you read, collapse runs of whitespace, and cut it short with an ellipsis.
+     */
+    static String snippet(final String raw) {
+        if (raw == null) {
+            return "";
+        }
+        String t = raw.trim()
+                .replaceFirst("^#{1,6}\\s+", "")
+                .replaceFirst("^>\\s*", "")
+                .replaceFirst("^([-*+]|\\d+\\.)\\s+", "")
+                .replaceAll("\\s+", " ")
+                .trim();
+        if (t.length() > SNIPPET_CHARS) {
+            t = t.substring(0, SNIPPET_CHARS).trim() + "\u2026";
+        }
+        return t;
     }
 
     /**
@@ -288,6 +324,7 @@ public final class ArchiveSearch {
 
         int bestLine = -1;
         int bestScore = 0;
+        String bestText = "";
 
         if (f.length() <= MAX_BODY_BYTES) {
             BufferedReader br = null;
@@ -301,6 +338,7 @@ public final class ArchiveSearch {
                     if (score > bestScore) {
                         bestScore = score;
                         bestLine = n;
+                        bestText = line;
                     }
                     if (q.regex != null) {
                         regexSeen |= score > 0;
@@ -332,7 +370,7 @@ public final class ArchiveSearch {
         if (!satisfied) {
             return null;
         }
-        return new Match(bestLine);
+        return new Match(bestLine, snippet(bestText));
     }
 
 

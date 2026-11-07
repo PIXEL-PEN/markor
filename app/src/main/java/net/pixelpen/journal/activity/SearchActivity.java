@@ -142,8 +142,11 @@ public class SearchActivity extends AutumnBaseActivity implements FolderTreeAdap
             for (final ArchiveSearch.Hit h : hits) {
                 final int cut = h.where.lastIndexOf('/');
                 final String category = (cut >= 0) ? h.where.substring(cut + 1) : h.where;
-                final String where = h.inBody
-                        ? category + "  ·  " + getString(R.string.tree_search_in_body, h.line + 1)
+                // The matched text, not "line 6". The line number is still passed to the
+                // editor so the result opens in the right place; it just stopped being the
+                // only thing the row said about the match.
+                final String where = h.inBody && !h.snippet.isEmpty()
+                        ? category + "  ·  " + h.snippet
                         : category;
                 rows.add(new FolderTreeAdapter.Row(
                         TreeStore.Entry.forNote(h.file, h.display, h.createdMillis),
