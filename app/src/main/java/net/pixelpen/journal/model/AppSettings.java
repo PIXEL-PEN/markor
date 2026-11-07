@@ -768,9 +768,11 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         if (i == R.id.nav_tree) {
             return R.id.nav_tree;
         }
-        if (i == R.id.nav_more) {
-            return R.id.nav_more;
+        if (i == R.id.nav_year) {
+            return R.id.nav_year;
         }
+        // nav_more used to be a page and is now an action on the bar, so it can no longer be
+        // landed on. Anything stored for it falls through to Journal.
         // Journal is the default and the front door: this is a capture-first app, so the
         // calendar should be what you land on, not a file browser.
         //

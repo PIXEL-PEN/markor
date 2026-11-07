@@ -145,6 +145,21 @@ public class CalendarFragment extends AutumnBaseFragment
      *
      * @return the month file written, for the caller to open, or null if nothing was written.
      */
+    /** Whether there is anything in the input field worth filing. */
+    public boolean hasQuicknoteText() {
+        return inputNoteTitle != null && !inputNoteTitle.getText().toString().trim().isEmpty();
+    }
+
+    /** The date a quicknote written now would carry, so the bar item and this screen agree. */
+    public Calendar quicknoteCalendar() {
+        return NoteTimestamp.combineSelectedDateWithCurrentTime(selectedCalendarDate);
+    }
+
+    /** The category the spinner is on. For Browse. */
+    public File selectedCategoryDir() {
+        return currentTargetDir();
+    }
+
     public File captureQuicknote() {
         final String text = inputNoteTitle.getText().toString().trim();
         if (text.isEmpty()) {

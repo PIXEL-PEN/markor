@@ -44,20 +44,22 @@
         android:layout_marginTop="?attr/actionBarSize"
         android:layout_marginBottom="?attr/actionBarSize" />
 
-    <!-- New-file FAB. Shown only on the Files tab; see MainActivity.onViewPagerPageSelected. -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_quick_note"
+    <!-- Browse. Opens the Tree already showing the category the spinner is set to, so you can
+         look at what is in a category without making an entry to get there. Journal tab only;
+         see MainActivity.onViewPagerPageSelected. -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fab_browse"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_marginEnd="24dp"
+        android:layout_marginEnd="20dp"
         android:layout_marginBottom="140dp"
-        android:contentDescription="@string/quick_note"
-        android:src="@drawable/ic_lightning_black_24dp"
-        app:fabCustomSize="40dp"
-        app:fabSize="mini"
-        app:maxImageSize="20dp"
-        app:tint="@android:color/white" />
+        android:text="@string/browse"
+        android:textColor="@android:color/white"
+        app:icon="@drawable/ic_baseline_keyboard_double_arrow_right_24"
+        app:iconGravity="end"
+        app:iconTint="@android:color/white"
+        app:iconSize="18dp" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_new_item"

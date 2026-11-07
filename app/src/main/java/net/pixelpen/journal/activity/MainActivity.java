@@ -12,6 +12,12 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.drawable.Drawable;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
+import net.pixelpen.journal.model.Quicknote;
+import java.util.Calendar;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -29,6 +35,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import net.pixelpen.journal.BuildConfig;
@@ -62,9 +69,8 @@ public class MainActivity extends AutumnBaseActivity {
     private CalendarFragment _journal;
     private FolderTreeFragment _tree;
     private YearFragment _year;
-    private MoreFragment _more;
     private FloatingActionButton _fab;
-    private FloatingActionButton _quickFab;
+    private ExtendedFloatingActionButton _browseFab;
     /** Toolbar items whose visibility follows the tab. */
     private MenuItem _searchItem;
     private MenuItem _homeItem;
@@ -97,8 +103,9 @@ public class MainActivity extends AutumnBaseActivity {
         _viewPager = findViewById(R.id.main__view_pager_container);
         _fab = findViewById(R.id.fab_add_new_item);
         _fab.setOnClickListener(this::onClickFab);
-        _quickFab = findViewById(R.id.fab_quick_note);
-        _quickFab.setOnClickListener(this::onClickQuickFab);
+        _browseFab = findViewById(R.id.fab_browse);
+        _browseFab.setOnClickListener(this::onClickBrowse);
+        setUpQuicknoteNavItem();
 
 
 
@@ -138,6 +145,12 @@ public class MainActivity extends AutumnBaseActivity {
         _viewPager.setAdapter(new SectionsPagerAdapter(getSupportFragmentManager()));
         _viewPager.setOffscreenPageLimit(4);
         _bottomNav.setOnItemSelectedListener((item) -> {
+            if (item.getItemId() == R.id.nav_quicknote) {
+                // Returning false leaves the current tab checked. This item does something;
+                // it does not go anywhere.
+                onQuicknoteNavTapped();
+                return false;
+            }
             _viewPager.setCurrentItem(tabIdToPos(item.getItemId()));
             return true;
         });
@@ -174,7 +187,6 @@ public class MainActivity extends AutumnBaseActivity {
             manager.putFragment(outState, Integer.toString(R.id.nav_journal), _journal);
             manager.putFragment(outState, Integer.toString(R.id.nav_tree), _tree);
             manager.putFragment(outState, Integer.toString(R.id.nav_year), _year);
-            manager.putFragment(outState, Integer.toString(R.id.nav_more), _more);
         } catch (NullPointerException | IllegalStateException ignored) {
             Log.d(MainActivity.class.getName(), "Child fragments null in onSaveInstanceState()");
         }
@@ -194,7 +206,6 @@ public class MainActivity extends AutumnBaseActivity {
             _journal = (CalendarFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_journal));
             _tree = (FolderTreeFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_tree));
             _year = (YearFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_year));
-            _more = (MoreFragment) manager.getFragment(savedInstanceState, Integer.toString(R.id.nav_more));
         } catch (NullPointerException | IllegalStateException ignored) {
             Log.d(MainActivity.class.getName(), "Child fragment not found in onRestoreInstanceState()");
         }
@@ -427,7 +438,7 @@ public class MainActivity extends AutumnBaseActivity {
      */
     private void applyToolbarForTab(final int pos) {
         final boolean onTree = pos == tabIdToPos(R.id.nav_tree);
-        // Year joins Journal and Tree. More is the settings screen and needs none of it.
+        // All three pages want it now that the settings page is no longer one of them.
         final boolean wanted = onTree
                 || pos == tabIdToPos(R.id.nav_journal)
                 || pos == tabIdToPos(R.id.nav_year);
@@ -558,15 +569,81 @@ public class MainActivity extends AutumnBaseActivity {
      * <p>No tree reveal. Quicknotes are not in the category tree -- Quicknotes/ sits beside
      * Images/ and Files/, and revealPathTo expects a category path.
      */
-    public void onClickQuickFab(final View view) {
-        if (_journal == null) {
+    public void onQuicknoteNavTapped() {
+        if (_journal != null && _journal.hasQuicknoteText()) {
+            final File written = _journal.captureQuicknote();
+            if (written != null) {
+                DocumentActivity.launch(this, written, Boolean.TRUE, null);
+            }
             return;
         }
-        final File written = _journal.captureQuicknote();
-        if (written == null) {
+        // Nothing to file -- another tab, or an empty field. Opening the month is the useful
+        // answer rather than a complaint, and it is what long-press does anyway.
+        openQuicknoteMonth();
+    }
+
+    /**
+     * Open the month's quicknote document without writing anything. Bound to long-press on
+     * the bar item, and the fallback when there is nothing in the input field.
+     */
+    private void openQuicknoteMonth() {
+        final Calendar when = (_journal != null)
+                ? _journal.quicknoteCalendar() : Calendar.getInstance();
+        final File file = Quicknote.fileFor(_appSettings.getNotebookDirectory(), when);
+        if (file == null || !file.isFile()) {
+            Toast.makeText(this, R.string.quicknote_none_yet, Toast.LENGTH_SHORT).show();
             return;
         }
-        DocumentActivity.launch(this, written, Boolean.TRUE, null);
+        DocumentActivity.launch(this, file, Boolean.TRUE, null);
+    }
+
+    /**
+     * The quicknote bar item is an action wearing a destination's clothes, so it needs two
+     * things the other three do not.
+     *
+     * <p>The bar tints every icon from one selector, which would paint this one the same grey
+     * as an unselected tab. Switching the tint off and applying the selector to the other
+     * three by hand leaves this icon showing the yellow it was drawn with, selected or not --
+     * which is the point, because it never becomes the selected tab.
+     *
+     * <p>Long-press would otherwise raise a tooltip. Consuming it gives the gesture to
+     * opening the month instead.
+     */
+    private void setUpQuicknoteNavItem() {
+        final ColorStateList tint =
+                ContextCompat.getColorStateList(this, R.drawable.bottomnav_color_selector);
+        _bottomNav.setItemIconTintList(null);
+        for (final int id : new int[]{R.id.nav_journal, R.id.nav_tree, R.id.nav_year}) {
+            final MenuItem item = _bottomNav.getMenu().findItem(id);
+            if (item == null || item.getIcon() == null) {
+                continue;
+            }
+            final Drawable icon = DrawableCompat.wrap(item.getIcon().mutate());
+            DrawableCompat.setTintList(icon, tint);
+            item.setIcon(icon);
+        }
+
+        final View qn = _bottomNav.findViewById(R.id.nav_quicknote);
+        if (qn != null) {
+            qn.setOnLongClickListener(v -> {
+                openQuicknoteMonth();
+                return true;
+            });
+        }
+    }
+
+    /**
+     * Browse. Opens the Tree already showing the category the spinner is set to, so you can
+     * look inside a category without making an entry to get there.
+     *
+     * <p>onCategoryChosen is the same path a spinner change takes, so the Tree expands that
+     * category on its next draw and collapses it on the way out, exactly as it already does.
+     */
+    public void onClickBrowse(final View view) {
+        if (_journal != null) {
+            onCategoryChosen(_journal.selectedCategoryDir());
+        }
+        _viewPager.setCurrentItem(tabIdToPos(R.id.nav_tree), false);
     }
 
     @Override
@@ -587,7 +664,6 @@ public class MainActivity extends AutumnBaseActivity {
         if (id == R.id.nav_journal) return 0;
         if (id == R.id.nav_tree) return 1;
         if (id == R.id.nav_year) return 2;
-        if (id == R.id.nav_more) return 3;
         return 0;
     }
 
@@ -637,7 +713,6 @@ public class MainActivity extends AutumnBaseActivity {
         if (pos == 0) return getString(R.string.calendar);
         if (pos == 1) return getString(R.string.tree);
         if (pos == 2) return getString(R.string.year);
-        if (pos == 3) return getString(R.string.settings);
         return "";
     }
 
@@ -645,7 +720,6 @@ public class MainActivity extends AutumnBaseActivity {
         if (pos == 0) return _journal;
         if (pos == 1) return _tree;
         if (pos == 2) return _year;
-        if (pos == 3) return _more;
         return null;
     }
 
@@ -657,10 +731,10 @@ public class MainActivity extends AutumnBaseActivity {
         // have none. The timeline's own is on its own screen now.
         if (pos == tabIdToPos(R.id.nav_journal)) {
             _fab.show();
-            _quickFab.show();
+            _browseFab.show();
         } else {
             _fab.hide();
-            _quickFab.hide();
+            _browseFab.hide();
         }
 
         // Rescan the Tree each time it is shown. The pager keeps fragments alive, so without
@@ -724,10 +798,9 @@ public class MainActivity extends AutumnBaseActivity {
                 frag = _tree = FolderTreeFragment.newInstance();
             } else if (id == R.id.nav_year) {
                 frag = _year = YearFragment.newInstance();
-            } else if (id == R.id.nav_more) {
-                frag = _more = MoreFragment.newInstance();
             } else {
-                frag = _more = MoreFragment.newInstance();
+                // Three pages. The fourth bar item is an action, not a destination.
+                frag = _journal = CalendarFragment.newInstance();
             }
             frag.setMenuVisibility(false);
             return frag;
@@ -735,7 +808,8 @@ public class MainActivity extends AutumnBaseActivity {
 
         @Override
         public int getItemCount() {
-            return _bottomNav.getMenu().size();
+            // One fewer page than there are bar items: nav_quicknote is an action.
+            return _bottomNav.getMenu().size() - 1;
         }
     }
 

@@ -1,0 +1,12 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+        android:width="24dp"
+        android:height="24dp"
+        android:viewportWidth="24.0"
+        android:viewportHeight="24.0">
+    <!-- Carries its own colour. The bottom bar's icon tint is switched off in MainActivity so
+         this stays yellow whether the item is selected or not, which is the point: it is an
+         action, not a destination, and it should not look like the other three. -->
+    <path
+        android:fillColor="#FFD400"
+        android:pathData="M14,1.5 L3.5,13.8 L9.8,13.8 L8.6,22.5 L20.5,9.2 L13.4,9.2 Z"/>
+</vector>

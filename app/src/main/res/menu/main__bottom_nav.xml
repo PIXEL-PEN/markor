@@ -26,8 +26,11 @@
         android:icon="@drawable/ic_date_range_black_24dp"
         android:title="@string/year" />
 
+    <!-- An action, not a destination. Tapping files whatever is in the Calendar's input
+         field; long-pressing opens the month's document. Settings moved to the overflow
+         menu, which already had it. -->
     <item
-        android:id="@+id/nav_more"
-        android:icon="@drawable/ic_settings_black_24dp"
-        android:title="@string/settings" />
+        android:id="@+id/nav_quicknote"
+        android:icon="@drawable/ic_lightning_yellow_24dp"
+        android:title="@string/quick_note" />
 </menu>
