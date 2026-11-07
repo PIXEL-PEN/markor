@@ -18,6 +18,7 @@ import java.util.Calendar;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -75,6 +76,23 @@ public class MainActivity extends AutumnBaseActivity {
      * screen.
      */
     private View _browseFab;
+
+    /**
+     * When the quicknote bar item was last long-pressed.
+     *
+     * <p>Returning true from onLongClick is supposed to swallow the click that follows, and on
+     * this bar it does not: the item view runs its own click handling, so a long press fired
+     * both. The note was filed and the field cleared on the way to opening the month, when a
+     * long press is meant to open and nothing else.
+     *
+     * <p>A timestamp rather than a flag, because a flag only clears when the trailing click
+     * actually arrives. Where it does not, the flag stays set and eats the next real tap --
+     * a worse bug than the one being fixed, and an intermittent one. A time window cannot
+     * get stuck.
+     */
+    private long _quicknoteLongPressAt;
+
+    private static final long LONG_PRESS_CLICK_WINDOW_MS = 600;
     /** Toolbar items whose visibility follows the tab. */
     private MenuItem _searchItem;
     private MenuItem _homeItem;
@@ -574,6 +592,10 @@ public class MainActivity extends AutumnBaseActivity {
      * Images/ and Files/, and revealPathTo expects a category path.
      */
     public void onQuicknoteNavTapped() {
+        if (SystemClock.uptimeMillis() - _quicknoteLongPressAt < LONG_PRESS_CLICK_WINDOW_MS) {
+            // The click riding in behind a long press. The month is already opening.
+            return;
+        }
         if (_journal != null && _journal.hasQuicknoteText()) {
             final File written = _journal.captureQuicknote();
             if (written != null) {
@@ -622,6 +644,7 @@ public class MainActivity extends AutumnBaseActivity {
             // Long-press would otherwise raise a tooltip. Consuming it gives the gesture
             // to opening the month instead.
             qn.setOnLongClickListener(v -> {
+                _quicknoteLongPressAt = SystemClock.uptimeMillis();
                 openQuicknoteMonth();
                 return true;
             });
