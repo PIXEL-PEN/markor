@@ -3,7 +3,7 @@
     android:height="24dp"
     android:viewportWidth="24.0"
     android:viewportHeight="24.0"
-    android:tint="@drawable/bottomnav_color_selector">
+    android:tint="@color/nav_tint">
     <!-- A bottom-bar copy of ic_date_range_black_24dp. That one is shared with dialogs, the
          todo.txt action buttons and a preference row, where a bar tint would wash it out on
          a light background, so it keeps its black and this carries the tint. -->

@@ -566,9 +566,9 @@ public class MainActivity extends AutumnBaseActivity {
      * complete the moment the title is typed; those were being shown a document containing one
      * date stamp and nothing else, and finishing meant backing out of it.
      *
-     * <p>The month's file opens afterwards, in view mode, so you can see the entry landed on
-     * top of the others. That is the whole feedback loop: a quicknote is written without
-     * deciding anything, so the only thing worth confirming is that it is there.
+     * <p>A tap files it and leaves you on the Calendar, with a toast as the whole feedback
+     * loop. Opening the month as well meant every jotting threw you off the screen you were
+     * on, which is the opposite of what a quicknote is for. Long-press is the way in.
      *
      * <p>No tree reveal. Quicknotes are not in the category tree -- Quicknotes/ sits beside
      * Images/ and Files/, and revealPathTo expects a category path.
@@ -577,7 +577,11 @@ public class MainActivity extends AutumnBaseActivity {
         if (_journal != null && _journal.hasQuicknoteText()) {
             final File written = _journal.captureQuicknote();
             if (written != null) {
-                DocumentActivity.launch(this, written, Boolean.TRUE, null);
+                // Filed, and that is all. Opening the month as well threw you off the
+                // Calendar after every jotting, which is the opposite of what a quicknote
+                // is for -- it should cost one tap and leave you where you were. Long-press
+                // is the way in when you actually want to read it.
+                Toast.makeText(this, R.string.quicknote_saved, Toast.LENGTH_SHORT).show();
             }
             return;
         }
@@ -640,11 +644,21 @@ public class MainActivity extends AutumnBaseActivity {
 
     @Override
     public void onBackPressed() {
-        // Check if fragment handled back press
+        // The visible fragment gets first refusal -- the Tree closes a search, a preference
+        // screen walks back up a level.
         final GsFragmentBase<?, ?> frag = getPosFragment(getCurrentPos());
-        if (frag == null || !frag.onBackPressed()) {
-            super.onBackPressed();
+        if (frag != null && frag.onBackPressed()) {
+            return;
         }
+        // Then Calendar, before the app. Browse puts you on the Tree without a back stack
+        // entry, because a tab change is not a navigation, so Back went straight out of the
+        // app from there. Calendar is the front door; leaving should take two presses from
+        // anywhere else, not one.
+        if (getCurrentPos() != tabIdToPos(R.id.nav_journal)) {
+            _viewPager.setCurrentItem(tabIdToPos(R.id.nav_journal), false);
+            return;
+        }
+        super.onBackPressed();
     }
 
     // Tabs: Journal, Tree, Year, Settings. Order must match main__bottom_nav.xml.
