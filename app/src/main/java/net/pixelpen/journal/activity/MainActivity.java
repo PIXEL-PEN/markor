@@ -599,19 +599,17 @@ public class MainActivity extends AutumnBaseActivity {
             // The click riding in behind a long press. The month is already opening.
             return;
         }
-        if (_journal != null && _journal.hasQuicknoteText()) {
-            final File written = _journal.captureQuicknote();
-            if (written != null) {
-                // The month opens so you can see the entry landed on top, which is the
-                // confirmation. This is how it behaved originally; a toast replaced it for
-                // two commits and said less.
-                DocumentActivity.launch(this, written, Boolean.TRUE, null);
-            }
+        if (_journal == null) {
             return;
         }
-        // Nothing to file -- another tab, or an empty field. Opening the month is the useful
-        // answer rather than a complaint, and it is what long-press does anyway.
-        openQuicknoteMonth();
+        // File and open, or say there is nothing to file. A tap no longer opens the month on
+        // its own: that is long press, and the two gestures should not collapse into each
+        // other when the field happens to be empty. captureQuicknote raises its own toast
+        // when there is no text, so an empty tap explains itself.
+        final File written = _journal.captureQuicknote();
+        if (written != null) {
+            DocumentActivity.launch(this, written, Boolean.TRUE, null);
+        }
     }
 
     /**
@@ -641,6 +639,13 @@ public class MainActivity extends AutumnBaseActivity {
      * in its path.
      */
     private void setUpQuicknoteNavItem() {
+        // A true null, from Java, so no tint is applied at all and every icon shows the
+        // fill it was drawn with. app:itemIconTint="@null" is NOT the same thing: a colour
+        // attribute resolves @null to 0, which is transparent black, so the bar dutifully
+        // tinted every icon invisible. That is what blanked this bar three times, and why it
+        // made no difference whether the colour lived in a tint or a fill.
+        _bottomNav.setItemIconTintList(null);
+
         // itemTextColor is one state list for the whole bar, so the label cannot be coloured
         // per item from XML. A span inside the title can, and the bar's TextView honours it.
         // If it ever stops honouring it the label simply reverts to the bar's colour, which

@@ -3,11 +3,14 @@
     android:height="24dp"
     android:viewportWidth="24.0"
     android:viewportHeight="24.0">
-    <!-- The colour is a fill, not a tint, and that distinction is the whole point. The bar
-         tints nothing so the bolt can be yellow, and Material reads itemIconTint="@null" as
-         "these drawables have no tint", calling setTintList(icon, null) on every item, which
-         wipes a vector's own android:tint and blanked this bar once already. setTintList
-         cannot touch a fillColor. -->
+    <!-- The colour is a fill, so nothing has to be resolved or applied at runtime. The bar
+         is told from Java to tint nothing, which lets the quicknote bolt be yellow while
+         these three keep their active and inactive shades.
+
+         Do not set app:itemIconTint="@null" in the layout to achieve that. A colour
+         attribute resolves @null to 0, which is transparent black, so the bar tints every
+         icon invisible. MainActivity calls setItemIconTintList(null) instead, which is a
+         real null and applies no tint at all. -->
     <path
         android:fillColor="#FFD400"
         android:pathData="M14,1.5 L3.5,13.8 L9.8,13.8 L8.6,22.5 L20.5,9.2 L13.4,9.2 Z"/>
