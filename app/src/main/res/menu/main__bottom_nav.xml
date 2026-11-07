@@ -13,24 +13,29 @@
 
     <item
         android:id="@+id/nav_journal"
-        android:icon="@drawable/ic_nav_calendar"
+        android:icon="@drawable/ic_calendar_white_24dp"
         android:title="@string/calendar" />
 
     <item
         android:id="@+id/nav_tree"
-        android:icon="@drawable/ic_nav_tree"
+        android:icon="@drawable/ic_baseline_account_tree_24"
         android:title="@string/tree" />
 
     <item
         android:id="@+id/nav_year"
-        android:icon="@drawable/ic_nav_year"
+        android:icon="@drawable/ic_date_range_black_24dp"
         android:title="@string/year" />
 
     <!-- An action, not a destination. Tapping files whatever is in the Calendar's input
          field; long-pressing opens the month's document. Settings moved to the overflow
-         menu, which already had it. -->
+         menu, which already had it.
+
+         The bolt is tinted like every other icon here. It was meant to be yellow, which
+         needed the bar's tint switched off, and Material answers itemIconTint="@null" by
+         calling setTintList(icon, null) on every item, wiping each vector's own colour and
+         leaving the whole bar blank. Not worth three attempts for one colour. -->
     <item
         android:id="@+id/nav_quicknote"
-        android:icon="@drawable/ic_lightning_yellow_24dp"
+        android:icon="@drawable/ic_lightning_black_24dp"
         android:title="@string/quicknote" />
 </menu>
