@@ -2,10 +2,15 @@ package net.pixelpen.journal.activity;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.content.res.TypedArray;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import android.text.InputFilter;
 import android.view.MenuItem;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -25,12 +30,14 @@ import net.pixelpen.journal.model.Quicknote;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import net.pixelpen.journal.ApplicationObject;
 import net.pixelpen.journal.util.NoteTimestamp;
@@ -69,6 +76,10 @@ public class CalendarFragment extends AutumnBaseFragment
     private EditText inputNoteTitle;
     private Spinner spinnerCategory;
     private net.pixelpen.journal.view.MonthGrid calendarView;
+    private View dayCard;
+    private TextView dayCardMonth;
+    private TextView dayCardNumber;
+    private TextView dayCardWeekday;
     private final Calendar selectedCalendarDate = Calendar.getInstance();
 
     private ArrayAdapter<String> categoryAdapter;
@@ -81,6 +92,12 @@ public class CalendarFragment extends AutumnBaseFragment
         inputNoteTitle = view.findViewById(R.id.input_note_title);
         spinnerCategory = view.findViewById(R.id.spinner_category);
         calendarView = view.findViewById(R.id.calendarView);
+        dayCard = view.findViewById(R.id.day_card);
+        dayCardMonth = view.findViewById(R.id.day_card_month);
+        dayCardNumber = view.findViewById(R.id.day_card_number);
+        dayCardWeekday = view.findViewById(R.id.day_card_weekday);
+        bindDayCard();
+        attachDayCardSwipe();
 
         // Gear button
         ImageButton gear = view.findViewById(R.id.btn_manage_categories_toolbar);
@@ -101,11 +118,114 @@ public class CalendarFragment extends AutumnBaseFragment
             selectedCalendarDate.set(Calendar.YEAR, picked.get(Calendar.YEAR));
             selectedCalendarDate.set(Calendar.MONTH, picked.get(Calendar.MONTH));
             selectedCalendarDate.set(Calendar.DAY_OF_MONTH, picked.get(Calendar.DAY_OF_MONTH));
+            bindDayCard();
+            // Picking a date is the end of needing the grid, so it shows itself out.
+            setPickerOpen(false);
         });
 
         // Reset and Submit used to be buttons in the form here. Submit is now the FAB, and reset
         // happens on its own once a note has been written, which is the only moment the form was
         // ever stale.
+    }
+
+    /**
+     * Put the selected date on the card, and give the band the month's colour.
+     *
+     * <p>Autumn is a journal, not a planner. A month grid answers "which Tuesday is free",
+     * which nobody asks of a diary, and it was taking two thirds of the screen to do it. What
+     * a journal needs to know is what day it is, so that is what the screen says, and the grid
+     * waits behind a swipe for the one case that wants it: filing something you forgot.
+     *
+     * <p>The band changes colour through the year. It is the only place the app can carry a
+     * season without raising its voice, and after a while it tells you roughly where you are
+     * before you read the word.
+     */
+    private void bindDayCard() {
+        if (dayCardMonth == null) {
+            return;
+        }
+        final Locale locale = Locale.getDefault();
+        dayCardMonth.setText(new SimpleDateFormat("MMMM yyyy", locale)
+                .format(selectedCalendarDate.getTime()).toUpperCase(locale));
+        dayCardNumber.setText(String.valueOf(selectedCalendarDate.get(Calendar.DAY_OF_MONTH)));
+        dayCardWeekday.setText(new SimpleDateFormat("EEEE", locale)
+                .format(selectedCalendarDate.getTime()));
+
+        final TypedArray bands = getResources().obtainTypedArray(R.array.month_band_colors);
+        try {
+            final int month = selectedCalendarDate.get(Calendar.MONTH);
+            final int fallback = ContextCompat.getColor(requireContext(), R.color.band_nov);
+            // A tint, not twelve copies of the drawable. The band's shape rounds only its top
+            // corners; duplicating that shape to vary one colour would be silly.
+            dayCardMonth.setBackgroundTintList(ColorStateList.valueOf(
+                    bands.getColor(month, fallback)));
+        } finally {
+            bands.recycle();
+        }
+    }
+
+    private boolean pickerOpen() {
+        return calendarView != null && calendarView.getVisibility() == View.VISIBLE;
+    }
+
+    private void setPickerOpen(final boolean open) {
+        if (calendarView != null) {
+            calendarView.setVisibility(open ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    /**
+     * Swipe the card to bring the grid in, swipe again to send it away.
+     *
+     * <p>A button would have put a third decision on a screen whose whole point is that it
+     * asks you nothing on arrival. The grab bar under the day is the only hint, which is
+     * enough for something you reach for when you remember you need it and never otherwise.
+     */
+    private void attachDayCardSwipe() {
+        if (dayCard == null) {
+            return;
+        }
+        final GestureDetector detector = new GestureDetector(requireContext(),
+                new GestureDetector.SimpleOnGestureListener() {
+                    @Override
+                    public boolean onDown(final MotionEvent e) {
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onFling(final MotionEvent down, final MotionEvent up,
+                                           final float vx, final float vy) {
+                        if (down == null || up == null) {
+                            return false;
+                        }
+                        final float dy = up.getY() - down.getY();
+                        // Vertical, and clearly so: a diagonal drag on the way somewhere else
+                        // should not open anything.
+                        if (Math.abs(dy) < 40 || Math.abs(dy) < Math.abs(up.getX() - down.getX())) {
+                            return false;
+                        }
+                        setPickerOpen(dy > 0);
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onSingleTapUp(final MotionEvent e) {
+                        // A tap does the same. The swipe is the intended way in; this is so a
+                        // tap is not simply ignored by a card that plainly looks tappable.
+                        setPickerOpen(!pickerOpen());
+                        return true;
+                    }
+                });
+        dayCard.setOnTouchListener((v, event) -> {
+            if (detector.onTouchEvent(event)) {
+                return true;
+            }
+            if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+                v.performClick();
+            }
+            return true;
+        });
+        dayCard.setContentDescription(getString(R.string.day_card_description));
     }
 
     /**

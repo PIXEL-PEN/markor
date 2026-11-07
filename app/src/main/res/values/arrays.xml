@@ -143,4 +143,20 @@
         <item translatable="false">5</item>
         <item translatable="false">6</item>
     </string-array>
+
+    <!-- Indexed by Calendar.MONTH, so January is 0. -->
+    <array name="month_band_colors">
+        <item>@color/band_jan</item>
+        <item>@color/band_feb</item>
+        <item>@color/band_mar</item>
+        <item>@color/band_apr</item>
+        <item>@color/band_may</item>
+        <item>@color/band_jun</item>
+        <item>@color/band_jul</item>
+        <item>@color/band_aug</item>
+        <item>@color/band_sep</item>
+        <item>@color/band_oct</item>
+        <item>@color/band_nov</item>
+        <item>@color/band_dec</item>
+    </array>
 </resources>

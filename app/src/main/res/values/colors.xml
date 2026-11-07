@@ -152,4 +152,27 @@
     <!-- Quicknote is an action, not a tab, and is coloured apart from the three
          destinations. Used by the bar icon fill and by the label span. -->
     <color name="nav_quicknote">#FFD400</color>
+
+    <!-- The day card. -->
+    <color name="day_card_ring">#AEB8C4</color>
+    <color name="day_card_grab">#DCE2E9</color>
+    <color name="day_card_number">#2B3545</color>
+    <color name="day_card_weekday">#5C6878</color>
+
+    <!-- One band colour per month, walking from winter slate through spring green into the
+         autumn the app is named for and back to pine. Every one carries white at 4.5:1 or
+         better, so the month label needs no per-month text colour. May is the launcher's
+         teal, so one month a year the app and its icon agree. -->
+    <color name="band_jan">#2F4858</color>
+    <color name="band_feb">#58405F</color>
+    <color name="band_mar">#44624A</color>
+    <color name="band_apr">#2F7A5B</color>
+    <color name="band_may">#00695C</color>
+    <color name="band_jun">#1C6B77</color>
+    <color name="band_jul">#8A5E12</color>
+    <color name="band_aug">#9E5330</color>
+    <color name="band_sep">#8C3F28</color>
+    <color name="band_oct">#9C4A1E</color>
+    <color name="band_nov">#7A3344</color>
+    <color name="band_dec">#2E5A46</color>
 </resources>
