@@ -113,6 +113,8 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         _adapter = new FolderTreeAdapter(this);
         _list.setLayoutManager(new LinearLayoutManager(requireContext()));
         _list.setAdapter(_adapter);
+        // Survives the view being rebuilt when the tab is revisited.
+        _adapter.setActiveCategory(_activeCategory);
         // Rows are rebuilt wholesale on expand and collapse, and the default change animation
         // makes that read as a flash rather than as a fold opening.
         _list.setItemAnimator(null);
@@ -187,6 +189,9 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
      */
     private String _pendingCategoryExpand;
 
+    /** Path of the category the Calendar is pointed at, for the band in the tree. */
+    private String _activeCategory;
+
     /**
      * Open the year and the month, and nothing below them.
      *
@@ -256,6 +261,14 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
      */
     public void expandCategoryOnNextDraw(final File dir) {
         _pendingCategoryExpand = (dir == null) ? null : dir.getAbsolutePath();
+        // Kept after the expansion is consumed, unlike _pendingCategoryExpand. The band is
+        // not a one-shot: it says which category the Calendar is pointed at, and that is
+        // still true after the tree has drawn and after the category has been collapsed
+        // again on the way out.
+        _activeCategory = _pendingCategoryExpand;
+        if (_adapter != null) {
+            _adapter.setActiveCategory(_activeCategory);
+        }
     }
 
     /**

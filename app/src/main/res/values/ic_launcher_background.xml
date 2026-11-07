@@ -6,9 +6,9 @@
 
   Alternatives, kept because choosing one took longer than writing them down:
 
+    #00695C  dark teal    CHOSEN. The leaf lifts off it. Was the debug-only colour until
+                          the DEV markers came out, which is where it was first seen
     #FFFFFF  white        clean, and what the artwork was drawn against
-    #00695C  dark teal    the leaf lifts off it; was the debug-only colour until the DEV
-                          markers came out, and worth a second look
     #1E2135  navy         matches the app bar and the bottom nav
     #FDF8EE  cream        warmer white, closer to the note background
 
@@ -16,5 +16,5 @@
   bitmaps with the background already composited in, unlike the adaptive layers.
 -->
 <resources>
-    <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="ic_launcher_background">#00695C</color>
 </resources>
