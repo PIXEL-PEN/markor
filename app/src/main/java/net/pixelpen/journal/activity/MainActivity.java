@@ -35,7 +35,6 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import net.pixelpen.journal.BuildConfig;
@@ -70,7 +69,15 @@ public class MainActivity extends AutumnBaseActivity {
     private FolderTreeFragment _tree;
     private YearFragment _year;
     private FloatingActionButton _fab;
-    private ExtendedFloatingActionButton _browseFab;
+    /**
+     * Browse. A plain AppCompatTextView wearing a pill, not an extended FAB. That widget
+     * extends MaterialButton, which throws at inflation unless the app theme descends from
+     * Theme.MaterialComponents, and Autumn's does not -- it crashed on launch. The ordinary
+     * FloatingActionButton tolerates an AppCompat theme, which is why the bolt FAB that used
+     * to sit here was fine. Changing the app theme to suit one button would restyle every
+     * screen.
+     */
+    private View _browseFab;
     /** Toolbar items whose visibility follows the tab. */
     private MenuItem _searchItem;
     private MenuItem _homeItem;
@@ -731,10 +738,10 @@ public class MainActivity extends AutumnBaseActivity {
         // have none. The timeline's own is on its own screen now.
         if (pos == tabIdToPos(R.id.nav_journal)) {
             _fab.show();
-            _browseFab.show();
+            _browseFab.setVisibility(View.VISIBLE);
         } else {
             _fab.hide();
-            _browseFab.hide();
+            _browseFab.setVisibility(View.GONE);
         }
 
         // Rescan the Tree each time it is shown. The pager keeps fragments alive, so without
