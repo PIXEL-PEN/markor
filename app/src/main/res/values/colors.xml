@@ -159,20 +159,30 @@
     <color name="day_card_number">#2B3545</color>
     <color name="day_card_weekday">#5C6878</color>
 
-    <!-- One band colour per month, walking from winter slate through spring green into the
-         autumn the app is named for and back to pine. Every one carries white at 4.5:1 or
-         better, so the month label needs no per-month text colour. May is the launcher's
-         teal, so one month a year the app and its icon agree. -->
-    <color name="band_jan">#2F4858</color>
-    <color name="band_feb">#58405F</color>
-    <color name="band_mar">#44624A</color>
-    <color name="band_apr">#2F7A5B</color>
+    <!-- One band colour per month.
+
+         The first set of twelve all sat within a 2.6x luminance range: one darkness, with
+         only the hue moving, which is why they muddied together on the card. These spread
+         the hues much further and push lightness to both ends of what white can still sit
+         on: a real navy in January, actual violet in February, a blue June that is not
+         another teal, an October that reads orange rather than brown. 3.8x now.
+
+         Every one carries white at 4.5:1 or better, so the label needs no per-month text
+         colour. That is also the ceiling: white text means twelve dark colours, and genuinely
+         light months would need a text colour per month as well as a fill. April was the
+         binding case: a brighter green measured 4.33 and had to come down.
+
+         May is the launcher's teal, so one month a year the app and its icon agree. -->
+    <color name="band_jan">#143C6B</color>
+    <color name="band_feb">#5B2D8E</color>
+    <color name="band_mar">#0F7A4F</color>
+    <color name="band_apr">#1F7A2A</color>
     <color name="band_may">#00695C</color>
-    <color name="band_jun">#1C6B77</color>
-    <color name="band_jul">#8A5E12</color>
-    <color name="band_aug">#9E5330</color>
-    <color name="band_sep">#8C3F28</color>
-    <color name="band_oct">#9C4A1E</color>
-    <color name="band_nov">#7A3344</color>
-    <color name="band_dec">#2E5A46</color>
+    <color name="band_jun">#0E6FA8</color>
+    <color name="band_jul">#7A6A00</color>
+    <color name="band_aug">#B35A00</color>
+    <color name="band_sep">#A32B1C</color>
+    <color name="band_oct">#C2410C</color>
+    <color name="band_nov">#96203C</color>
+    <color name="band_dec">#115E42</color>
 </resources>
