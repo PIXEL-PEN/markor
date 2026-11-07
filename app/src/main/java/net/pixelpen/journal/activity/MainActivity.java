@@ -70,15 +70,6 @@ public class MainActivity extends AutumnBaseActivity {
     private FolderTreeFragment _tree;
     private YearFragment _year;
     private FloatingActionButton _fab;
-    /**
-     * Browse. A plain AppCompatTextView wearing a pill, not an extended FAB. That widget
-     * extends MaterialButton, which throws at inflation unless the app theme descends from
-     * Theme.MaterialComponents, and Autumn's does not -- it crashed on launch. The ordinary
-     * FloatingActionButton tolerates an AppCompat theme, which is why the bolt FAB that used
-     * to sit here was fine. Changing the app theme to suit one button would restyle every
-     * screen.
-     */
-    private View _browseFab;
 
     /**
      * When the quicknote bar item was last long-pressed.
@@ -128,8 +119,6 @@ public class MainActivity extends AutumnBaseActivity {
         _viewPager = findViewById(R.id.main__view_pager_container);
         _fab = findViewById(R.id.fab_add_new_item);
         _fab.setOnClickListener(this::onClickFab);
-        _browseFab = findViewById(R.id.fab_browse);
-        _browseFab.setOnClickListener(this::onClickBrowse);
         setUpQuicknoteNavItem();
 
 
@@ -678,6 +667,8 @@ public class MainActivity extends AutumnBaseActivity {
      * category on its next draw and collapses it on the way out, exactly as it already does.
      */
     public void onClickBrowse(final View view) {
+        // Called by the Calendar fragment now that Browse lives inside its note field,
+        // rather than by a listener on an overlay this activity owned.
         if (_journal != null) {
             onCategoryChosen(_journal.selectedCategoryDir());
         }
@@ -779,10 +770,8 @@ public class MainActivity extends AutumnBaseActivity {
         // have none. The timeline's own is on its own screen now.
         if (pos == tabIdToPos(R.id.nav_journal)) {
             _fab.show();
-            _browseFab.setVisibility(View.VISIBLE);
         } else {
             _fab.hide();
-            _browseFab.setVisibility(View.GONE);
         }
 
         // Rescan the Tree each time it is shown. The pager keeps fragments alive, so without

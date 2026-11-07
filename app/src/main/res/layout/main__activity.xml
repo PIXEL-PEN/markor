@@ -44,31 +44,6 @@
         android:layout_marginTop="?attr/actionBarSize"
         android:layout_marginBottom="?attr/actionBarSize" />
 
-    <!-- Browse. Opens the Tree already showing the category the spinner is set to, so you can
-         look at what is in a category without making an entry to get there. Journal tab only;
-         see MainActivity.onViewPagerPageSelected. -->
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/fab_browse"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="18dp"
-        android:layout_marginBottom="140dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:clickable="true"
-        android:contentDescription="@string/browse"
-        android:drawableEnd="@drawable/ic_baseline_keyboard_double_arrow_right_24"
-        android:drawablePadding="2dp"
-        android:drawableTint="?attr/colorAccent"
-        android:focusable="true"
-        android:gravity="center"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:text="@string/browse"
-        android:textAllCaps="false"
-        android:textColor="?attr/colorAccent"
-        android:textSize="15sp"
-        android:textStyle="bold" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_new_item"

@@ -96,6 +96,15 @@ public class CalendarFragment extends AutumnBaseFragment
         bindDayCard();
         dayCard.setOnClickListener(v -> showDatePicker());
 
+        final View browse = view.findViewById(R.id.btn_browse_tree);
+        if (browse != null) {
+            browse.setOnClickListener(v -> {
+                if (getActivity() instanceof MainActivity) {
+                    ((MainActivity) getActivity()).onClickBrowse(v);
+                }
+            });
+        }
+
         // Gear button
         ImageButton gear = view.findViewById(R.id.btn_manage_categories_toolbar);
         if (gear != null) {
