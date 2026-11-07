@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24.0"
+    android:viewportHeight="24.0">
+    <!-- Colour is in the path, not in a tint. The bar is set to tint nothing so the bolt can
+         stay yellow, and Material answers itemIconTint="@null" by calling
+         DrawableCompat.setTintList(icon, null), which wipes a drawable's own android:tint
+         too. Anything relying on tint here is erased after inflation, whatever folder the
+         colour list lives in. A fill cannot be wiped. -->
+    <path
+        android:fillColor="#CBDAEE"
+        android:pathData="M19,4h-1V2h-2v2H8V2H6v2H5C3.9,4 3,4.9 3,6v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2V6c0,-1.1 -0.9,-2 -2,-2zM19,20H5V9h14v11zM5,7V6h14v1H5z"/>
+</vector>
