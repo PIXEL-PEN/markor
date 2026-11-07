@@ -1,8 +1,10 @@
 # Autumn
 
-A journalling and archiving app for Android. Capture an entry in seconds, find it years later by **when** it happened.
+### You remember what happened. Autumn remembers when.
 
-Autumn is not a planner and not a reminder app. It is a memory aid: log a titled note into the right year, month and category, then browse it back in chronological order.
+A journalling and archiving app for Android, built for one particular way memory fails.
+
+Most people keep the events and lose the order. You know it was a good year and you could list most of what was in it, but not what came before what — and given long enough the whole thing settles into an undifferentiated *back then*. Autumn is not a planner and not a reminder app. It takes a titled note, files it under the day it belongs to, and gives the sequence back.
 
 **Status:** early, under active development. Expect rough edges.
 
@@ -42,15 +44,24 @@ Each note begins with a date stamp as its first line. That stamp is the durable 
 
 **Tree** — Year → Month → Category → Note, newest first. Long-press to rename, move or delete. Files that are not journal entries appear under *Other files*, apart from the journal years.
 
-**Year** — a year on one page: open-ended highlights, a personal-growth section, then every month's entries. Exports the whole thing as a self-contained HTML timeline with the pictures inside it.
+**Year** — a year on one page: open-ended highlights, a personal-growth section, then every month's entries.
 
 **Quicknote** — the yellow bolt. Trivia that does not deserve a file of its own: the shop, the salesperson, the thing you want next week and never again. A month's worth share one document, newest first, no category. Long-press to read the month without writing.
+
+## The Timeline
+
+The reason for the rest of it.
+
+Autumn exports your whole archive as a single scrolling web page: decades, then years, then months down a gutter, with every entry in order and the pictures sitting where they happened. One file, images and all, so it opens on any computer without the app, prints, and keeps.
+
+Day to day you write one note at a time and the shape is invisible. The Timeline is where it becomes a life you can read in one pass — and where the thing that blurs, the order, is the one thing it cannot lose.
 
 ## Other things it does
 
 * **Search** across the whole archive. `blue fridge` wants both words anywhere in a note, `"blue fridge"` wants the phrase, `/fridges?/` is a regular expression. Results show the matching line and open the note at it.
 * **Pictures** in one place, organised by year, whichever screen you add them from. Tap any thumbnail for full screen, swipe between them.
 * **Backup** the whole archive to a single zip, anywhere.
+* **Timeline export** from the overflow menu, as above.
 * **Guide** in the overflow menu.
 
 ## Building

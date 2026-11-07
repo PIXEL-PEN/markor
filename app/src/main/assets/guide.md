@@ -1,11 +1,19 @@
 # Autumn
 
-Autumn is a journal and a personal archive. It keeps what you write as ordinary
-files on your phone, in folders you can read without this app and without any
-other program.
+## You remember what happened. Autumn remembers when.
 
-Nothing you write here leaves the device. Autumn has no permission to use the
-network, so it cannot send your journal anywhere even by accident.
+Most people keep the events and lose the order. You know it was a good year, you
+could list most of what was in it, and you could not say what came before what.
+Given long enough the whole thing settles into an undifferentiated *back then*.
+
+That is the particular failure this app is built for. It is not a planner and
+not a reminder: it takes what you write, files it under the day it belongs to,
+and gives the sequence back when you want it.
+
+Everything is kept as ordinary files on your phone, in folders you can read
+without this app and without any other program. Nothing you write leaves the
+device — Autumn has no permission to use the network, so it cannot send your
+journal anywhere even by accident.
 
 ## Two ways to write
 
@@ -116,14 +124,25 @@ Three ways to ask:
 Searches ignore capitals, and a result lands on the line that matches the most of
 what you asked for.
 
-## The timeline
+## The Timeline
 
-From the overflow menu, **Timeline** builds a single web page of your whole
-journal: decade bands, years, months, entries and pictures, as one scrolling
-document.
+This is the reason for the rest of it.
 
-The file is self-contained, with the pictures inside it, so it opens on any
-computer and can be printed or kept as an archive copy.
+From the overflow menu, **Timeline** builds your whole archive as a single
+scrolling web page: decades, then years, then months down a gutter, with every
+entry in order and the pictures sitting where they happened.
+
+Writing one note at a time, you never see the shape of it. The Timeline is where
+a few hundred notes stop being a folder and become a life you can read in one
+pass — and where the thing that blurs first, the order, is the one thing it
+cannot lose.
+
+The file is self-contained, pictures and all. It opens on any computer without
+Autumn installed, it prints, and it will still open in twenty years, which is
+not something you can say of most things you could export to.
+
+Build one at the end of a year. It is the clearest view of that year you will
+get, and it costs nothing to keep a copy somewhere other than your phone.
 
 ## Where your files are
 
