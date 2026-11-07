@@ -12,10 +12,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Intent;
-import android.content.res.ColorStateList;
-import android.graphics.drawable.Drawable;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.drawable.DrawableCompat;
 import net.pixelpen.journal.model.Quicknote;
 import java.util.Calendar;
 import android.graphics.Color;
@@ -605,33 +602,21 @@ public class MainActivity extends AutumnBaseActivity {
     }
 
     /**
-     * The quicknote bar item is an action wearing a destination's clothes, so it needs two
-     * things the other three do not.
+     * Long-press on the quicknote bar item opens the month.
      *
-     * <p>The bar tints every icon from one selector, which would paint this one the same grey
-     * as an unselected tab. Switching the tint off and applying the selector to the other
-     * three by hand leaves this icon showing the yellow it was drawn with, selected or not --
-     * which is the point, because it never becomes the selected tab.
-     *
-     * <p>Long-press would otherwise raise a tooltip. Consuming it gives the gesture to
-     * opening the month instead.
+     * <p>The yellow is not set here any more. The bar used to tint every icon from one
+     * selector, so keeping this one yellow meant switching that off and re-tinting the
+     * others by hand. That silently failed and left the Tree and Year icons as the black
+     * they are drawn in, on a navy bar, which read as the icons vanishing. Each nav vector
+     * now carries android:tint pointing at that same selector, so it colours itself and
+     * follows its own state, the bar tints nothing, and the bolt simply keeps the yellow
+     * in its path.
      */
     private void setUpQuicknoteNavItem() {
-        final ColorStateList tint =
-                ContextCompat.getColorStateList(this, R.drawable.bottomnav_color_selector);
-        _bottomNav.setItemIconTintList(null);
-        for (final int id : new int[]{R.id.nav_journal, R.id.nav_tree, R.id.nav_year}) {
-            final MenuItem item = _bottomNav.getMenu().findItem(id);
-            if (item == null || item.getIcon() == null) {
-                continue;
-            }
-            final Drawable icon = DrawableCompat.wrap(item.getIcon().mutate());
-            DrawableCompat.setTintList(icon, tint);
-            item.setIcon(icon);
-        }
-
         final View qn = _bottomNav.findViewById(R.id.nav_quicknote);
         if (qn != null) {
+            // Long-press would otherwise raise a tooltip. Consuming it gives the gesture
+            // to opening the month instead.
             qn.setOnLongClickListener(v -> {
                 openQuicknoteMonth();
                 return true;

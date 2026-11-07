@@ -73,7 +73,7 @@
         <EditText
             android:id="@+id/input_note_title"
             android:layout_width="match_parent"
-            android:layout_height="130dp"
+            android:layout_height="125dp"
             android:layout_marginTop="14dp"
             android:background="@drawable/bg_edittext_amber"
             android:gravity="top|start"
