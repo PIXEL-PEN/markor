@@ -155,7 +155,7 @@
 
     <!-- The day card. -->
     <color name="day_card_ring">#AEB8C4</color>
-    <color name="day_card_grab">#DCE2E9</color>
+    <color name="day_card_stroke">#D9DFE6</color>
     <color name="day_card_number">#2B3545</color>
     <color name="day_card_weekday">#5C6878</color>
 

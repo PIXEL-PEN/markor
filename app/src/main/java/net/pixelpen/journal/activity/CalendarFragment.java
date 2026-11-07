@@ -1,5 +1,6 @@
 package net.pixelpen.journal.activity;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
@@ -9,8 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import android.text.InputFilter;
 import android.view.MenuItem;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -75,7 +74,6 @@ public class CalendarFragment extends AutumnBaseFragment
 
     private EditText inputNoteTitle;
     private Spinner spinnerCategory;
-    private net.pixelpen.journal.view.MonthGrid calendarView;
     private View dayCard;
     private TextView dayCardMonth;
     private TextView dayCardNumber;
@@ -91,13 +89,12 @@ public class CalendarFragment extends AutumnBaseFragment
         // Views
         inputNoteTitle = view.findViewById(R.id.input_note_title);
         spinnerCategory = view.findViewById(R.id.spinner_category);
-        calendarView = view.findViewById(R.id.calendarView);
         dayCard = view.findViewById(R.id.day_card);
         dayCardMonth = view.findViewById(R.id.day_card_month);
         dayCardNumber = view.findViewById(R.id.day_card_number);
         dayCardWeekday = view.findViewById(R.id.day_card_weekday);
         bindDayCard();
-        attachDayCardSwipe();
+        dayCard.setOnClickListener(v -> showDatePicker());
 
         // Gear button
         ImageButton gear = view.findViewById(R.id.btn_manage_categories_toolbar);
@@ -113,15 +110,6 @@ public class CalendarFragment extends AutumnBaseFragment
 // Initial categories
         bindCategories(false);
 
-        // Calendar date change
-        calendarView.setOnDateSelectedListener(picked -> {
-            selectedCalendarDate.set(Calendar.YEAR, picked.get(Calendar.YEAR));
-            selectedCalendarDate.set(Calendar.MONTH, picked.get(Calendar.MONTH));
-            selectedCalendarDate.set(Calendar.DAY_OF_MONTH, picked.get(Calendar.DAY_OF_MONTH));
-            bindDayCard();
-            // Picking a date is the end of needing the grid, so it shows itself out.
-            setPickerOpen(false);
-        });
 
         // Reset and Submit used to be buttons in the form here. Submit is now the FAB, and reset
         // happens on its own once a note has been written, which is the only moment the form was
@@ -164,68 +152,31 @@ public class CalendarFragment extends AutumnBaseFragment
         }
     }
 
-    private boolean pickerOpen() {
-        return calendarView != null && calendarView.getVisibility() == View.VISIBLE;
-    }
-
-    private void setPickerOpen(final boolean open) {
-        if (calendarView != null) {
-            calendarView.setVisibility(open ? View.VISIBLE : View.GONE);
-        }
-    }
-
     /**
-     * Swipe the card to bring the grid in, swipe again to send it away.
+     * Tap the card, get Android's date picker.
      *
-     * <p>A button would have put a third decision on a screen whose whole point is that it
-     * asks you nothing on arrival. The grab bar under the day is the only hint, which is
-     * enough for something you reach for when you remember you need it and never otherwise.
+     * <p>This was a month grid under the card, revealed by a swipe. Both were wrong. The grid
+     * could not be made small enough to sit under the card without the pair of them filling
+     * the screen, which is the problem the card was drawn to solve. The swipe fought the
+     * ScrollView, and the grab bar advertising it promised a gesture without saying which.
+     *
+     * <p>The stock dialog costs no layout at all, cannot conflict with a scroll, and is the
+     * control everyone already knows. The price is that it follows the system theme rather
+     * than Autumn's, which is a fair trade for a thing you open to answer one question and
+     * then dismiss.
      */
-    private void attachDayCardSwipe() {
-        if (dayCard == null) {
-            return;
-        }
-        final GestureDetector detector = new GestureDetector(requireContext(),
-                new GestureDetector.SimpleOnGestureListener() {
-                    @Override
-                    public boolean onDown(final MotionEvent e) {
-                        return true;
-                    }
-
-                    @Override
-                    public boolean onFling(final MotionEvent down, final MotionEvent up,
-                                           final float vx, final float vy) {
-                        if (down == null || up == null) {
-                            return false;
-                        }
-                        final float dy = up.getY() - down.getY();
-                        // Vertical, and clearly so: a diagonal drag on the way somewhere else
-                        // should not open anything.
-                        if (Math.abs(dy) < 40 || Math.abs(dy) < Math.abs(up.getX() - down.getX())) {
-                            return false;
-                        }
-                        setPickerOpen(dy > 0);
-                        return true;
-                    }
-
-                    @Override
-                    public boolean onSingleTapUp(final MotionEvent e) {
-                        // A tap does the same. The swipe is the intended way in; this is so a
-                        // tap is not simply ignored by a card that plainly looks tappable.
-                        setPickerOpen(!pickerOpen());
-                        return true;
-                    }
-                });
-        dayCard.setOnTouchListener((v, event) -> {
-            if (detector.onTouchEvent(event)) {
-                return true;
-            }
-            if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-                v.performClick();
-            }
-            return true;
-        });
-        dayCard.setContentDescription(getString(R.string.day_card_description));
+    private void showDatePicker() {
+        final DatePickerDialog dialog = new DatePickerDialog(requireContext(),
+                (view, year, month, day) -> {
+                    selectedCalendarDate.set(Calendar.YEAR, year);
+                    selectedCalendarDate.set(Calendar.MONTH, month);
+                    selectedCalendarDate.set(Calendar.DAY_OF_MONTH, day);
+                    bindDayCard();
+                },
+                selectedCalendarDate.get(Calendar.YEAR),
+                selectedCalendarDate.get(Calendar.MONTH),
+                selectedCalendarDate.get(Calendar.DAY_OF_MONTH));
+        dialog.show();
     }
 
     /**

@@ -634,5 +634,5 @@
     <string name="quicknote_none_yet">No quicknotes for this month yet</string>
     <string name="quicknote_saved">Quicknote saved</string>
     <string name="search_hint">Search: words, \"a phrase\", /regex/</string>
-    <string name="day_card_description">Selected date. Swipe to show or hide the date picker.</string>
+    <string name="day_card_description">Selected date. Tap to choose another.</string>
 </resources>
