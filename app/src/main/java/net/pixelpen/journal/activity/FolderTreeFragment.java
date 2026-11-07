@@ -259,6 +259,24 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
      * work is happening. Nothing else calls it, which is what keeps a plain return to the tree
      * from unfolding anything.
      */
+    /**
+     * Mark a category without opening it.
+     *
+     * <p>Separate from expandCategoryOnNextDraw on purpose. Expanding is an event: it happens
+     * because a note was filed or the spinner moved, and it happens once. The band is a
+     * state: it says which category the Calendar is pointed at, which is true on every visit
+     * to this screen, including the visits where nothing changed.
+     *
+     * <p>Tying the two together is why the band never appeared. Opening the Tree without
+     * first touching the spinner raised no change event, so nothing was ever marked.
+     */
+    public void setActiveCategory(final File dir) {
+        _activeCategory = (dir == null) ? null : dir.getAbsolutePath();
+        if (_adapter != null) {
+            _adapter.setActiveCategory(_activeCategory);
+        }
+    }
+
     public void expandCategoryOnNextDraw(final File dir) {
         _pendingCategoryExpand = (dir == null) ? null : dir.getAbsolutePath();
         // Kept after the expansion is consumed, unlike _pendingCategoryExpand. The band is
