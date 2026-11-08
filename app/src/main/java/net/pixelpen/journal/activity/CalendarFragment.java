@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import net.pixelpen.journal.ApplicationObject;
+import net.pixelpen.journal.util.CategoryManager;
 import net.pixelpen.journal.util.NoteTimestamp;
 
 
@@ -433,6 +434,15 @@ public class CalendarFragment extends AutumnBaseFragment
     // Dialog → Activity callbacks
     @Override
     public void onCategoryRemoved(String name) {
+        // The spinner list is stored in preferences and edited without going through
+        // CategoryManager at all, so guarding deleteCategory alone would still have let the
+        // protected one be dropped from the list the capture screen reads.
+        if (CategoryManager.isProtected(requireContext(), name)) {
+            Toast.makeText(requireContext(), getString(R.string.category_protected, name),
+                    Toast.LENGTH_LONG).show();
+            bindCategories(true);
+            return;
+        }
         removeCategoryFromSpinnerImmediate(name);
         persistCurrentSpinnerList();
         setPreferUi(true);

@@ -80,13 +80,19 @@ android {
 
     buildTypes {
         debug {
-            // Installs as net.pixelpen.journal.dev, so a debug build and a release build can
-            // sit side by side. They no longer look different in the launcher: debug used to
-            // override app_name to "DEV Autumn", with the marker deliberately at the front
-            // because launchers truncate the end and a trailing "(dev)" vanished. That override
-            // is gone -- there is only ever one of them installed here -- so if both are ever
-            // present again they will be two identically named icons, and this is the line that
-            // allows it.
+            // Installs as net.pixelpen.journal.dev, so a debug build and a release build sit
+            // side by side, and the launcher label says which is which.
+            //
+            // The override came back because both are now installed at once and two identically
+            // named icons is no good. It was "DEV Autumn" historically, with the marker at the
+            // front because launchers truncate the end; "Autumn (dev)" is twelve characters and
+            // some launchers will show it as "Autumn (de...". If that happens, move the marker to
+            // the front rather than shortening it.
+            //
+            // A build type's resources outrank main's, so this overrides the app_name in
+            // strings.xml rather than colliding with it. app_name_real points at app_name, so it
+            // follows along.
+            resValue "string", "app_name", "Autumn (dev)"
             applicationIdSuffix ".dev"
             versionNameSuffix "-dev"
             buildConfigField "boolean", "IS_TEST_BUILD", "true"

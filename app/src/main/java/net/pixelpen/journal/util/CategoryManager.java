@@ -41,6 +41,10 @@ public class CategoryManager {
 
     private static final String PREFS = "category_prefs";
     private static final String PREF_KEY = "custom_categories";
+    private static final String PREF_PROTECTED = "protected_category";
+
+    /** What the protected category is called until someone renames it. */
+    public static final String DEFAULT_PROTECTED = "General";
 
     // ---------- Result DTO ----------
     public static class Result {
@@ -144,6 +148,9 @@ public class CategoryManager {
                     JSONArray ops = moveGroup.getJSONArray("ops");
                 }
             }
+            if (isProtected(ctx, from)) {
+                setProtectedCategory(ctx, to);
+            }
             return Result.ok("Renamed", preview.size(), preview);
         } catch (Exception e) { return Result.error(e.getMessage()); }
     }
@@ -152,6 +159,8 @@ public class CategoryManager {
     public static Result mergeCategories(Context ctx, String sourceRaw, String targetRaw, boolean dryRun) {
         String source = norm(sourceRaw), target = norm(targetRaw);
         if (!valid(source) || !valid(target) || source.equalsIgnoreCase(target)) return Result.error("Invalid");
+        // The source is consumed by a merge, so merging it away is a delete wearing a hat.
+        if (isProtected(ctx, source)) return refuseProtected(source);
         List<File> srcFolders = findCategoryFolders(source);
         if (srcFolders.isEmpty()) return Result.error("No folders found");
         List<String> preview = new ArrayList<>();
@@ -179,6 +188,7 @@ public class CategoryManager {
     public static Result deleteCategory(Context ctx, String nameRaw, boolean dryRun, boolean forceMoveToUncategorized) {
         String name = norm(nameRaw);
         if (!valid(name)) return Result.error("Invalid");
+        if (isProtected(ctx, name)) return refuseProtected(name);
         List<File> srcFolders = findCategoryFolders(name);
         if (srcFolders.isEmpty()) return Result.error("No folders found");
 
@@ -245,6 +255,38 @@ public class CategoryManager {
         if (n.isEmpty()) return false;
         if (n.contains("/") || n.contains("\\") || n.length() > 120) return false;
         return true;
+    }
+
+    /**
+     * The one category that cannot be deleted or merged away.
+     *
+     * <p>Every note is filed under a category, and the Tree and the Year screen are built on
+     * that, so an archive with no categories left has nothing to show in either. One is kept
+     * back as the floor. It is also the capture screen's fallback when nothing is chosen, which
+     * would otherwise be a name pointing at nothing.
+     *
+     * <p>Held in preferences rather than as a constant so it survives being renamed: rename it
+     * and the protection moves to the new name instead of staying behind on a category that no
+     * longer exists. Nothing offers that rename yet, but the mechanism does not need revisiting
+     * when something does.
+     */
+    public static String protectedCategory(final Context ctx) {
+        return ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getString(PREF_PROTECTED, DEFAULT_PROTECTED);
+    }
+
+    public static boolean isProtected(final Context ctx, final String name) {
+        return norm(name).equalsIgnoreCase(protectedCategory(ctx));
+    }
+
+    private static void setProtectedCategory(final Context ctx, final String name) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                .putString(PREF_PROTECTED, name).apply();
+    }
+
+    private static Result refuseProtected(final String name) {
+        return Result.error(name + " cannot be removed. Every note needs a category, and the "
+                + "Tree and Year screens are built on them. Rename it instead.");
     }
 
     private static String norm(String s) {
