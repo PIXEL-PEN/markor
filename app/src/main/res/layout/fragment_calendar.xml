@@ -51,7 +51,7 @@
         <!-- The day card. Rings straddle the top edge, so the card is inset to make room. -->
         <FrameLayout
             android:id="@+id/day_card_frame"
-            android:layout_width="162dp"
+            android:layout_width="154dp"
             android:layout_height="wrap_content"
             android:clipChildren="false"
             android:clipToPadding="false"
