@@ -163,6 +163,8 @@
          All three were @android:color/white written into their drawables, which no theme can
          reach, so in dark mode they stayed white while the text on them went light. -->
     <color name="surface_card">#FFFFFF</color>
+    <!-- The date picker's selected-day marker. Was a #4DB6AC literal in its drawable. -->
+    <color name="date_selector">#4DB6AC</color>
     <color name="tl_entry_field_bg">#FCFCFD</color>
 
     <!-- The note field's fill and rule, lifted out of bg_edittext_amber so the drawable can

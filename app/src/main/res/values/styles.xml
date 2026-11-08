@@ -14,12 +14,20 @@
     </style>
 
     <!--
-      DayNight, which is only safe now that values-night/colors.xml actually answers for
-      Autumn's own colours. It was briefly a Light parent, because a DayNight theme with no
-      night palette let the system turn the Tree black while every other screen stayed light,
-      and refusing night mode outright was better than offering a broken one.
+      DayNight, which is only safe now that values-night/colors.xml answers for Autumn's own
+      colours. It was briefly a Light parent, because a DayNight theme with no night palette
+      let the system turn the Tree black while every other screen stayed light, and refusing
+      night mode outright was better than offering a broken one.
+
+      Worth knowing, because getting this wrong is invisible on most screens: the -night
+      resource qualifier and this parent are independent. The qualifier follows the uiMode
+      configuration, so values-night applies whatever this says, and every screen built from
+      @color/ resources goes dark either way. Settings is built from theme attributes
+      instead, such as ?android:textColorPrimary for a preference title, so a Light parent gave
+      it dark text on the dark background the qualifier had already produced. It was the only
+      screen that showed the mistake.
     -->
-    <style name="AppTheme.Unified" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme.Unified" parent="Theme.AppCompat.DayNight.DarkActionBar">
         <item name="android:windowActionModeOverlay">true</item>
         <item name="windowActionModeOverlay">true</item>
         <item name="windowActionBarOverlay">true</item>
