@@ -526,7 +526,6 @@ public class CalendarFragment extends AutumnBaseFragment
         setPreferUi(true);
     }
 
-    @Override
     /**
      * Categories with a folder on disk that the curated spinner list does not carry.
      *
