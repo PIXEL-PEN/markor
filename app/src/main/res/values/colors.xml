@@ -165,6 +165,10 @@
     <color name="surface_card">#FFFFFF</color>
     <!-- The date picker's selected-day marker. Was a #4DB6AC literal in its drawable. -->
     <color name="date_selector">#4DB6AC</color>
+
+    <!-- Black vector icons drawn on a page or a dialog: the category gear, and the pencil
+         and bin in Manage categories. They were untinted, so they stayed black at night. -->
+    <color name="icon_on_surface">#1C1C1C</color>
     <color name="tl_entry_field_bg">#FCFCFD</color>
 
     <!-- The note field's fill and rule, lifted out of bg_edittext_amber so the drawable can
