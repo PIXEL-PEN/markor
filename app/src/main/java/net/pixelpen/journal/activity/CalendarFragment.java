@@ -378,9 +378,14 @@ public class CalendarFragment extends AutumnBaseFragment
     // Gear popup
     private void showCategoryToolsPopup(View anchor) {
         PopupMenu pm = new PopupMenu(requireContext(), anchor);
-        pm.getMenu().add(0, 1, 0, "Clear categories (UI only)");
-        pm.getMenu().add(0, 4, 1, "Restore previous list");
-        pm.getMenu().add(0, 3, 2, "Reset to defaults");
+        // The first two reconcile the curated spinner list with what is actually on disk.
+        // Without them an archive copied in from elsewhere was invisible to the spinner,
+        // because the spinner reads this list and never scans the folders.
+        pm.getMenu().add(0, 5, 0, "Add folder categories to spinner");
+        pm.getMenu().add(0, 6, 1, "Remove missing from spinner");
+        pm.getMenu().add(0, 1, 2, "Clear categories (UI only)");
+        pm.getMenu().add(0, 4, 3, "Restore previous list");
+        pm.getMenu().add(0, 3, 4, "Reset to defaults");
         pm.setOnMenuItemClickListener(this::onCategoryToolsMenuItem);
         pm.show();
     }
@@ -409,6 +414,79 @@ public class CalendarFragment extends AutumnBaseFragment
                     Toast.makeText(requireContext(), "Previous category list restored.", Toast.LENGTH_SHORT).show();
                 });
                 return true;
+            case 5: {
+                // Everything CategoryManager can see, minus what the spinner already shows.
+                final List<String> have = loadCategoriesForSpinner();
+                final List<String> found = CategoryManager.listCategories(requireContext()).changedPaths;
+                final List<String> missing = new ArrayList<>();
+                for (final String c : found) {
+                    boolean known = false;
+                    for (final String h : have) {
+                        if (h.equalsIgnoreCase(c)) {
+                            known = true;
+                            break;
+                        }
+                    }
+                    if (!known) {
+                        missing.add(c);
+                    }
+                }
+                if (missing.isEmpty()) {
+                    Toast.makeText(requireContext(), "The spinner already has every category on disk.",
+                            Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+                confirmAndRun("Add " + missing.size() + " category folder(s) to the spinner?\n\n"
+                        + android.text.TextUtils.join(", ", missing), () -> {
+                    backupCurrentUiList();
+                    final List<String> merged = new ArrayList<>(have);
+                    merged.addAll(missing);
+                    java.util.Collections.sort(merged, String.CASE_INSENSITIVE_ORDER);
+                    saveUiCategoryList(merged);
+                    setPreferUi(true);
+                    bindCategories(false);
+                    Toast.makeText(requireContext(), "Added " + missing.size() + " to the spinner.",
+                            Toast.LENGTH_SHORT).show();
+                });
+                return true;
+            }
+            case 6: {
+                // The other direction: names the spinner carries that no longer exist anywhere.
+                final List<String> have = loadCategoriesForSpinner();
+                final List<String> found = CategoryManager.listCategories(requireContext()).changedPaths;
+                final List<String> stale = new ArrayList<>();
+                for (final String h : have) {
+                    boolean real = false;
+                    for (final String c : found) {
+                        if (h.equalsIgnoreCase(c)) {
+                            real = true;
+                            break;
+                        }
+                    }
+                    // The protected category stays whether or not it has a folder yet.
+                    if (!real && !CategoryManager.isProtected(requireContext(), h)) {
+                        stale.add(h);
+                    }
+                }
+                if (stale.isEmpty()) {
+                    Toast.makeText(requireContext(), "Every category in the spinner exists.",
+                            Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+                confirmAndRun("Remove " + stale.size() + " name(s) with no folder and no notes?\n\n"
+                        + android.text.TextUtils.join(", ", stale)
+                        + "\n\nNothing on disk is touched.", () -> {
+                    backupCurrentUiList();
+                    final List<String> kept = new ArrayList<>(have);
+                    kept.removeAll(stale);
+                    saveUiCategoryList(kept);
+                    setPreferUi(true);
+                    bindCategories(false);
+                    Toast.makeText(requireContext(), "Removed " + stale.size() + " from the spinner.",
+                            Toast.LENGTH_SHORT).show();
+                });
+                return true;
+            }
             case 3:
                 confirmAndRun("Reset categories to defaults?", () -> {
                     backupCurrentUiList();

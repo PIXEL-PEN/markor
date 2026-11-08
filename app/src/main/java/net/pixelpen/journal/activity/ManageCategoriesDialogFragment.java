@@ -1,5 +1,6 @@
 package net.pixelpen.journal.activity;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -24,6 +25,7 @@ import net.pixelpen.journal.util.CategoryManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -74,6 +76,19 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
         _empty = root.findViewById(R.id.mc_empty);
         root.findViewById(R.id.mc_add).setOnClickListener(v -> promptAdd());
 
+        // Cap the list at a little over half the screen so the Add row below it is always
+        // on screen. Measured after layout, so a short list keeps its natural height and
+        // only a long one is clamped.
+        final View scroll = root.findViewById(R.id.mc_scroll);
+        scroll.post(() -> {
+            final int max = Math.round(getResources().getDisplayMetrics().heightPixels * 0.55f);
+            if (scroll.getHeight() > max) {
+                final ViewGroup.LayoutParams lp = scroll.getLayoutParams();
+                lp.height = max;
+                scroll.setLayoutParams(lp);
+            }
+        });
+
         redraw();
 
         return new AlertDialog.Builder(ctx)
@@ -85,8 +100,8 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
 
     // ------------------------------------------------------------------ list
 
-    private List<String> categories() {
-        final CategoryManager.Result r = CategoryManager.listCategories(requireContext());
+    private List<String> categories(final Context ctx) {
+        final CategoryManager.Result r = CategoryManager.listCategories(ctx);
         final List<String> out = new ArrayList<>();
         if (r != null && r.changedPaths != null) {
             out.addAll(r.changedPaths);
@@ -95,19 +110,52 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
         return out;
     }
 
+    /**
+     * Rebuild the list, reading the disk off the main thread.
+     *
+     * <p>This used to do all of it inline, and it was not one scan but many: listCategories
+     * walks the archive once, and then countNotes walked it again for every category in the
+     * loop. With a handful of test categories that was invisible. With a real archive copied
+     * in it is why the dialog took a visible moment to appear.
+     *
+     * <p>The counts are gathered with the names, in one pass off the thread, and the rows are
+     * built from what comes back.
+     */
     private void redraw() {
         if (_list == null) {
             return;
         }
         _list.removeAllViews();
-        final List<String> cats = categories();
-        _empty.setVisibility(cats.isEmpty() ? View.VISIBLE : View.GONE);
+        _empty.setVisibility(View.GONE);
+        final Context ctx = requireContext().getApplicationContext();
+        new Thread(() -> {
+            final List<String> cats = categories(ctx);
+            final LinkedHashMap<String, int[]> counts = new LinkedHashMap<>();
+            for (final String name : cats) {
+                counts.put(name, CategoryManager.countNotes(name));
+            }
+            final Activity host = getActivity();
+            if (host == null) {
+                return;
+            }
+            host.runOnUiThread(() -> populate(counts));
+        }).start();
+    }
+
+    private void populate(final LinkedHashMap<String, int[]> data) {
+        // The scan runs on another thread, so the dialog may be gone by the time it lands.
+        if (_list == null || !isAdded()) {
+            return;
+        }
+        _list.removeAllViews();
+        _empty.setVisibility(data.isEmpty() ? View.VISIBLE : View.GONE);
 
         final LayoutInflater inflater = LayoutInflater.from(requireContext());
-        for (final String name : cats) {
+        for (final java.util.Map.Entry<String, int[]> e : data.entrySet()) {
+            final String name = e.getKey();
+            final int[] counts = e.getValue();
             final View row = inflater.inflate(R.layout.item_manage_category,
                     (ViewGroup) _list, false);
-            final int[] counts = CategoryManager.countNotes(name);
 
             ((TextView) row.findViewById(R.id.mc_row_name)).setText(name);
             ((TextView) row.findViewById(R.id.mc_row_detail)).setText(describe(counts));
@@ -205,7 +253,7 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
             return;
         }
 
-        final List<String> others = categories();
+        final List<String> others = categories(ctx);
         others.remove(name);
         if (others.isEmpty()) {
             // Nowhere to put them. Better to say so than to invent a folder to hold them.

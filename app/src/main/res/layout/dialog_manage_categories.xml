@@ -15,7 +15,18 @@
     android:paddingEnd="12dp"
     android:paddingBottom="4dp">
 
+    <!--
+      wrap_content, with a ceiling applied in code.
+
+      The Add row below this used to be unreachable: the list grew to its full content
+      height and pushed it past the bottom of the dialog, which is why an imported archive
+      appeared to have no way to add anything. A weight would fix that only if this view's
+      parent were bounded, and making the root match_parent gives every short list a
+      full-height dialog with a gap above the Add row. So the height is capped in
+      onCreateDialog instead: short lists stay compact, long ones scroll.
+    -->
     <ScrollView
+        android:id="@+id/mc_scroll"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbars="vertical">
