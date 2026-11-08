@@ -152,10 +152,17 @@ public class SettingsActivity extends AutumnBaseActivity {
             // simply visible now and the gate is gone.
         }
 
-        // onPreferenceChanged was overridden for one reason: to re-apply the theme and restart
-        // the activity when the Theme preference changed. With that preference gone the
-        // override did nothing but fetch a Context it no longer used and call super, so it is
-        // removed and the base implementation runs.
+        @Override
+        protected void onPreferenceChanged(final SharedPreferences prefs, final String key) {
+            super.onPreferenceChanged(prefs, key);
+            // Without this the Theme row would look dead: applyAppTheme is otherwise only
+            // called from AutumnBaseActivity.onCreate, so a change would not show until the
+            // app was restarted. setDefaultNightMode re-applies to live activities itself, so
+            // there is nothing to finish() or recreate here.
+            if (eq(key, R.string.pref_key__app_theme)) {
+                _appSettings.applyAppTheme();
+            }
+        }
 
         @Override
         @SuppressWarnings({"ConstantConditions", "ConstantIfStatement", "StatementWithEmptyBody"})

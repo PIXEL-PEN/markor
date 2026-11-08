@@ -1,33 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- TODO, parked deliberately: Autumn's own eight colours have no night variant, so
-         they keep their light values when the theme goes dark. Checked, not guessed:
+    <!--
+      Autumn in the dark.
 
-           year_page_bg       #F4F4F4   Year sets its own background, so the screen stays
-           year_header        #005F73   internally readable but becomes a white island
-           year_highlight_bg  #E0FBFC   in an otherwise dark app
-           cal_title          #2B3545   Calendar, same, and its root background is
-           cal_weekday        #8A95A1   @android:color/white, hardcoded, not a resource
-           tree_meta          #6E6E6E   Tree inherits the theme background and goes dark
-                                        correctly; only this grey metadata gets dim
-           tl_page_bg         #EEF2F7   Timeline export is an HTML document in a browser.
-                                        White is arguably right. Leave it.
-           year_dropdown      #0A9396   mid-tone, likely survives either way
+      Built from Autumn's own hues rather than a neutral charcoal: the page is #121A21, which
+      is the day text colour #2B3545 pushed dark, so the app still reads as blue-grey and teal
+      instead of becoming a different application at night.
 
-         So the Tree is the screen that already behaves. The job is seven night variants
-         and replacing that hardcoded white in fragment_calendar.xml, then testing on
-         device.
+      The teal gets LIGHTER, not darker. #0A9396 is tuned against white and falls below 4.5:1
+      on a dark page, so accents become #2BB3A8 and headings #4FD1C5. Reusing a brand colour
+      at its daylight value is the usual way dark mode goes wrong.
 
-         The testing surface is no longer tripled by upstream oddities: Auto, Auto
-         (09:00 - 17:00), Dark and Black have all been removed from the Theme preference,
-         which now offers System and Light only. Both resolve to light on a phone set to
-         light, so this file currently has no effect on anything. It is kept because the
-         nine mappings below are correct and would have to be rewritten otherwise, and
-         because this note is the specification for putting Dark back. -->
+      Pure black is avoided throughout. Black is what made the Tree unreadable when this was a
+      DayNight theme with no night palette, and on OLED it erases card edges entirely.
 
+      Four groups deliberately have NO night variant:
 
-    <!-- Named colors -->
+        month_band_*        All twelve were tuned to carry white text, so they are already
+                            mid-dark and saturated and sit correctly on a dark card.
+        nav_active,         The bottom bar is navy in both modes, so what sits on it does not
+        nav_inactive,       change. The Quicknote bolt stays #FFD400 for the same reason.
+        nav_quicknote
+        tl_pill,            Backgrounds whose paired text colour is set somewhere this file
+        cal_day_selected    cannot see. Left light so dark text on them stays legible; a
+        _text               guess here would be a contrast bug rather than a shade people
+                            disagree about.
+
+      The Timeline HTML export needs nothing here and gets nothing: HtmlExport contains no
+      R.color reference at all, its colours are hardcoded CSS. So the export stays light
+      whatever the app does, which is right for a document you may print or send on. The tl_*
+      colours below are for the native Timeline views, which are a different thing.
+    -->
+
+    <!-- Inherited Markor names -->
     <color name="colorPrimary">@color/primary_dark</color>
     <color name="primary_text">@color/white</color>
     <color name="secondary_text">@color/dark__secondary_text</color>
@@ -38,6 +44,61 @@
     <color name="textActionBarColor">@color/dark__background_2</color>
     <color name="textActionIconColor">@color/white</color>
 
-    <!-- All values specified only in base colors.xml  -->
+    <!-- Window background, and the note field that was carrying literals -->
+    <color name="screen_bg">#121A21</color>
+    <color name="note_field_bg">#241F12</color>
+    <color name="note_field_border">#6E5B2A</color>
+
+    <!-- Calendar -->
+    <color name="cal_accent">#8FA6C4</color>
+    <color name="cal_card_bg">#1C2730</color>
+    <color name="cal_card_border">#2E3C47</color>
+    <color name="cal_chip_bg">#202C36</color>
+    <color name="cal_chip_border">#3A4A57</color>
+    <color name="cal_day">#E6ECF2</color>
+    <color name="cal_day_marked_bg">#2A3845</color>
+    <color name="cal_title">#E6ECF2</color>
+    <color name="cal_weekday">#9AA8B5</color>
+
+    <!-- The day card -->
+    <color name="day_card_number">#E6ECF2</color>
+    <color name="day_card_ring">#3A4A57</color>
+    <color name="day_card_stroke">#2E3C47</color>
+    <color name="day_card_weekday">#9AA8B5</color>
+
+    <!-- Tree -->
+    <color name="tree_accent">#FF8A4C</color>
+    <color name="tree_divider">#2E3C47</color>
+    <color name="tree_icon">#C6D2DE</color>
+    <color name="tree_meta">#9AA8B5</color>
+    <color name="tree_title">#E6ECF2</color>
+
+    <!-- Year overview -->
+    <color name="year_dropdown">#2BB3A8</color>
+    <color name="year_header">#4FD1C5</color>
+    <color name="year_highlight_bg">#16282B</color>
+    <color name="year_month_bg">#1B2E26</color>
+    <color name="year_month_border">#2F4A42</color>
+    <color name="year_page_bg">#121A21</color>
+    <color name="year_slot_empty">#5C6B78</color>
+
+    <!-- Timeline, the native views only -->
+    <color name="tl_card_border">#2E3C47</color>
+    <color name="tl_decade">#D9B54A</color>
+    <color name="tl_entry_bg">#1C2730</color>
+    <color name="tl_entry_border">#35454F</color>
+    <color name="tl_entry_gutter">#9AA8B5</color>
+    <color name="tl_gutter">#7D8B98</color>
+    <color name="tl_header">#8FA6C4</color>
+    <color name="tl_page_bg">#121A21</color>
+    <color name="tl_year">#6E9699</color>
+
+    <!-- The Guide -->
+    <color name="guide_body">#DCE4EB</color>
+    <color name="guide_callout_bg">#16282B</color>
+    <color name="guide_callout_rule">#2BB3A8</color>
+    <color name="guide_heading">#2BB3A8</color>
+    <color name="guide_page_bg">#141D24</color>
+    <color name="guide_title">#4FD1C5</color>
 
 </resources>

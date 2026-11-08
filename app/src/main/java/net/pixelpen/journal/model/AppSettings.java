@@ -694,19 +694,42 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
     }
 
     /**
-     * Pin the app to light mode.
+     * Apply the chosen theme: follow the phone, or override it.
      *
-     * <p>Said twice on purpose. The theme parent is Light rather than DayNight, so no -night
-     * resource can be resolved; this also tells AppCompat, which is what isDarkModeEnabled
-     * reads, and that is what decides whether the Markdown preview renders its dark
-     * stylesheet. Without this the HTML preview would go dark on a dark phone while every
-     * native screen stayed light.
-     *
-     * <p>Not a preference any more. Dark did not work and System could not be stopped from
-     * turning it on, so the row offering them has gone with them.
+     * <p>Three values, all of which work now that there is a night palette. system is the
+     * default, so the phone's own dark-mode switch is what most people will use and it needs
+     * no visit to Settings; light and dark pin it regardless of the phone, for anyone who
+     * wants this app to differ from the rest of it.
      */
     public void applyAppTheme() {
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        final String theme = getAppThemeName();
+        if ("light".equals(theme)) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        } else if ("dark".equals(theme)) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        }
+    }
+
+    /**
+     * The chosen theme, or system if what is stored is not on offer.
+     *
+     * <p>The check earns its place twice over. Six values were cut to two and then restored as
+     * three, so a phone carrying "dark-black" or "autocompat" from an earlier build has a
+     * string no array mentions; and "dark" now means something real again, so a stale value
+     * cannot simply be passed through.
+     */
+    public String getAppThemeName() {
+        final String system = _context.getString(R.string.app_theme_system);
+        final String stored = getString(R.string.pref_key__app_theme, system);
+        for (final String offered : _context.getResources().getStringArray(R.array.pref_arrkeys__app_themes)) {
+            if (offered.equals(stored)) {
+                return stored;
+            }
+        }
+        setString(R.string.pref_key__app_theme, system);
+        return system;
     }
 
     public boolean isMultiWindowEnabled() {

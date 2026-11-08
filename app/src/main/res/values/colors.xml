@@ -155,6 +155,15 @@
 
     <!-- The day card. -->
     <color name="day_card_ring">#AEB8C4</color>
+    <!-- The window background of the Calendar and the file browser. Was @android:color/white
+         written straight into both layouts, which no theme can reach. -->
+    <color name="screen_bg">#FFFFFF</color>
+
+    <!-- The note field's fill and rule, lifted out of bg_edittext_amber so the drawable can
+         follow the theme instead of carrying literals. -->
+    <color name="note_field_bg">#FFFAE6</color>
+    <color name="note_field_border">#000000</color>
+
     <color name="day_card_stroke">#D9DFE6</color>
     <color name="day_card_number">#2B3545</color>
     <color name="day_card_weekday">#5C6878</color>
