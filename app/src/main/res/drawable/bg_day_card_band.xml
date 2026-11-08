@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- White so a background tint can colour it per month; only the top corners are rounded,
-     the bottom edge meets the card body square. -->
+<!-- DO NOT give this a night variant. The white is not a colour, it is a tint base:
+     CalendarFragment calls setBackgroundTintList with the month's band colour, and the
+     default tint mode is SRC_IN, so anything other than white would darken all twelve
+     bands. The sibling bg_day_card really was wrongly white and has been fixed; this one
+     is white on purpose.
+
+     Only the top corners are rounded, the bottom edge meets the card body square. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
     <solid android:color="@android:color/white" />
     <corners android:topLeftRadius="14dp" android:topRightRadius="14dp" />

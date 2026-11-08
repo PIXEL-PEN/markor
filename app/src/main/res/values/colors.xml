@@ -159,6 +159,12 @@
          written straight into both layouts, which no theme can reach. -->
     <color name="screen_bg">#FFFFFF</color>
 
+    <!-- Raised surfaces: the day card, the Timeline notes card, a filled Year highlight.
+         All three were @android:color/white written into their drawables, which no theme can
+         reach, so in dark mode they stayed white while the text on them went light. -->
+    <color name="surface_card">#FFFFFF</color>
+    <color name="tl_entry_field_bg">#FCFCFD</color>
+
     <!-- The note field's fill and rule, lifted out of bg_edittext_amber so the drawable can
          follow the theme instead of carrying literals. -->
     <color name="note_field_bg">#FFFAE6</color>

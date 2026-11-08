@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A white card on a white page needs both a shadow and a line. The shadow alone vanished
-     at 7dp of elevation; the stroke is what actually gives the card an edge. -->
+<!-- A card on a page of nearly the same tone needs both a shadow and a line. The shadow
+     alone vanished at 7dp of elevation; the stroke is what actually gives the card an edge,
+     and that holds in dark mode too. The fill was @android:color/white, which no theme could
+     reach, so the card stayed white at night and wiped out its own numeral. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="@android:color/white" />
+    <solid android:color="@color/surface_card" />
     <stroke android:width="1dp" android:color="@color/day_card_stroke" />
     <corners android:radius="14dp" />
 </shape>

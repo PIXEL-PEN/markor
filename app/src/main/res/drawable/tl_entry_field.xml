@@ -2,7 +2,7 @@
 <!-- A month's field. White against the deeper page, with a border firm enough to hold an edge. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="#FFFCFCFD" />
+    <solid android:color="@color/tl_entry_field_bg" />
     <stroke
         android:width="1dp"
         android:color="@color/tl_entry_border" />
