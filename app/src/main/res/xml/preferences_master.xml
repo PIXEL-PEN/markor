@@ -241,16 +241,15 @@
             android:key="@string/pref_key__is_disallow_screenshots"
             android:title="@string/disallow_screenshots" />
 
-        <ListPreference
-            android:defaultValue="@string/app_theme_system"
-            android:dialogTitle="@string/theme"
-            android:entries="@array/pref_arrdisp__app_themes"
-            android:entryValues="@array/pref_arrkeys__app_themes"
-            android:icon="@drawable/ic_invert_colors_black_24dp"
-            android:key="@string/pref_key__app_theme"
-            android:summary="%1$s"
-            android:title="@string/theme" />
-        <!-- Language is gone. There are 63 locale folders here, inherited from Markor, and
+        <!-- Theme is gone, and not only because Dark was broken. The preference's System value
+             meant MODE_NIGHT_FOLLOW_SYSTEM, so the phone could put the app into night mode
+             whatever was chosen here, and night mode is what turned the Tree black while
+             Autumn's own colours stayed light. Removing the dark options could not fix that;
+             only refusing night mode outright could. AppTheme.Unified is now a Light parent
+             and applyAppTheme pins MODE_NIGHT_NO, which leaves this row with one possible
+             value and nothing to decide. values-night/colors.xml holds the work needed to
+             offer it again. -->
+                <!-- Language is gone. There are 63 locale folders here, inherited from Markor, and
              none of them carries Autumn's own strings: the Calendar, Tree, Year, Timeline and
              category text is English only, and roughly a hundred upstream strings were never
              translated either. Picking a language produced a patchwork rather than a

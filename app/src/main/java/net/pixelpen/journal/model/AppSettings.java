@@ -16,6 +16,7 @@ import android.os.Environment;
 import android.util.Pair;
 
 import androidx.annotation.ColorRes;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -692,30 +693,20 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return rcolor(R.color.background);
     }
 
-    public void applyAppTheme() {
-        GsContextUtils.instance.applyDayNightTheme(getString(R.string.pref_key__app_theme, getAppThemeName()));
-    }
-
     /**
-     * The chosen theme, or system if what is stored is no longer on offer.
+     * Pin the app to light mode.
      *
-     * <p>The fallback is not defensive padding. Four of the six values were removed, and a
-     * phone that had any of them selected still has that string in its preferences: this
-     * install has had "dark-black" in there from testing. Without the check, the stored value
-     * would keep being handed to applyDayNightTheme, which still understands it, so the app
-     * would come up in a night mode that no longer appears anywhere in Settings and cannot be
-     * switched off except by picking something else.
+     * <p>Said twice on purpose. The theme parent is Light rather than DayNight, so no -night
+     * resource can be resolved; this also tells AppCompat, which is what isDarkModeEnabled
+     * reads, and that is what decides whether the Markdown preview renders its dark
+     * stylesheet. Without this the HTML preview would go dark on a dark phone while every
+     * native screen stayed light.
+     *
+     * <p>Not a preference any more. Dark did not work and System could not be stopped from
+     * turning it on, so the row offering them has gone with them.
      */
-    public String getAppThemeName() {
-        final String system = _context.getString(R.string.app_theme_system);
-        final String stored = getString(R.string.pref_key__app_theme, system);
-        for (final String offered : _context.getResources().getStringArray(R.array.pref_arrkeys__app_themes)) {
-            if (offered.equals(stored)) {
-                return stored;
-            }
-        }
-        setString(R.string.pref_key__app_theme, system);
-        return system;
+    public void applyAppTheme() {
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
     }
 
     public boolean isMultiWindowEnabled() {

@@ -1,7 +1,6 @@
 package net.pixelpen.journal.activity;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -33,14 +32,17 @@ public abstract class AutumnBaseActivity extends GsActivityBase<AppSettings, Aut
         return fragment.onReceiveKeyPress(keyCode, event);
     }
 
+    // Both of these used to return Color.BLACK under the Black theme and null otherwise.
+    // Black is gone, so null is the only answer either could give; null means "leave it to
+    // the theme", which is what they now say directly.
     @Override
     public Integer getNewNavigationBarColor() {
-        return _appSettings.getAppThemeName().contains("black") ? Color.BLACK : null;
+        return null;
     }
 
     @Override
     public Integer getNewActivityBackgroundColor() {
-        return _appSettings.getAppThemeName().contains("black") ? Color.BLACK : null;
+        return null;
     }
 
     @Override

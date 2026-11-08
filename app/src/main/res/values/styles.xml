@@ -13,7 +13,25 @@
         <item name="android:windowBackground">@color/dark__background</item>
     </style>
 
-    <style name="AppTheme.Unified" parent="Theme.AppCompat.DayNight.DarkActionBar">
+    <!--
+      Light, not DayNight, and that is the whole fix for the Tree going black.
+
+      Removing Dark and Black from the Theme preference changed nothing, because System means
+      MODE_NIGHT_FOLLOW_SYSTEM: a phone switched to dark put the app into night mode anyway.
+      While this theme descended from DayNight, every -night resource qualifier applied on
+      that signal, so the Tree took a dark background from the theme while Autumn's own eight
+      colours, which have no night variants, stayed light. Nothing in the app could prevent
+      that, because the choice was not the app's to make.
+
+      A Light parent cannot resolve a -night qualifier at all, whatever the system says, so
+      the question stops being asked. In day mode DayNight.DarkActionBar and
+      Light.DarkActionBar are the same theme, so nothing about the current appearance
+      changes.
+
+      To put dark back: restore this parent, then do the work listed in
+      values-night/colors.xml.
+    -->
+    <style name="AppTheme.Unified" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="android:windowActionModeOverlay">true</item>
         <item name="windowActionModeOverlay">true</item>
         <item name="windowActionBarOverlay">true</item>

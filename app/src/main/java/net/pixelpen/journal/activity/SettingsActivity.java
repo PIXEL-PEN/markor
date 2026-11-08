@@ -7,7 +7,6 @@
 #########################################################*/
 package net.pixelpen.journal.activity;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -153,29 +152,10 @@ public class SettingsActivity extends AutumnBaseActivity {
             // simply visible now and the gate is gone.
         }
 
-        @SuppressLint("ApplySharedPref")
-        @Override
-        protected void onPreferenceChanged(final SharedPreferences prefs, final String key) {
-            super.onPreferenceChanged(prefs, key);
-            final Context context = getContext();
-            if (context == null) {
-                return;
-            }
-
-            if (eq(key, R.string.pref_key__app_theme)) {
-                _appSettings.applyAppTheme();
-                // This fragment is hosted twice: by SettingsActivity, and by the settings tab
-                // inside MainActivity. finish() is right for the activity -- it drops back to
-                // MainActivity, which recreates with the new theme -- and would close the app
-                // outright from the tab.
-                final Activity host = getActivity();
-                if (host instanceof SettingsActivity) {
-                    host.finish();
-                } else if (host != null) {
-                    host.recreate();
-                }
-            }
-        }
+        // onPreferenceChanged was overridden for one reason: to re-apply the theme and restart
+        // the activity when the Theme preference changed. With that preference gone the
+        // override did nothing but fetch a Context it no longer used and call super, so it is
+        // removed and the base implementation runs.
 
         @Override
         @SuppressWarnings({"ConstantConditions", "ConstantIfStatement", "StatementWithEmptyBody"})
