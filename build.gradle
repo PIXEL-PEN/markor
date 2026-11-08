@@ -64,12 +64,20 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
-// Only two of these have a reader left. R.raw.readme is referenced by
-// ApplicationObject and R.raw.license.txt is what the About screen's licence row shows.
-// CHANGELOG.md and CONTRIBUTORS.md were being copied into the APK and read by a launch
-// dialog and an About row that are both gone, so they stayed in the binary as stale
-// documents. CONTRIBUTORS.md is deleted; the changelog stays in the repo only.
-final String[] ROOT_TO_RAW_COPYFILES = ["README.md", "LICENSE.txt"]
+// One file, and it has a reader: R.raw.license.txt is what the About screen's licence row
+// shows.
+//
+// README.md used to be copied too, and the note here claimed ApplicationObject referenced
+// it. True in the letter and misleading in substance: R.raw.readme appears only in the
+// unused_ignore array, whose whole purpose is to stop the resource shrinker discarding it.
+// Nothing could open it. So the APK carried a GitHub-facing document, links and all, that
+// no screen in the app could reach, in a binary with no network. The credit it carried is
+// now in licenses_3rd_party.md, where there is a screen to read it on.
+//
+// CHANGELOG.md and CONTRIBUTORS.md went the same way earlier, read by a launch dialog and
+// an About row that are both gone. CONTRIBUTORS.md is deleted; the changelog stays in the
+// repo only.
+final String[] ROOT_TO_RAW_COPYFILES = ["LICENSE.txt"]
 task copyRepoFiles(type: Copy) {
     from rootProject.files(ROOT_TO_RAW_COPYFILES)
     into "app/src/main/res/raw"

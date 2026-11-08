@@ -8,6 +8,12 @@
 ~° notices on inherited files are retained.
 ~° <http://www.apache.org/licenses/LICENSE-2.0>
 
+* Harshad Vedartham
+~° Copyright (c) 2023
+~° Author of GsCollectionUtils, and of the
+~° HTML calendar prototype for Markor that
+~° the Tree screen grew out of.
+
 **The MIT License (MIT)**  
 * KaTex
 ~° Copyright KaTex authors
