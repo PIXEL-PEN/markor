@@ -486,19 +486,20 @@
         <string name="app_name">Autumn</string>
         <string name="app_name_real" translatable="false">@string/app_name</string>
 
+        <!--
+          What a fresh install starts with, and what "Reset categories to defaults" returns to.
+          General first because it is the capture screen's fallback when nothing is chosen; the
+          spinner sorts the lot alphabetically for display regardless of the order here.
+        -->
         <string-array name="category_list">
             <item>General</item>
-            <item>Projects</item>
-            <item>Purchases</item>
-            <item>Reference</item>
-            <item>Daily Trivia</item>
-            <item>Insights-Ideas</item>
-            <item>Key Events</item>
-            <item>Social</item>
             <item>Medical-Health</item>
+            <item>Reference</item>
+            <item>Ideas</item>
+            <item>Projects</item>
+            <item>Social</item>
+            <item>Key Events</item>
             <item>Finance</item>
-            <item>Affirmations</item>
-            <item>Emails</item>
         </string-array>
 
     <!-- Overflow action: show the tree from the top of the archive, everything else closed. -->

@@ -96,9 +96,20 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            // keep whatever you had here; not used right now
             minifyEnabled false
             shrinkResources false
+            // Signed with the DEBUG key, so assembleRelease produces something installable for
+            // testing on your own and a friend's phone. It is a release build in every other
+            // respect: applicationId net.pixelpen.journal with no .dev suffix, so it installs
+            // beside the debug build, and STORAGE_ROOT_NAME stays "Autumn" from defaultConfig
+            // rather than "Autumn (dev)".
+            //
+            // NOT for distribution. The debug keystore ships with the Android SDK and its
+            // password is public, so anyone can sign an update that Android will accept as this
+            // app. Google Play rejects debug-signed uploads outright. Replace this with a real
+            // signingConfig before the app goes anywhere, and note that the first install under
+            // a new key has to be a clean one: Android refuses an update whose signature changed.
+            signingConfig signingConfigs.debug
         }
     }
 
