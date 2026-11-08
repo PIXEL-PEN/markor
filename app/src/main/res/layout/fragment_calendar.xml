@@ -51,7 +51,7 @@
         <!-- The day card. Rings straddle the top edge, so the card is inset to make room. -->
         <FrameLayout
             android:id="@+id/day_card_frame"
-            android:layout_width="171dp"
+            android:layout_width="162dp"
             android:layout_height="wrap_content"
             android:clipChildren="false"
             android:clipToPadding="false"
@@ -171,10 +171,9 @@
         </LinearLayout>
 
         <!--
-          Browse sits inside the field's bottom corner rather than floating over the screen. It
-          was an overlay in main__activity.xml at a fixed margin from the bottom, so moving the
-          field left it resting on the box's edge. Anchored in here it cannot drift again,
-          whatever the screen height.
+          The clear button sits in the field's top corner, where it does not move as the text
+          grows. The field's own paddingEnd is widened to match so a long line wraps before it
+          rather than running underneath.
         -->
         <FrameLayout
             android:layout_width="match_parent"
@@ -192,34 +191,56 @@
                 android:maxLength="250"
                 android:maxLines="10"
                 android:overScrollMode="always"
-                android:padding="10dp"
+                android:paddingStart="10dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="40dp"
+                android:paddingBottom="10dp"
                 android:scrollHorizontally="false"
                 android:scrollbars="vertical"
                 android:textColorHint="@color/cal_weekday" />
 
-            <TextView
-                android:id="@+id/btn_browse_tree"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
-                android:layout_marginEnd="8dp"
-                android:layout_marginBottom="4dp"
+            <ImageButton
+                android:id="@+id/btn_clear_note"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="18dp"
+                android:layout_marginEnd="4dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:drawableEnd="@drawable/ic_baseline_keyboard_double_arrow_right_24"
-                android:drawablePadding="2dp"
-                android:drawableTint="@color/day_card_weekday"
-                android:focusable="true"
-                android:paddingStart="10dp"
-                android:paddingTop="6dp"
-                android:paddingEnd="6dp"
-                android:paddingBottom="6dp"
-                android:text="@string/browse"
-                android:textColor="@color/day_card_weekday"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:contentDescription="@string/clear_note_field"
+                android:padding="7dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_baseline_clear_24"
+                android:tint="@color/day_card_weekday"
+                android:visibility="gone" />
 
         </FrameLayout>
+
+        <!--
+          Browse reads as a control of its own below the field, in the same chip as the category
+          spinner so the two look like one family. It was inside the field's bottom corner, where
+          it sat on the box edge and crowded the text.
+        -->
+        <TextView
+            android:id="@+id/btn_browse_tree"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_spinner_chip"
+            android:clickable="true"
+            android:drawableEnd="@drawable/ic_baseline_keyboard_double_arrow_right_24"
+            android:drawablePadding="4dp"
+            android:drawableTint="@color/day_card_weekday"
+            android:focusable="true"
+            android:paddingStart="12dp"
+            android:paddingTop="7dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="7dp"
+            android:text="@string/browse"
+            android:textColor="@color/day_card_weekday"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 

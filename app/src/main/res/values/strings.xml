@@ -635,4 +635,5 @@
     <string name="quicknote_saved">Quicknote saved</string>
     <string name="search_hint">Search: words, \"a phrase\", /regex/</string>
     <string name="day_card_description">Selected date. Tap to choose another.</string>
+    <string name="clear_note_field">Clear the note field</string>
 </resources>

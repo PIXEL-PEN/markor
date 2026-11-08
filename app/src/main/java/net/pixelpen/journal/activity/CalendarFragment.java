@@ -8,7 +8,9 @@ import android.content.res.TypedArray;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import android.text.Editable;
 import android.text.InputFilter;
+import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -95,6 +97,31 @@ public class CalendarFragment extends AutumnBaseFragment
         dayCardWeekday = view.findViewById(R.id.day_card_weekday);
         bindDayCard();
         dayCard.setOnClickListener(v -> showDatePicker());
+
+        // The clear button is only there when there is something to clear, so an empty field
+        // is not carrying a control that would do nothing.
+        final ImageButton clearNote = view.findViewById(R.id.btn_clear_note);
+        if (clearNote != null && inputNoteTitle != null) {
+            clearNote.setOnClickListener(v -> {
+                inputNoteTitle.setText("");
+                inputNoteTitle.requestFocus();
+            });
+            inputNoteTitle.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(final CharSequence s, final int a, final int b, final int c) {
+                }
+
+                @Override
+                public void onTextChanged(final CharSequence s, final int a, final int b, final int c) {
+                }
+
+                @Override
+                public void afterTextChanged(final Editable e) {
+                    clearNote.setVisibility(e.length() == 0 ? View.GONE : View.VISIBLE);
+                }
+            });
+            clearNote.setVisibility(inputNoteTitle.getText().length() == 0 ? View.GONE : View.VISIBLE);
+        }
 
         final View browse = view.findViewById(R.id.btn_browse_tree);
         if (browse != null) {
