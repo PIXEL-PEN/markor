@@ -397,7 +397,10 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
         menu.findItem(R.id.action_preview).setVisible(isText && !_isPreviewVisible);
         menu.findItem(R.id.action_search).setVisible(isText && !_isPreviewVisible);
         menu.findItem(R.id.action_search_view).setVisible(isText && _isPreviewVisible);
-        menu.findItem(R.id.submenu_share).setVisible(isText);
+        // Three items where submenu_share used to be one, so each is set rather than the parent.
+        menu.findItem(R.id.action_share_text).setVisible(isText);
+        menu.findItem(R.id.action_share_file).setVisible(isText);
+        menu.findItem(R.id.action_share_pdf).setVisible(isText);
         // Reading only. Realising a note is in the wrong category is something that happens
         // while you are looking at it, not while you are typing it, and keeping the move out of
         // edit mode means it can never fire with a half-typed buffer in play.

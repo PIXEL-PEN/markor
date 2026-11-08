@@ -638,4 +638,7 @@
     <string name="clear_note_field">Clear the note field</string>
     <string name="move_to_category">Move to category</string>
     <string name="moved_to_category">Moved to %1$s</string>
+    <string name="share_as_text">Share as text</string>
+    <string name="share_as_file">Share as file</string>
+    <string name="print_or_pdf">Print or save as PDF</string>
 </resources>

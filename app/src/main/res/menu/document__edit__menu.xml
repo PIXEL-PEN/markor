@@ -77,9 +77,20 @@
         app:showAsAction="always" />
 
     <!--
-      Refiling, for the note that went into the wrong category. Hidden unless the file actually
-      sits in a Year/Month/Category slot, since a quicknote or an imported file has no category
-      to move between.
+      The overflow, as one flat list.
+
+      Share used to be a submenu: an icon and the word Share on the overflow, which when opened
+      replaced the list with a header saying Share again, a back arrow, and three items named
+      Plain Text, Print / PDF and File. Two taps and two spellings of the same word to reach
+      something three items long. Flattened, and the items renamed to say what they do on their
+      own now that no parent is there to say it for them.
+
+      No icons on these deliberately. tintMenuItems paints menu icons white for the dark action
+      bar, which is the wrong colour on a light popup. The share icon was there and not doing
+      any good.
+
+      Move to category is hidden unless the file sits in a Year/Month/Category slot, and unless
+      the note is being read rather than edited.
     -->
     <item
         android:id="@+id/action_move_to_category"
@@ -87,31 +98,18 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/submenu_share"
-        android:icon="@drawable/ic_share_black_24dp"
-        android:title="@string/share"
-        app:showAsAction="never">
-        <menu>
-            <!--
-              Three ways out, which is what an entry plausibly leaves as. The screenshot, share-as-
-              image and share-as-HTML variants are gone: they rendered the preview webview to a
-              bitmap, which is a different thing from exporting a document.
-            -->
-            <item
-                android:id="@+id/action_share_text"
-                android:title="@string/plaintext"
-                app:showAsAction="never" />
+        android:id="@+id/action_share_text"
+        android:title="@string/share_as_text"
+        app:showAsAction="never" />
 
-            <item
-                android:id="@+id/action_share_pdf"
-                android:title="@string/print_pdf"
-                app:showAsAction="never" />
+    <item
+        android:id="@+id/action_share_file"
+        android:title="@string/share_as_file"
+        app:showAsAction="never" />
 
-            <item
-                android:id="@+id/action_share_file"
-                android:title="@string/file"
-                app:showAsAction="never" />
-        </menu>
-    </item>
+    <item
+        android:id="@+id/action_share_pdf"
+        android:title="@string/print_or_pdf"
+        app:showAsAction="never" />
 
 </menu>
