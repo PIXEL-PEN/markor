@@ -11,6 +11,9 @@ work. If not, see <https://creativecommons.org/publicdomain/zero/1.0/>.
 <resources>
 
     <string name="app_license_name" translatable="false">GPL-3.0</string>
+    <!-- The copyright line, on its own row at the top of About. One string so it can be
+         edited without touching layout or code when a legal name replaces PIXEL-PEN. -->
+    <string name="app_copyright" translatable="false">Copyright © 2026 PIXEL-PEN</string>
     <!-- Our project, not upstream's. These pointed at gsantner/markor's discussion board, which
          sent this fork's bug reports to the Markor maintainer. -->
     <string name="app_community_url" translatable="false">https://github.com/PIXEL-PEN/markor/discussions</string>

@@ -268,6 +268,18 @@
              attribution notices be retained, which the licence rows below do; it does not
              ask for a contributor roster, and a list of web links does not belong in an
              app with no network access. The roster stays in CONTRIBUTORS.md. -->
+        <!-- Autumn's own copyright, stated on the screen rather than only inside the licence
+             dialog. Not selectable: there is nothing to open, it is the line itself. -->
+        <Preference
+            android:icon="@drawable/ic_copyright_black_24dp"
+            android:selectable="false"
+            android:title="@string/app_copyright" />
+
+        <!-- Strictly Autumn's own licence. The Apache and MIT notices for the inherited code
+             used to sit in here too, which made a row called Project license open a dialog
+             mostly about two other projects. They were already listed in full under Open
+             source licences, so this now carries one sentence of provenance and points
+             there. -->
         <Preference
             android:icon="@drawable/ic_copyright_black_24dp"
             android:key="@string/pref_key__more_info__project_license"

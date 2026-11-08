@@ -16,29 +16,11 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <https://www.gnu.org/licenses/>.
 
 -------------------------------------------------------------------------
-                      ATTRIBUTION FOR INHERITED CODE
--------------------------------------------------------------------------
 
-Autumn is a derivative work of Markor.
-
-    Markor
-    Copyright 2017-2025 Gregor Santner <gsantner AT mailbox DOT org>
-    Licensed under the Apache License, Version 2.0
-    <http://www.apache.org/licenses/LICENSE-2.0>
-
-Markor was in turn forked from writeily-pro, MIT licensed. The unmodified
-parts of it are in app/thirdparty and remain under their own licences.
-
-Apache 2.0 permits a derivative work to be distributed under the GNU GPL
-version 3. The Apache notices on the inherited source files are retained, and
-the Apache 2.0 licence text, together with every third-party licence this app
-depends on, is reproduced in app/src/main/res/raw/licenses_3rd_party.md, which
-the app shows under Settings, Open source licences.
-
-Changes made relative to Markor are substantial and include: a calendar-based
-journal capture screen, a category tree, a year overview and HTML timeline
-export, a central image and attachment store, removal of all network access,
-and a rebuilt settings tree.
+Autumn began as a fork of Markor and was substantially modified in 2026. The
+code it inherited, and the third-party libraries and fonts it uses, carry their
+own copyright and licence notices. Those are reproduced in full under Settings,
+Open source licences.
 
 -------------------------------------------------------------------------
                  GNU GENERAL PUBLIC LICENSE, VERSION 3
