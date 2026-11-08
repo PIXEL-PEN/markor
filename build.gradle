@@ -101,9 +101,18 @@ ext.getGitHash = providers.exec {
 }.standardOutput.asText.get().trim()
 
 @SuppressWarnings(["UnnecessaryQualifiedReference", "SpellCheckingInspection", "GroovyUnusedDeclaration"])
-// Returns the build date in a RFC3339 compatible format. TZ is always converted to UTC
+// The build date, as a person would write it, in the build machine's own time zone.
+//
+// It was RFC3339 in UTC: "2026-11-08T11:29Z". That sorts correctly as plain text and is
+// unambiguous anywhere, which matters when a machine reads it and not at all when the only
+// readers are whoever is holding the phone. UTC also made it read an hour or more off the
+// clock of the machine that produced it, which is a small puzzle in a screen that should
+// answer questions rather than raise them.
+//
+// Locale.ENGLISH is pinned deliberately: the default locale would make the month name follow
+// whatever the build machine happens to be set to, so the same build date would be spelled
+// differently depending on where it was compiled. The zone is printed, so a build handed to
+// someone in another country still says what its time means.
 static String getBuildDate() {
-    final SimpleDateFormat RFC3339_LIKE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
-    RFC3339_LIKE.setTimeZone(TimeZone.getTimeZone("UTC"))
-    return RFC3339_LIKE.format(new Date())
+    return new SimpleDateFormat("d MMM yyyy, HH:mm z", Locale.ENGLISH).format(new Date())
 }
