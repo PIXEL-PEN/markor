@@ -1,10 +1,6 @@
 Autumn
 Copyright (C) 2026 PIXEL-PEN
 
-                        *** PLACEHOLDER COPYRIGHT ***
-    Replace "PIXEL-PEN" above with the legal name or entity you want on the
-    record before any public release.
-
 -------------------------------------------------------------------------
 
 This program is free software: you can redistribute it and/or modify it under
@@ -48,14 +44,4 @@ and a rebuilt settings tree.
                  GNU GENERAL PUBLIC LICENSE, VERSION 3
 -------------------------------------------------------------------------
 
-*** The full licence text is NOT in this file yet. ***
-
-The GPL requires that the complete licence text accompany the program. Append
-the canonical copy, which is reproduced verbatim and must not be retyped:
-
-    curl -o /tmp/gpl3.txt https://www.gnu.org/licenses/gpl-3.0.txt \
-      && cat /tmp/gpl3.txt >> LICENSE.txt
-
-Run that from the repository root. build.gradle's copyRepoFiles task copies
-this file to res/raw/license.txt on every build, so the app picks it up with
-no further change.
+__GPL3_TEXT_GOES_HERE__

@@ -30,6 +30,17 @@
 * asciidoctor-skins
 ~° Copyright asciidoctor-skins authors
 
+* Prism
+~° Copyright (c) 2012 Lea Verou
+~° Syntax highlighting in the preview.
+~° Ships its own LICENSE beside the
+~° asset, which says MIT.
+
+* org-js
+~° Copyright (c) Masafumi Oyamada
+~° The org-mode parser behind the .org
+~° preview, bundled as org-bundle.js.
+
 
 `---------------`  
 <small>Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -59,20 +70,28 @@ Version 2.0, January 2004
 * Material design icons
 ~° Copyright Google
 
-* Android support library / appcompat
+* AndroidX: appcompat, preference,
+~° recyclerview, browser, multidex,
+~° legacy support
 ~° Copyright (C) 2011 The Android Open Source Project
 
-* adapter-kit
-~° Copyright 2013 Mobs & Geeks
+* Material Components for Android
+~° Copyright Google
 
-* commons-io, commons-lang3
+* commons-io
 ~° Copyright Apache Foundation
+
+* EpubParser
+~° Copyright Mert Akdut
+
+* HSV-Alpha Color Picker for Android
+~° Copyright Martin Stone
+
+* Kotlin standard library
+~° Copyright JetBrains s.r.o.
 
 * OpenCsv
 ~° Copyright Bytecode Pty Ltd.
-
-* gene-rate
-~° Copyright 2017 Pixplicity
 
 `---------------`  
 <small>Licensed under the Apache License, Version 2.0 (the "License");
@@ -119,4 +138,36 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</small>  
 `---------------`
-  
+
+
+**SIL Open Font License, Version 1.1**  
+<small>&lt;http://scripts.sil.org/OFL&gt;</small>  
+
+* Lato
+~° Copyright (c) 2010-2011 tyPoland
+~° Lukasz Dziedzic, Reserved Font
+~° Name "Lato"
+
+* Liberation Sans / Serif / Mono
+~° Copyright (c) 2012 Red Hat, Inc.
+~° Digitized data copyright (c) 2010
+~° Google Corporation
+
+* Source Code Pro
+~° Copyright 2010-2020 Adobe Systems
+~° Incorporated, Reserved Font Name
+~° "Source"
+
+
+**Ubuntu Font Licence, Version 1.0**  
+
+* Ubuntu
+~° Copyright 2011 Canonical Ltd.
+
+
+**Bitstream Vera Fonts Copyright**  
+
+* DejaVu Sans
+~° Copyright (c) 2003 Bitstream, Inc.
+~° DejaVu changes are in the public
+~° domain.
