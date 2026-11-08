@@ -485,9 +485,12 @@ public class MainActivity extends AutumnBaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (!IntroActivity.isFirstStart(this)) {
-            StoragePermissionActivity.requestPermissions(this);
-        }
+        // Asked unconditionally now. This used to be gated on the intro having been seen, so
+        // that the permission sheet did not land on top of the slides. With the intro gone the
+        // gate would have read a preference nothing sets any more: isFirstStart would be
+        // permanently true, the condition permanently false, and a fresh install would never
+        // be asked for storage at all.
+        StoragePermissionActivity.requestPermissions(this);
 
         if (_appSettings.isRecreateMainRequired()) {
             // recreate(); // does not remake fragments
@@ -516,17 +519,18 @@ public class MainActivity extends AutumnBaseActivity {
             setTaskDescription(new ActivityManager.TaskDescription(getString(R.string.app_name)));
         }
 
-        // The intro runs once on a genuinely fresh install. What used to follow it was a
-        // dialog of copyright text, the whole changelog and every third-party licence,
-        // shown whenever isAppCurrentVersionFirstStart saw a new versionCode.
+        // Nothing greets a first launch. Markor's five-slide intro used to, and it described
+        // Markor: a notebook of files, a todo.txt slide, a quicknote slide, and screenshots of
+        // an app this no longer is. It only ever appeared on a genuinely fresh install, which
+        // is why it survived here unseen until the first release build was sideloaded.
         //
-        // versionCode is new Date().format('yyMMdd'), so it changes every day. Any build
-        // made on a later day than the last one installed looked like a version upgrade and
-        // the wall of text came up again -- which is why it appeared on what felt like an
-        // ordinary launch. It is gone. The licences live in Settings, under About, where
-        // someone looking for them can find them; nobody opening a journal wants a changelog
-        // first.
-        IntroActivity.optStart(this);
+        // What used to follow it was worse and is also gone: a dialog of copyright text, the
+        // whole changelog and every third-party licence, shown whenever
+        // isAppCurrentVersionFirstStart saw a new versionCode. versionCode is
+        // new Date().format('yyMMdd'), so it changes every day, and any build made on a later
+        // day than the one installed looked like an upgrade and brought the wall of text back.
+        // The licences live in Settings under About, where someone looking for them can find
+        // them; nobody opening a journal wants a changelog first.
     }
 
 

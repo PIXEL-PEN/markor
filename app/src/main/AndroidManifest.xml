@@ -74,10 +74,6 @@
             android:name="android.webkit.WebView.MetricsOptOut"
             android:value="true" />
         <activity
-            android:name=".activity.IntroActivity"
-            android:exported="false" />
-
-        <activity
             android:name=".activity.openeditor.OpenFromShortcutOrWidgetActivity"
             android:exported="true"
             android:launchMode="singleTop" />
