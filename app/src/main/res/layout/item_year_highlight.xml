@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  One highlight in the Year strip.
+
+  Was a single TextView holding "pin  Title   ·   Apr". A single line cannot right-align part
+  of itself, so the month sat wherever the title left it and read as the second half of the
+  title rather than as a date. Two views and a weight put it at the far edge, where it can be
+  ignored until it is wanted.
+
+  The padding lives here rather than in code because setBackgroundResource replaces a view's
+  padding with the drawable's, and the background is set per row depending on whether the slot
+  is filled.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="10dp"
+    android:paddingTop="8dp"
+    android:paddingEnd="10dp"
+    android:paddingBottom="8dp">
+
+    <TextView
+        android:id="@+id/year_highlight_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textColor="@color/tree_title"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/year_highlight_month"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:singleLine="true"
+        android:textColor="@color/tree_meta"
+        android:textSize="12.5sp" />
+
+</LinearLayout>

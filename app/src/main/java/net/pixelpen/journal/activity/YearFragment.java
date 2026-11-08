@@ -3,7 +3,6 @@ package net.pixelpen.journal.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
@@ -303,45 +302,47 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
         _highlights.removeAllViews();
 
         for (int i = 0; i < rows; i++) {
-            final TextView slot = new TextView(requireContext());
-            slot.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            final int pad = Math.round(8 * getResources().getDisplayMetrics().density);
-            slot.setPadding(pad + pad / 4, pad, pad + pad / 4, pad);
-            slot.setSingleLine(true);
-            slot.setEllipsize(android.text.TextUtils.TruncateAt.END);
-            slot.setTextSize(14f);
+            final View slot = getLayoutInflater().inflate(R.layout.item_year_highlight, _highlights, false);
+            final TextView title = slot.findViewById(R.id.year_highlight_title);
+            final TextView month = slot.findViewById(R.id.year_highlight_month);
             final android.widget.LinearLayout.LayoutParams lp =
                     (android.widget.LinearLayout.LayoutParams) slot.getLayoutParams();
             lp.bottomMargin = Math.round(6 * getResources().getDisplayMetrics().density);
 
+            // setBackgroundResource replaces the view's padding with the drawable's, so the
+            // padding the layout set has to be read before and put back after.
+            final int[] pad = {slot.getPaddingStart(), slot.getPaddingTop(),
+                    slot.getPaddingEnd(), slot.getPaddingBottom()};
+
             if (i < hl.size()) {
                 final YearOverview.Event e = hl.get(i);
-                // The month alongside the title, so the order the strip is in is visible rather
-                // than something the reader has to take on trust.
-                final java.util.Calendar when = java.util.Calendar.getInstance();
-                String label = "\uD83D\uDCCC  " + e.title;
+                title.setText("\uD83D\uDCCC  " + e.title);
+                // The month at the far edge rather than trailing the title. It is there so the
+                // order of the strip can be checked, which is a thing you look for rather than
+                // read, so it is smaller and in the metadata grey.
                 if (e.aboutMillis > 0L) {
+                    final java.util.Calendar when = java.util.Calendar.getInstance();
                     when.setTimeInMillis(e.aboutMillis);
-                    label = label + "   \u00B7   " + new java.text.SimpleDateFormat(
-                            "MMM", java.util.Locale.getDefault()).format(when.getTime());
+                    month.setText(new java.text.SimpleDateFormat(
+                            "MMM", java.util.Locale.getDefault()).format(when.getTime()));
+                    month.setVisibility(View.VISIBLE);
+                } else {
+                    month.setVisibility(View.GONE);
                 }
-                slot.setText(label);
-                // Bold, as the original stylesheet had them: a highlight is the one thing on this
-                // screen that is meant to carry weight. The empty slots stay plain, so the strip
-                // reads as what is there rather than as room left over.
-                slot.setTypeface(null, android.graphics.Typeface.BOLD);
                 slot.setBackgroundResource(R.drawable.year_slot_filled);
-                slot.setTextColor(androidx.core.content.ContextCompat.getColor(
-                        requireContext(), R.color.tree_title));
                 slot.setOnClickListener(v -> openNote(e.file));
             } else {
-                slot.setText(getString(R.string.year_highlight_empty, i + 1));
-                slot.setBackgroundResource(R.drawable.year_slot_empty);
-                slot.setTextColor(androidx.core.content.ContextCompat.getColor(
+                // Empty slots stay plain and unbolded, so the strip reads as what is there
+                // rather than as room left over.
+                title.setText(getString(R.string.year_highlight_empty, i + 1));
+                title.setTypeface(null, android.graphics.Typeface.NORMAL);
+                title.setTextColor(androidx.core.content.ContextCompat.getColor(
                         requireContext(), R.color.year_slot_empty));
+                month.setVisibility(View.GONE);
+                slot.setBackgroundResource(R.drawable.year_slot_empty);
                 slot.setOnClickListener(v -> promptNewHighlight());
             }
+            slot.setPaddingRelative(pad[0], pad[1], pad[2], pad[3]);
             _highlights.addView(slot);
         }
     }
