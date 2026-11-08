@@ -653,6 +653,5 @@
     <string name="new_note_bullet_summary">A new note opens with a dash and the cursor beside it, ready to type a list</string>
     <string name="editing">Editing</string>
     <string name="lists_and_action_bar">Lists and action bar</string>
-    <string name="add_all_to_spinner">+  Add missing to spinner</string>
     <string name="counting">counting…</string>
 </resources>

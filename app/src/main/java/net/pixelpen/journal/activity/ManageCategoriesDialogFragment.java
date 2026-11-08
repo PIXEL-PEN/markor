@@ -56,12 +56,6 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
         void onCategoryRemoved(String name);
 
         void onCategoriesChanged();
-
-        /** Categories that exist on disk but are not in the spinner's curated list. */
-        java.util.List<String> onListSpinnerGaps();
-
-        /** Adopt those into the spinner. */
-        void onAddMissingToSpinner();
     }
 
     public static ManageCategoriesDialogFragment newInstance() {
@@ -70,7 +64,6 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
 
     private LinearLayout _list;
     private View _scroll;
-    private TextView _sync;
     private TextView _empty;
 
     @NonNull
@@ -84,8 +77,6 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
         _empty = root.findViewById(R.id.mc_empty);
         root.findViewById(R.id.mc_add).setOnClickListener(v -> promptAdd());
         _scroll = root.findViewById(R.id.mc_scroll);
-        _sync = root.findViewById(R.id.mc_sync);
-        _sync.setOnClickListener(v -> promptAdoptMissing());
 
         redraw();
 
@@ -150,7 +141,6 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
             _list.addView(row);
         }
         capHeight();
-        showSyncRow();
         countsInBackground(details);
     }
 
@@ -207,37 +197,6 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
             }
         });
     }
-
-    /** The adopt row appears only when there is something to adopt. */
-    private void showSyncRow() {
-        final CategoryChangeSink host = sink();
-        final int gaps = host == null ? 0 : host.onListSpinnerGaps().size();
-        _sync.setVisibility(gaps == 0 ? View.GONE : View.VISIBLE);
-        if (gaps > 0) {
-            _sync.setText(getString(R.string.add_all_to_spinner) + "  (" + gaps + ")");
-        }
-    }
-
-    private void promptAdoptMissing() {
-        final CategoryChangeSink host = sink();
-        if (host == null) {
-            return;
-        }
-        final List<String> gaps = host.onListSpinnerGaps();
-        if (gaps.isEmpty()) {
-            return;
-        }
-        new AlertDialog.Builder(requireContext())
-                .setMessage("Add " + gaps.size() + " category folder(s) to the spinner?\n\n"
-                        + android.text.TextUtils.join(", ", gaps))
-                .setNegativeButton(android.R.string.cancel, null)
-                .setPositiveButton(android.R.string.ok, (d, w) -> {
-                    host.onAddMissingToSpinner();
-                    redraw();
-                })
-                .show();
-    }
-
     /** "12 notes across 3 months", or what is true instead. */
     private String describe(final int[] counts) {
         final int notes = counts[0];

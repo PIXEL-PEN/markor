@@ -71,27 +71,4 @@
         android:textSize="15sp"
         android:textStyle="bold" />
 
-    <!--
-      Only shown when the spinner is missing categories that exist on disk. It was in a
-      popup behind a LONG PRESS on the gear, which is to say nowhere: a tap opens this
-      dialog, so this dialog is where someone looking at the imported categories is.
-    -->
-    <TextView
-        android:id="@+id/mc_sync"
-        android:visibility="gone"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:background="?android:selectableItemBackground"
-        android:drawableStart="@drawable/ic_baseline_add_24"
-        android:drawablePadding="8dp"
-        android:gravity="center_vertical"
-        android:paddingTop="10dp"
-        android:paddingEnd="12dp"
-        android:paddingBottom="10dp"
-        android:text="@string/add_all_to_spinner"
-        android:textColor="@color/cal_accent"
-        android:textSize="15sp"
-        android:textStyle="bold" />
-
 </LinearLayout>

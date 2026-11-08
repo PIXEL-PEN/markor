@@ -11,13 +11,11 @@ import androidx.core.content.ContextCompat;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.PopupMenu;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -136,12 +134,11 @@ public class CalendarFragment extends AutumnBaseFragment
         // Gear button
         ImageButton gear = view.findViewById(R.id.btn_manage_categories_toolbar);
         if (gear != null) {
+            // One gesture, one destination. Clear, Reset and Restore used to live in a popup
+            // behind a long press here, which is where the adopt action went too and why it
+            // was never found. With one list there is nothing left for them to do: the
+            // dialog edits the categories and the spinner shows them.
             gear.setOnClickListener(v -> openManageCategoriesDialog());
-            gear.setOnLongClickListener(v -> {
-                showCategoryToolsPopup(v);
-                return true;
-            });
-            gear.setLongClickable(true);
         }
 
 // Initial categories
@@ -374,141 +371,6 @@ public class CalendarFragment extends AutumnBaseFragment
         return noteParentDir(
                 category, NoteTimestamp.combineSelectedDateWithCurrentTime(selectedCalendarDate));
     }
-
-    // Gear popup
-    private void showCategoryToolsPopup(View anchor) {
-        PopupMenu pm = new PopupMenu(requireContext(), anchor);
-        // The first two reconcile the curated spinner list with what is actually on disk.
-        // Without them an archive copied in from elsewhere was invisible to the spinner,
-        // because the spinner reads this list and never scans the folders.
-        pm.getMenu().add(0, 5, 0, "Add folder categories to spinner");
-        pm.getMenu().add(0, 6, 1, "Remove missing from spinner");
-        pm.getMenu().add(0, 1, 2, "Clear categories (UI only)");
-        pm.getMenu().add(0, 4, 3, "Restore previous list");
-        pm.getMenu().add(0, 3, 4, "Reset to defaults");
-        pm.setOnMenuItemClickListener(this::onCategoryToolsMenuItem);
-        pm.show();
-    }
-
-    private boolean onCategoryToolsMenuItem(MenuItem item) {
-        switch (item.getItemId()) {
-            case 1:
-                confirmAndRun("Clear all categories from spinner?", () -> {
-                    backupCurrentUiList();
-                    saveUiCategoryList(new ArrayList<>());
-                    setPreferUi(true);
-                    bindCategories(false);
-                    Toast.makeText(requireContext(), "Spinner list cleared.", Toast.LENGTH_SHORT).show();
-                });
-                return true;
-            case 4:
-                List<String> prev = getUiCategoryListBackup();
-                if (prev == null || prev.isEmpty()) {
-                    Toast.makeText(requireContext(), "No previous list found.", Toast.LENGTH_SHORT).show();
-                    return true;
-                }
-                confirmAndRun("Restore the previous category list?", () -> {
-                    saveUiCategoryList(prev);
-                    setPreferUi(true);
-                    bindCategories(false);
-                    Toast.makeText(requireContext(), "Previous category list restored.", Toast.LENGTH_SHORT).show();
-                });
-                return true;
-            case 5: {
-                // Everything CategoryManager can see, minus what the spinner already shows.
-                final List<String> have = loadCategoriesForSpinner();
-                final List<String> found = CategoryManager.listCategories(requireContext()).changedPaths;
-                final List<String> missing = new ArrayList<>();
-                for (final String c : found) {
-                    boolean known = false;
-                    for (final String h : have) {
-                        if (h.equalsIgnoreCase(c)) {
-                            known = true;
-                            break;
-                        }
-                    }
-                    if (!known) {
-                        missing.add(c);
-                    }
-                }
-                if (missing.isEmpty()) {
-                    Toast.makeText(requireContext(), "The spinner already has every category on disk.",
-                            Toast.LENGTH_SHORT).show();
-                    return true;
-                }
-                confirmAndRun("Add " + missing.size() + " category folder(s) to the spinner?\n\n"
-                        + android.text.TextUtils.join(", ", missing), () -> {
-                    backupCurrentUiList();
-                    final List<String> merged = new ArrayList<>(have);
-                    merged.addAll(missing);
-                    java.util.Collections.sort(merged, String.CASE_INSENSITIVE_ORDER);
-                    saveUiCategoryList(merged);
-                    setPreferUi(true);
-                    bindCategories(false);
-                    Toast.makeText(requireContext(), "Added " + missing.size() + " to the spinner.",
-                            Toast.LENGTH_SHORT).show();
-                });
-                return true;
-            }
-            case 6: {
-                // The other direction: names the spinner carries that no longer exist anywhere.
-                final List<String> have = loadCategoriesForSpinner();
-                final List<String> found = CategoryManager.listCategories(requireContext()).changedPaths;
-                final List<String> stale = new ArrayList<>();
-                for (final String h : have) {
-                    boolean real = false;
-                    for (final String c : found) {
-                        if (h.equalsIgnoreCase(c)) {
-                            real = true;
-                            break;
-                        }
-                    }
-                    // The protected category stays whether or not it has a folder yet.
-                    if (!real && !CategoryManager.isProtected(requireContext(), h)) {
-                        stale.add(h);
-                    }
-                }
-                if (stale.isEmpty()) {
-                    Toast.makeText(requireContext(), "Every category in the spinner exists.",
-                            Toast.LENGTH_SHORT).show();
-                    return true;
-                }
-                confirmAndRun("Remove " + stale.size() + " name(s) with no folder and no notes?\n\n"
-                        + android.text.TextUtils.join(", ", stale)
-                        + "\n\nNothing on disk is touched.", () -> {
-                    backupCurrentUiList();
-                    final List<String> kept = new ArrayList<>(have);
-                    kept.removeAll(stale);
-                    saveUiCategoryList(kept);
-                    setPreferUi(true);
-                    bindCategories(false);
-                    Toast.makeText(requireContext(), "Removed " + stale.size() + " from the spinner.",
-                            Toast.LENGTH_SHORT).show();
-                });
-                return true;
-            }
-            case 3:
-                confirmAndRun("Reset categories to defaults?", () -> {
-                    backupCurrentUiList();
-                    List<String> def = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.category_list)));
-                    saveUiCategoryList(def);
-                    setPreferUi(true);
-                    bindCategories(false);
-                    Toast.makeText(requireContext(), "Categories reset to defaults.", Toast.LENGTH_SHORT).show();
-                });
-                return true;
-        }
-        return false;
-    }
-
-    private void confirmAndRun(String message, Runnable action) {
-        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setMessage(message)
-                .setNegativeButton(android.R.string.cancel, null)
-                .setPositiveButton(android.R.string.ok, (d, w) -> action.run())
-                .show();
-    }
-
     // Dialog → Activity callbacks
     @Override
     public void onCategoryRemoved(String name) {
@@ -521,87 +383,13 @@ public class CalendarFragment extends AutumnBaseFragment
             bindCategories(true);
             return;
         }
-        removeCategoryFromSpinnerImmediate(name);
-        persistCurrentSpinnerList();
-        setPreferUi(true);
+        // Nothing to remove by hand any more: CategoryManager has taken it out, so rebinding
+        // shows what is left.
+        bindCategories(true);
     }
-
-    /**
-     * Categories with a folder on disk that the curated spinner list does not carry.
-     *
-     * <p>The two lists are deliberately separate: the spinner shows what you chose to see and
-     * CategoryManager sees what is actually there. An archive copied in from elsewhere lands
-     * entirely in the second, which is the gap this reports and the next method closes.
-     */
-    @Override
-    public List<String> onListSpinnerGaps() {
-        // Seeded with what the spinner already shows, so a name it carries is never offered
-        // again; then each candidate adds its own key, so two spellings of one category in
-        // the imported folders yield one entry rather than two.
-        final java.util.Set<String> seen = new java.util.HashSet<>();
-        for (final String h : loadCategoriesForSpinner()) {
-            seen.add(CategoryManager.key(h));
-        }
-        final List<String> out = new ArrayList<>();
-        for (final String c : CategoryManager.listCategories(requireContext()).changedPaths) {
-            if (seen.add(CategoryManager.key(c))) {
-                out.add(c);
-            }
-        }
-        return out;
-    }
-
-    @Override
-    public void onAddMissingToSpinner() {
-        final List<String> missing = onListSpinnerGaps();
-        if (missing.isEmpty()) {
-            return;
-        }
-        // Backed up first, so "Restore previous list" undoes this.
-        backupCurrentUiList();
-        final List<String> merged = new ArrayList<>(loadCategoriesForSpinner());
-        merged.addAll(missing);
-        java.util.Collections.sort(merged, String.CASE_INSENSITIVE_ORDER);
-        saveUiCategoryList(merged);
-        setPreferUi(true);
-        bindCategories(false);
-        Toast.makeText(requireContext(), "Added " + missing.size() + " to the spinner.",
-                Toast.LENGTH_SHORT).show();
-    }
-
     @Override
     public void onCategoriesChanged() {
         bindCategories(true);
-        persistCurrentSpinnerList();
-        setPreferUi(true);
-    }
-
-    // Remove category from spinner immediately
-    @SuppressWarnings("unchecked")
-    private void removeCategoryFromSpinnerImmediate(String name) {
-        if (spinnerCategory == null || spinnerCategory.getAdapter() == null) {
-            bindCategories(true);
-            return;
-        }
-        ArrayAdapter<String> ad;
-        try {
-            ad = (ArrayAdapter<String>) spinnerCategory.getAdapter();
-        } catch (ClassCastException e) {
-            bindCategories(true);
-            return;
-        }
-        int idxToRemove = -1;
-        for (int i = 0; i < ad.getCount(); i++) {
-            String item = ad.getItem(i);
-            if (item != null && item.equalsIgnoreCase(name)) {
-                idxToRemove = i;
-                break;
-            }
-        }
-        if (idxToRemove >= 0) {
-            ad.remove(ad.getItem(idxToRemove));
-            ad.notifyDataSetChanged();
-        }
     }
 
     /**
@@ -614,15 +402,31 @@ public class CalendarFragment extends AutumnBaseFragment
     }
 
     // Data sources (UI-only; no filesystem scan here)
+    /**
+     * Every category that exists: the folders on disk, plus any added but not yet used.
+     *
+     * <p>There used to be two lists. This read a curated copy in preferences while
+     * CategoryManager read the archive, and nothing reconciled them, so Manage categories
+     * could add, rename and delete all day without the spinner noticing: bindCategories
+     * rebuilt from the curated list and persistCurrentSpinnerList wrote the same list
+     * straight back. An archive copied in from elsewhere landed entirely on the side the
+     * spinner could not see.
+     *
+     * <p>One list now, and this is it. The dialog edits categories and the spinner shows
+     * them, because they are the same thing.
+     */
     private List<String> loadCategoriesForSpinner() {
-        if (preferUi()) {
-            List<String> ui = getUiCategoryList();
-            if (ui != null) return ui;
+        final List<String> cats = CategoryManager.listCategories(requireContext()).changedPaths;
+        if (cats.isEmpty()) {
+            // A fresh install has no folders and nothing added, so seed the starting set.
+            // Only ever on genuine emptiness: a user who deletes everything but the
+            // protected category still has that, so this does not undo their choice.
+            for (final String d : getResources().getStringArray(R.array.category_list)) {
+                CategoryManager.addCategory(requireContext(), d);
+            }
+            return CategoryManager.listCategories(requireContext()).changedPaths;
         }
-        String[] fallback = getResources().getStringArray(R.array.category_list);
-        List<String> list = new ArrayList<>(Arrays.asList(fallback));
-        Collections.sort(list, String.CASE_INSENSITIVE_ORDER);
-        return list;
+        return cats;
     }
 
     private void bindCategories(boolean keepSelection) {
@@ -788,9 +592,9 @@ public class CalendarFragment extends AutumnBaseFragment
         list.add(newName);
         try { Collections.sort(list, String.CASE_INSENSITIVE_ORDER); } catch (Throwable ignored) { }
 
-        backupCurrentUiList();              // snapshot before change
-        saveUiCategoryList(list);           // persist to UI list
-        setPreferUi(true);
+        // Through CategoryManager, so the dialog and the spinner see the same thing. This
+        // used to write a separate preferences list that only the spinner read.
+        CategoryManager.addCategory(requireContext(), newName);
 
         List<String> display = new ArrayList<>(list);
         display.add(ADD_CATEGORY_ITEM);
@@ -907,65 +711,5 @@ public class CalendarFragment extends AutumnBaseFragment
     // UI list persistence + backup
     private SharedPreferences prefs() {
         return requireContext().getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE);
-    }
-
-    private boolean preferUi() {
-        return prefs().getBoolean(KEY_PREFER_UI, false);
-    }
-
-    private void setPreferUi(boolean prefer) {
-        prefs().edit().putBoolean(KEY_PREFER_UI, prefer).apply();
-    }
-
-    private void saveUiCategoryList(List<String> list) {
-        // Filter out the special Add item if present
-        List<String> clean = new ArrayList<>();
-        for (String s : list) {
-            if (s != null && !ADD_CATEGORY_ITEM.equals(s)) {
-                clean.add(s);
-            }
-        }
-        prefs().edit().putStringSet(KEY_UI_LIST, new HashSet<>(clean)).apply();
-    }
-
-    private List<String> getUiCategoryList() {
-        Set<String> set = prefs().getStringSet(KEY_UI_LIST, null);
-        if (set == null) return null;
-        List<String> list = new ArrayList<>(set);
-        try { Collections.sort(list, String.CASE_INSENSITIVE_ORDER); } catch (Throwable ignored) { }
-        return list;
-    }
-
-    private void backupCurrentUiList() {
-        List<String> current = getUiCategoryList();
-        if (current == null) {
-            current = loadCategoriesForSpinner();
-        }
-        Set<String> set = new HashSet<>();
-        for (String s : current) {
-            if (s != null && !ADD_CATEGORY_ITEM.equals(s)) set.add(s);
-        }
-        prefs().edit().putStringSet(KEY_UI_LIST_BACKUP, set).apply();
-    }
-
-    private List<String> getUiCategoryListBackup() {
-        Set<String> set = prefs().getStringSet(KEY_UI_LIST_BACKUP, null);
-        if (set == null) return null;
-        List<String> list = new ArrayList<>(set);
-        try { Collections.sort(list, String.CASE_INSENSITIVE_ORDER); } catch (Throwable ignored) { }
-        return list;
-    }
-
-    private void persistCurrentSpinnerList() {
-        if (categoryAdapter == null) return;
-        List<String> cur = new ArrayList<>();
-        for (int i = 0; i < categoryAdapter.getCount(); i++) {
-            String s = categoryAdapter.getItem(i);
-            if (s != null && !ADD_CATEGORY_ITEM.equals(s)) {
-                cur.add(s);
-            }
-        }
-        backupCurrentUiList();  // snapshot before overwrite
-        saveUiCategoryList(cur);
     }
 }
