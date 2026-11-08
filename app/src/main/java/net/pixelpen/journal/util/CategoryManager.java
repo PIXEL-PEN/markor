@@ -289,6 +289,20 @@ public class CategoryManager {
                 + "Tree and Year screens are built on them. Rename it instead.");
     }
 
+    /**
+     * The key two category names share when they are the same category.
+     *
+     * <p>norm trims, NFKC-normalises and collapses runs of whitespace; this folds case on
+     * top. Folder names come off the disk raw, so "Medical-Health" in one month and
+     * "medical-health" in another are two strings and one category, and listCategories
+     * cannot tell: it merges with a LinkedHashSet, which only dedupes exact matches.
+     * addCategory has always compared with equalsIgnoreCase, so typing a case-variant by
+     * hand was refused while a bulk add would have let it through.
+     */
+    public static String key(final String s) {
+        return norm(s).toLowerCase(java.util.Locale.ROOT);
+    }
+
     private static String norm(String s) {
         if (s == null) return "";
         String t = s.trim();

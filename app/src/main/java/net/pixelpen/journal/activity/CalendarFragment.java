@@ -535,17 +535,16 @@ public class CalendarFragment extends AutumnBaseFragment
      */
     @Override
     public List<String> onListSpinnerGaps() {
-        final List<String> have = loadCategoriesForSpinner();
+        // Seeded with what the spinner already shows, so a name it carries is never offered
+        // again; then each candidate adds its own key, so two spellings of one category in
+        // the imported folders yield one entry rather than two.
+        final java.util.Set<String> seen = new java.util.HashSet<>();
+        for (final String h : loadCategoriesForSpinner()) {
+            seen.add(CategoryManager.key(h));
+        }
         final List<String> out = new ArrayList<>();
         for (final String c : CategoryManager.listCategories(requireContext()).changedPaths) {
-            boolean known = false;
-            for (final String h : have) {
-                if (h.equalsIgnoreCase(c)) {
-                    known = true;
-                    break;
-                }
-            }
-            if (!known) {
+            if (seen.add(CategoryManager.key(c))) {
                 out.add(c);
             }
         }
