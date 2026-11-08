@@ -747,7 +747,11 @@ public class CalendarFragment extends AutumnBaseFragment
         cidx.save();
 
         try (FileWriter writer = new FileWriter(noteFile)) {
-            writer.write(timestamp + "\n\n");
+            // The bullet, when asked for, is the last thing in the file, so the editor's own
+            // default cursor position -- the end of the text, since a new file has no stored
+            // one -- already puts the caret beside it. Nothing has to place it.
+            writer.write(timestamp + "\n\n"
+                    + (ApplicationObject.settings().isNewNoteBullet() ? "- " : ""));
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(requireContext(), "Failed to create note.", Toast.LENGTH_SHORT).show();

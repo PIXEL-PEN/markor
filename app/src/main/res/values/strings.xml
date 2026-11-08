@@ -646,4 +646,7 @@
     <string name="shortcut_not_supported">This launcher does not accept home screen shortcuts</string>
     <string name="up_one_level">Up one level</string>
     <string name="category_protected">%1$s cannot be removed. Every note needs a category to fall back on.</string>
+    <string name="new_note_category">New note</string>
+    <string name="new_note_bullet_title">Start notes with a bullet</string>
+    <string name="new_note_bullet_summary">A new note opens with a dash and the cursor beside it, ready to type a list</string>
 </resources>

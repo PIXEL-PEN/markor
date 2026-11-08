@@ -255,6 +255,16 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return ret;
     }
 
+    /**
+     * Whether a new note is seeded with a Markdown bullet.
+     *
+     * <p>Off by default: a note that begins with a dash is a choice about how you write, not
+     * a sensible thing to impose on someone who has not asked for it.
+     */
+    public boolean isNewNoteBullet() {
+        return getBool(R.string.pref_key__new_note_bullet, false);
+    }
+
     public boolean isKeepScreenOn() {
         // Was !IS_TEST_BUILD, so it defaulted off in debug and on in release -- which meant
         // the build actually used day to day was the one without it.

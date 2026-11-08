@@ -208,6 +208,15 @@
             android:icon="@drawable/gs_markdown_black_24dp"
             android:title="@string/markdown">
 
+            <PreferenceCategory android:title="@string/new_note_category">
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:icon="@drawable/ic_list_black_24dp"
+                    android:key="@string/pref_key__new_note_bullet"
+                    android:summary="@string/new_note_bullet_summary"
+                    android:title="@string/new_note_bullet_title" />
+            </PreferenceCategory>
+
             <PreferenceCategory android:title="@string/actionbutton">
                 <Preference
                     android:icon="@drawable/ic_reorder_black_24dp"
