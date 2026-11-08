@@ -332,6 +332,47 @@ public class CategoryManager {
         return res;
     }
 
+    /**
+     * The most recent month folder that actually holds notes for this category, or null.
+     *
+     * <p>For Browse. It pointed at the category folder for the month on the Calendar screen,
+     * which for an archive copied in from elsewhere is empty or absent while every note sits
+     * under older months: the Tree opened, expanded nothing, and looked broken. Only notes
+     * written today appeared, because today is the month Browse was pointing at.
+     */
+    public static File newestFolderWithNotes(final String nameRaw) {
+        File best = null;
+        long bestKey = -1;
+        for (final File f : findCategoryFolders(norm(nameRaw))) {
+            final String[] kids = f.list();
+            if (kids == null || kids.length == 0) {
+                continue;
+            }
+            final File month = f.getParentFile();
+            final File year = month == null ? null : month.getParentFile();
+            if (year == null) {
+                continue;
+            }
+            final long y;
+            try {
+                y = Long.parseLong(year.getName().trim());
+            } catch (final NumberFormatException e) {
+                continue;
+            }
+            // Months are written "01 January", so the leading number orders them properly;
+            // without it "April" would sort before "January" and the newest would be wrong.
+            final java.util.regex.Matcher m =
+                    java.util.regex.Pattern.compile("^\\s*(\\d{1,2})").matcher(month.getName());
+            final long mo = m.find() ? Long.parseLong(m.group(1)) : 0L;
+            final long keyv = y * 100 + mo;
+            if (keyv > bestKey) {
+                bestKey = keyv;
+                best = f;
+            }
+        }
+        return best;
+    }
+
     private static List<File> findCategoryFolders(String name) {
         List<File> res = new ArrayList<>();
         File[] years = root().listFiles(onlyDirs()); if (years == null) return res;
@@ -499,15 +540,40 @@ public class CategoryManager {
         f.delete();
     }
 
+    /**
+     * Remove a directory and any empty directories under it, deepest first.
+     *
+     * <p>The old version could not delete the directory it was given if that directory had
+     * any subdirectory. It popped a folder, pushed the children, re-listed the folder, found
+     * the children still there because nothing had deleted them yet, and moved on without
+     * ever returning to it. Children went, parents stayed, which is why a category folder
+     * sat there empty after its notes had been moved away.
+     *
+     * <p>Collected first, then deleted in reverse, so a child is always gone before its
+     * parent is tried.
+     */
     private static void deleteEmptyDirs(File f) {
-        if (f == null || !f.exists()) return;
-        Deque<File> stack = new ArrayDeque<>();
+        if (f == null || !f.exists()) {
+            return;
+        }
+        final List<File> order = new ArrayList<>();
+        final Deque<File> stack = new ArrayDeque<>();
         stack.push(f);
         while (!stack.isEmpty()) {
-            File cur = stack.pop();
-            File[] kids = cur.listFiles();
-            if (kids != null) for (File k : kids) if (k.isDirectory()) stack.push(k);
-            kids = cur.listFiles();
+            final File cur = stack.pop();
+            order.add(cur);
+            final File[] kids = cur.listFiles();
+            if (kids != null) {
+                for (final File k : kids) {
+                    if (k.isDirectory()) {
+                        stack.push(k);
+                    }
+                }
+            }
+        }
+        for (int i = order.size() - 1; i >= 0; i--) {
+            final File cur = order.get(i);
+            final File[] kids = cur.listFiles();
             if (kids == null || kids.length == 0) {
                 //noinspection ResultOfMethodCallIgnored
                 cur.delete();

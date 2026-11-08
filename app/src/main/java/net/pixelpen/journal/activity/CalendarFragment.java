@@ -261,8 +261,28 @@ public class CalendarFragment extends AutumnBaseFragment
     }
 
     /** The category the spinner is on. For Browse. */
+    /**
+     * Where Browse should open the Tree.
+     *
+     * <p>This month's folder for the chosen category when it has anything in it, because
+     * that is where a note written now would go and what you would want to see. When it is
+     * empty or does not exist, the newest month that does hold that category instead.
+     *
+     * <p>Without the fallback an imported archive looked like a broken Tree: the folders
+     * were listed, the dialog counted their notes, and Browse expanded this month's empty
+     * one every time. Only notes written today showed up, because today is where it pointed.
+     */
     public File selectedCategoryDir() {
-        return currentTargetDir();
+        final File here = currentTargetDir();
+        if (here == null) {
+            return null;
+        }
+        final String[] kids = here.list();
+        if (kids != null && kids.length > 0) {
+            return here;
+        }
+        final File elsewhere = CategoryManager.newestFolderWithNotes(here.getName());
+        return elsewhere != null ? elsewhere : here;
     }
 
     public File captureQuicknote() {
