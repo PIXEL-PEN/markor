@@ -48,6 +48,8 @@ import net.pixelpen.journal.format.FormatRegistry;
 import net.pixelpen.journal.format.TextConverterBase;
 import net.pixelpen.journal.frontend.DraggableScrollbarScrollView;
 import net.pixelpen.journal.frontend.FileInfoDialog;
+import net.pixelpen.journal.model.CreationIndex;
+import net.pixelpen.journal.util.CategoryManager;
 import net.pixelpen.journal.frontend.AutumnDialogFactory;
 import net.pixelpen.journal.frontend.filebrowser.AutumnFileBrowserFactory;
 import net.pixelpen.journal.frontend.textview.HighlightingEditor;
@@ -66,6 +68,7 @@ import net.gsantner.opoc.web.GsWebViewChromeClient;
 import net.gsantner.opoc.wrapper.GsTextWatcherAdapter;
 
 import java.io.File;
+import java.util.ArrayList;
 
 @SuppressWarnings({"UnusedReturnValue"})
 @SuppressLint("NonConstantResourceId")
@@ -395,6 +398,11 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
         menu.findItem(R.id.action_search).setVisible(isText && !_isPreviewVisible);
         menu.findItem(R.id.action_search_view).setVisible(isText && _isPreviewVisible);
         menu.findItem(R.id.submenu_share).setVisible(isText);
+        // Reading only. Realising a note is in the wrong category is something that happens
+        // while you are looking at it, not while you are typing it, and keeping the move out of
+        // edit mode means it can never fire with a half-typed buffer in play.
+        menu.findItem(R.id.action_move_to_category)
+                .setVisible(isText && _isPreviewVisible && journalMonthDir(_document.file) != null);
 
         menu.findItem(R.id.action_share_pdf).setVisible(true);
 
@@ -547,6 +555,10 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
             }
             case R.id.action_preview_edit_toggle: {
                 setViewModeVisibility(!_isPreviewVisible);
+                return true;
+            }
+            case R.id.action_move_to_category: {
+                promptMoveToCategory();
                 return true;
             }
             case R.id.action_share_text: {
@@ -756,6 +768,90 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
     }
 
     // Save the file
+    /**
+     * The Month folder of the Year/Month/Category slot this note sits in, or null if it does not
+     * sit in one.
+     *
+     * <p>The year is the test, because it is the only one of the three whose name has a shape:
+     * four digits. A quicknote lives under Quicknotes/Year and an imported file anywhere, and
+     * neither has a category to be moved between, so both come back null and the menu item stays
+     * hidden rather than offering a move that would file them somewhere meaningless.
+     */
+    private static File journalMonthDir(final File file) {
+        final File category = file == null ? null : file.getParentFile();
+        final File month = category == null ? null : category.getParentFile();
+        final File year = month == null ? null : month.getParentFile();
+        return year != null && year.getName().matches("\\d{4}") ? month : null;
+    }
+
+    /**
+     * Refile the open note under a different category, keeping its year and month.
+     *
+     * <p>Offered in view mode only, so there is no live edit buffer to reconcile. The save below
+     * is still made rather than assumed: a note can be edited and then flipped to view without
+     * saving, and that text belongs in the file before the file goes anywhere.
+     *
+     * <p>The editor closes afterwards. Document.file is final, so the open editor cannot follow
+     * the note to its new path -- left open, its next save would write the note back to where it
+     * came from and resurrect it there.
+     */
+    private void promptMoveToCategory() {
+        final File monthDir = journalMonthDir(_document.file);
+        if (monthDir == null || !saveDocument(false)) {
+            return;
+        }
+        final String current = _document.file.getParentFile().getName();
+        final ArrayList<String> targets = new ArrayList<>();
+        for (final String c : CategoryManager.listCategories(requireContext()).changedPaths) {
+            if (!c.equalsIgnoreCase(current)) {
+                targets.add(c);
+            }
+        }
+        if (targets.isEmpty()) {
+            Toast.makeText(getContext(), R.string.tree_no_move_targets, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.move_to_category)
+                .setItems(targets.toArray(new CharSequence[0]),
+                        (d, which) -> doMoveToCategory(monthDir, targets.get(which)))
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void doMoveToCategory(final File monthDir, final String category) {
+        final File file = _document.file;
+        final File targetDir = new File(monthDir, category);
+        // The category may exist in the archive without having a folder in this particular month.
+        if (!targetDir.isDirectory() && !targetDir.mkdirs()) {
+            Toast.makeText(getContext(), R.string.error_could_not_open_file, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        final File dest = new File(targetDir, file.getName());
+        if (dest.exists()) {
+            Toast.makeText(getContext(),
+                    R.string.file_folder_already_exists_please_use_a_different_name,
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (!file.renameTo(dest)) {
+            Toast.makeText(getContext(), R.string.error_could_not_open_file, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        // Carry the creation time across, or a later note given this title in the old folder
+        // inherits this one's -- the same bookkeeping the Tree's own move does.
+        final CreationIndex index = new CreationIndex(requireContext());
+        index.moved(file, dest);
+        index.save();
+
+        Toast.makeText(getContext(), getString(R.string.moved_to_category, category),
+                Toast.LENGTH_SHORT).show();
+        final Activity host = getActivity();
+        if (host != null) {
+            host.finish();
+        }
+    }
+
     public boolean saveDocument(final boolean forceSaveEmpty) {
         final Activity activity = getActivity();
         if (activity == null || isSdStatusBad() || isStateBad()) {

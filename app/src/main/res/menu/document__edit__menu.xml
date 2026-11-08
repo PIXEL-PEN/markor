@@ -76,6 +76,16 @@
         app:actionViewClass="android.widget.SearchView"
         app:showAsAction="always" />
 
+    <!--
+      Refiling, for the note that went into the wrong category. Hidden unless the file actually
+      sits in a Year/Month/Category slot, since a quicknote or an imported file has no category
+      to move between.
+    -->
+    <item
+        android:id="@+id/action_move_to_category"
+        android:title="@string/move_to_category"
+        app:showAsAction="never" />
+
     <item
         android:id="@+id/submenu_share"
         android:icon="@drawable/ic_share_black_24dp"

@@ -636,4 +636,6 @@
     <string name="search_hint">Search: words, \"a phrase\", /regex/</string>
     <string name="day_card_description">Selected date. Tap to choose another.</string>
     <string name="clear_note_field">Clear the note field</string>
+    <string name="move_to_category">Move to category</string>
+    <string name="moved_to_category">Moved to %1$s</string>
 </resources>
