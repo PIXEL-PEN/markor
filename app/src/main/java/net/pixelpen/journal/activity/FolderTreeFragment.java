@@ -8,6 +8,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -660,10 +661,7 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         }
 
         labels.add(getString(R.string.create_shortcut));
-        // Pins a launcher shortcut that opens this one note. The helper, the activity it targets,
-        // its icon and the manifest permissions all survived the trim; only the call site went
-        // with the file browser's menu.
-        actions.add(() -> _cu.createLauncherDesktopShortcut(requireContext(), file));
+        actions.add(() -> createShortcut(file));
 
         labels.add(getString(R.string.delete));
         actions.add(() -> confirmDelete(file));
@@ -792,6 +790,31 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
                     }
                 })
                 .show();
+    }
+
+    /**
+     * Pin a launcher shortcut that opens this one note.
+     *
+     * <p>The helper, the activity it targets, its icon and the manifest permissions all survived
+     * the trim; only the call site went with the file browser's menu.
+     *
+     * <p>Both outcomes are reported, because neither was. requestPinShortcut returns a boolean
+     * that every wrapper between here and it discards, so a launcher that does not take pinned
+     * shortcuts refused in complete silence: the dialog closed and nothing happened anywhere.
+     * The support check is asked first instead.
+     */
+    private void createShortcut(final File file) {
+        if (!ShortcutManagerCompat.isRequestPinShortcutSupported(requireContext())) {
+            toast(R.string.shortcut_not_supported);
+            return;
+        }
+        _cu.createLauncherDesktopShortcut(requireContext(), file);
+        // From Oreo the launcher puts up its own "add to home screen" prompt, which is the
+        // confirmation and a better one than a toast. Below that the request is a silent
+        // broadcast, so this is the only word the person gets.
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
+            toast(R.string.shortcut_added);
+        }
     }
 
     /**
