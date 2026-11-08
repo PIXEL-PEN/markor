@@ -214,7 +214,9 @@ public final class ArchiveSearch {
                 }
                 if (f.isDirectory()) {
                     if (depth < MAX_DEPTH
-                            && !new File(f, ".nomedia").exists()
+                            // Not .nomedia -- see TreeStore.scan. Search has to reach
+                            // everything the tree shows, or a note is findable by browsing and
+                            // invisible to search, or the reverse.
                             && !new File(f, ".skip-scan").exists()) {
                         queue.add(f);
                         depths.add(depth + 1);

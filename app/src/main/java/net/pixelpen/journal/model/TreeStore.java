@@ -182,7 +182,18 @@ public class TreeStore {
                 continue;
             }
             if (f.isDirectory()) {
-                if (new File(f, ".nomedia").exists() || new File(f, ".skip-scan").exists()) {
+                // .skip-scan only, deliberately not .nomedia.
+                //
+                // .nomedia is a media-scanner convention: it asks the device's gallery and music
+                // players not to index the pictures below it. It says nothing about the app that
+                // owns the folder. Honouring it here meant Autumn hid folders from its own
+                // browser -- including Images/ and Files/, where Autumn plants the marker itself
+                // (ArchiveImages.yearFolder), and including anything Markor marked before an
+                // archive was imported. The result was a tree that disagreed with the rest of the
+                // app: Manage categories counted notes that the tree then refused to expand to.
+                //
+                // .skip-scan stays, because that one is Autumn's own and means what it says.
+                if (new File(f, ".skip-scan").exists()) {
                     continue;
                 }
                 dirs.add(new Entry(f, true, NUM_PREFIX.matcher(name).replaceFirst(""), 0L, false, false));

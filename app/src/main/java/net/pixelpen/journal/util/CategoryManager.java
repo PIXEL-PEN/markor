@@ -133,25 +133,52 @@ public class CategoryManager {
     public static Result renameCategory(Context ctx, String fromRaw, String toRaw, boolean dryRun) {
         String from = norm(fromRaw), to = norm(toRaw);
         if (!valid(from) || !valid(to) || from.equalsIgnoreCase(to)) return Result.error("Invalid");
-        List<File> srcFolders = findCategoryFolders(from);
-        if (srcFolders.isEmpty()) return Result.error("No folders found");
-        List<String> preview = new ArrayList<>();
+        // The new name has to be free, the same test addCategory makes. Renaming onto an
+        // existing category used to walk straight into moveDirPreserveMtimes with a target
+        // that already had notes in it.
+        for (final String existing : listCategories(ctx).changedPaths) {
+            if (existing.equalsIgnoreCase(to)) {
+                return Result.error("Category exists: " + to);
+            }
+        }
+
+        final List<File> srcFolders = findCategoryFolders(from);
+        final boolean known = inCustom(ctx, from);
+        // A category added but never written to has no folders. That used to fail here with
+        // "No folders found", so a new category could not be renamed at all.
+        if (srcFolders.isEmpty() && !known) return Result.error("No such category");
+
+        final List<String> preview = new ArrayList<>();
         for (File src : srcFolders) preview.add(src + " -> " + new File(src.getParent(), to));
         if (dryRun) return Result.preview("Preview rename", preview.size(), preview);
 
         try {
             for (File src : srcFolders) {
                 File tgt = new File(src.getParent(), to);
-                JSONObject moveGroup = moveDirPreserveMtimes(src, tgt);
-                // also include per-file ops to be extra safe (optional)
-                if (moveGroup != null && moveGroup.has("ops")) {
-                    JSONArray ops = moveGroup.getJSONArray("ops");
+                if (tgt.exists()) {
+                    // Only reachable if a folder of that name exists in some month without the
+                    // category being listed; fold rather than clobber.
+                    mergeIntoPreserveMtimes(src, tgt);
+                    deleteEmptyDirs(src);
+                } else {
+                    moveDirPreserveMtimes(src, tgt);
                 }
+            }
+            // The stored name follows the folders.
+            if (known) {
+                final Set<String> updated = new LinkedHashSet<>();
+                for (final String c : loadCustom(ctx)) {
+                    if (!c.equalsIgnoreCase(from)) {
+                        updated.add(c);
+                    }
+                }
+                updated.add(to);
+                saveCustom(ctx, updated);
             }
             if (isProtected(ctx, from)) {
                 setProtectedCategory(ctx, to);
             }
-            return Result.ok("Renamed", preview.size(), preview);
+            return Result.ok("Renamed", Math.max(preview.size(), 1), preview);
         } catch (Exception e) { return Result.error(e.getMessage()); }
     }
 
@@ -180,6 +207,7 @@ public class CategoryManager {
                     deleteEmptyDirs(src);
                 }
             }
+            forgetCustom(ctx, source);
             return Result.ok("Merged", preview.size(), preview);
         } catch (Exception e) { return Result.error(e.getMessage()); }
     }
@@ -219,6 +247,7 @@ public class CategoryManager {
                     }
                 }
             }
+            forgetCustom(ctx, name);
             return Result.ok("Deleted", preview.size(), preview);
         } catch (Exception e) { return Result.error(e.getMessage()); }
     }
@@ -313,6 +342,34 @@ public class CategoryManager {
     private static Set<String> loadCustom(Context ctx) {
         SharedPreferences sp = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         return new LinkedHashSet<>(sp.getStringSet(PREF_KEY, Collections.emptySet()));
+    }
+
+    /**
+     * Take a name out of the stored list.
+     *
+     * <p>saveCustom used to be called from addCategory and nowhere else, so the list of names
+     * never followed the folders. Delete removed the folders and left the name; merge consumed
+     * the source and left the name; rename moved the folders and left the old name sitting
+     * beside the new one. Now that the spinner shows what CategoryManager reports, every one
+     * of those showed up as a category that would not go away.
+     */
+    private static void forgetCustom(final Context ctx, final String name) {
+        final Set<String> updated = new LinkedHashSet<>();
+        for (final String c : loadCustom(ctx)) {
+            if (!c.equalsIgnoreCase(name)) {
+                updated.add(c);
+            }
+        }
+        saveCustom(ctx, updated);
+    }
+
+    private static boolean inCustom(final Context ctx, final String name) {
+        for (final String c : loadCustom(ctx)) {
+            if (c.equalsIgnoreCase(name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void saveCustom(Context ctx, Set<String> cats) {
