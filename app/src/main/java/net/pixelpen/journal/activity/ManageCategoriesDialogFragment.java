@@ -56,6 +56,12 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
         void onCategoryRemoved(String name);
 
         void onCategoriesChanged();
+
+        /** Categories that exist on disk but are not in the spinner's curated list. */
+        java.util.List<String> onListSpinnerGaps();
+
+        /** Adopt those into the spinner. */
+        void onAddMissingToSpinner();
     }
 
     public static ManageCategoriesDialogFragment newInstance() {
@@ -64,6 +70,7 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
 
     private LinearLayout _list;
     private View _scroll;
+    private TextView _sync;
     private TextView _empty;
 
     @NonNull
@@ -77,6 +84,8 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
         _empty = root.findViewById(R.id.mc_empty);
         root.findViewById(R.id.mc_add).setOnClickListener(v -> promptAdd());
         _scroll = root.findViewById(R.id.mc_scroll);
+        _sync = root.findViewById(R.id.mc_sync);
+        _sync.setOnClickListener(v -> promptAdoptMissing());
 
         redraw();
 
@@ -114,54 +123,73 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
         if (_list == null) {
             return;
         }
+        // One walk, on this thread, so the dialog opens with every category already listed.
+        // It used to do that walk in the background and open empty, which read as a blank
+        // dialog that turned into this one a few seconds later.
+        populate(categories(requireContext()));
+    }
+
+    private void populate(final List<String> cats) {
+        if (_list == null || !isAdded()) {
+            return;
+        }
         _list.removeAllViews();
-        _empty.setVisibility(View.GONE);
-        final Context ctx = requireContext().getApplicationContext();
+        _empty.setVisibility(cats.isEmpty() ? View.VISIBLE : View.GONE);
+
+        final LayoutInflater inflater = LayoutInflater.from(requireContext());
+        final LinkedHashMap<String, TextView> details = new LinkedHashMap<>();
+        for (final String name : cats) {
+            final View row = inflater.inflate(R.layout.item_manage_category,
+                    (ViewGroup) _list, false);
+            ((TextView) row.findViewById(R.id.mc_row_name)).setText(name);
+            final TextView detail = row.findViewById(R.id.mc_row_detail);
+            detail.setText(R.string.counting);
+            details.put(name, detail);
+            row.findViewById(R.id.mc_row_rename).setOnClickListener(v -> promptRename(name));
+            row.findViewById(R.id.mc_row_delete).setOnClickListener(v -> promptDelete(name));
+            _list.addView(row);
+        }
+        capHeight();
+        showSyncRow();
+        countsInBackground(details);
+    }
+
+    /**
+     * Fill in the per-category counts once the rows are already on screen.
+     *
+     * <p>This is the expensive half and it is what made the dialog pause: countNotes calls
+     * findCategoryFolders, which walks the archive, once per category. The names come from a
+     * single walk and appear at once; the counts arrive behind them.
+     */
+    private void countsInBackground(final LinkedHashMap<String, TextView> details) {
         new Thread(() -> {
-            final List<String> cats = categories(ctx);
-            final LinkedHashMap<String, int[]> counts = new LinkedHashMap<>();
-            for (final String name : cats) {
-                counts.put(name, CategoryManager.countNotes(name));
+            final LinkedHashMap<String, String> text = new LinkedHashMap<>();
+            for (final String name : details.keySet()) {
+                text.put(name, describe(CategoryManager.countNotes(name)));
             }
             final Activity host = getActivity();
             if (host == null) {
                 return;
             }
-            host.runOnUiThread(() -> populate(counts));
+            host.runOnUiThread(() -> {
+                if (!isAdded()) {
+                    return;
+                }
+                for (final java.util.Map.Entry<String, String> e : text.entrySet()) {
+                    final TextView t = details.get(e.getKey());
+                    if (t != null) {
+                        t.setText(e.getValue());
+                    }
+                }
+            });
         }).start();
     }
 
-    private void populate(final LinkedHashMap<String, int[]> data) {
-        // The scan runs on another thread, so the dialog may be gone by the time it lands.
-        if (_list == null || !isAdded()) {
-            return;
-        }
-        _list.removeAllViews();
-        _empty.setVisibility(data.isEmpty() ? View.VISIBLE : View.GONE);
-
-        final LayoutInflater inflater = LayoutInflater.from(requireContext());
-        for (final java.util.Map.Entry<String, int[]> e : data.entrySet()) {
-            final String name = e.getKey();
-            final int[] counts = e.getValue();
-            final View row = inflater.inflate(R.layout.item_manage_category,
-                    (ViewGroup) _list, false);
-
-            ((TextView) row.findViewById(R.id.mc_row_name)).setText(name);
-            ((TextView) row.findViewById(R.id.mc_row_detail)).setText(describe(counts));
-            row.findViewById(R.id.mc_row_rename).setOnClickListener(v -> promptRename(name));
-            row.findViewById(R.id.mc_row_delete).setOnClickListener(v -> promptDelete(name, counts));
-            _list.addView(row);
-        }
-        capHeight();
-    }
-
     /**
-     * Keep the list short enough that the Add row below it stays on screen.
+     * Keep the list short enough that the rows below it stay on screen.
      *
-     * <p>Called from populate and not from onCreateDialog, which is where it was and where it
-     * did nothing: the rows arrive from a background thread, so at creation the list is empty,
-     * it measured a few pixels, and nothing was ever clamped. The list then filled and pushed
-     * Add off the bottom again, which is the bug this was supposed to fix.
+     * <p>Posted rather than measured inline, because the rows have only just been added and
+     * have no height yet at this point in the frame.
      */
     private void capHeight() {
         if (_scroll == null) {
@@ -178,6 +206,36 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
                 _scroll.setLayoutParams(lp);
             }
         });
+    }
+
+    /** The adopt row appears only when there is something to adopt. */
+    private void showSyncRow() {
+        final CategoryChangeSink host = sink();
+        final int gaps = host == null ? 0 : host.onListSpinnerGaps().size();
+        _sync.setVisibility(gaps == 0 ? View.GONE : View.VISIBLE);
+        if (gaps > 0) {
+            _sync.setText(getString(R.string.add_all_to_spinner) + "  (" + gaps + ")");
+        }
+    }
+
+    private void promptAdoptMissing() {
+        final CategoryChangeSink host = sink();
+        if (host == null) {
+            return;
+        }
+        final List<String> gaps = host.onListSpinnerGaps();
+        if (gaps.isEmpty()) {
+            return;
+        }
+        new AlertDialog.Builder(requireContext())
+                .setMessage("Add " + gaps.size() + " category folder(s) to the spinner?\n\n"
+                        + android.text.TextUtils.join(", ", gaps))
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(android.R.string.ok, (d, w) -> {
+                    host.onAddMissingToSpinner();
+                    redraw();
+                })
+                .show();
     }
 
     /** "12 notes across 3 months", or what is true instead. */
@@ -240,8 +298,10 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
      * sensible answers are the other categories -- which is what the old Merge action was, and
      * why it is not a separate action any more.
      */
-    private void promptDelete(final String name, final int[] counts) {
+    private void promptDelete(final String name) {
         final Context ctx = requireContext();
+        // Worked out here rather than passed in, so building a row costs no archive walk.
+        final int[] counts = CategoryManager.countNotes(name);
 
         if (counts[0] == 0) {
             new AlertDialog.Builder(ctx)

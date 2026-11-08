@@ -527,6 +527,51 @@ public class CalendarFragment extends AutumnBaseFragment
     }
 
     @Override
+    /**
+     * Categories with a folder on disk that the curated spinner list does not carry.
+     *
+     * <p>The two lists are deliberately separate: the spinner shows what you chose to see and
+     * CategoryManager sees what is actually there. An archive copied in from elsewhere lands
+     * entirely in the second, which is the gap this reports and the next method closes.
+     */
+    @Override
+    public List<String> onListSpinnerGaps() {
+        final List<String> have = loadCategoriesForSpinner();
+        final List<String> out = new ArrayList<>();
+        for (final String c : CategoryManager.listCategories(requireContext()).changedPaths) {
+            boolean known = false;
+            for (final String h : have) {
+                if (h.equalsIgnoreCase(c)) {
+                    known = true;
+                    break;
+                }
+            }
+            if (!known) {
+                out.add(c);
+            }
+        }
+        return out;
+    }
+
+    @Override
+    public void onAddMissingToSpinner() {
+        final List<String> missing = onListSpinnerGaps();
+        if (missing.isEmpty()) {
+            return;
+        }
+        // Backed up first, so "Restore previous list" undoes this.
+        backupCurrentUiList();
+        final List<String> merged = new ArrayList<>(loadCategoriesForSpinner());
+        merged.addAll(missing);
+        java.util.Collections.sort(merged, String.CASE_INSENSITIVE_ORDER);
+        saveUiCategoryList(merged);
+        setPreferUi(true);
+        bindCategories(false);
+        Toast.makeText(requireContext(), "Added " + missing.size() + " to the spinner.",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
     public void onCategoriesChanged() {
         bindCategories(true);
         persistCurrentSpinnerList();
