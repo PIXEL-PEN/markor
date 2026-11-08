@@ -98,4 +98,4 @@ Autumn is not affiliated with or endorsed by Markor. Please report issues with A
 
 Built on Markor and its community.
 
-The folder-tree idea began with [@harshad1](https://github.com/harshad1)'s standalone HTML calendar prototype, raised in [this discussion](https://github.com/gsantner/markor/discussions/2278). Integrating it was a long road: standalone HTML first, then a WebView, and finally built into the app's own architecture, which is where the Tree screen comes from.
+The Tree screen owes its existence to [@harshad1](https://github.com/harshad1)'s early standalone HTML calendar prototype, raised in [this discussion](https://github.com/gsantner/markor/discussions/2278). It inspired a more developed version built around categories, which became an integration into Markor through a WebView, and eventually the architecture the Tree is built on today. The road was long, but the idea was his.

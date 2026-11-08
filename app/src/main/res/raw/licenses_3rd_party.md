@@ -10,9 +10,10 @@
 
 * Harshad Vedartham
 ~° Copyright (c) 2023
-~° Author of GsCollectionUtils, and of the
-~° standalone HTML calendar prototype that
-~° the Tree screen grew out of.
+~° Author of GsCollectionUtils. His early
+~° standalone HTML calendar prototype was
+~° the idea the Tree screen started from,
+~° and the reason it exists at all.
 
 **The MIT License (MIT)**  
 * KaTex
