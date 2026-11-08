@@ -244,8 +244,17 @@ public class SettingsActivity extends AutumnBaseActivity {
                     _cu.bcint(context, "VERSION_CODE", 0));
             summary += (tmp = _cu.bcstr(context, "BUILD_TYPE", "")).isEmpty() ? "" : ("\n<b>Build type:</b> " + tmp);
             summary += (tmp = _cu.bcstr(context, "BUILD_DATE", "")).isEmpty() ? "" : ("\n<b>Build date:</b> " + tmp);
-            summary += (tmp = _cu.bcstr(context, "GITHASH", "")).isEmpty() ? "" : ("\n<b>VCS Hash:</b> " + tmp);
-            summary += (tmp = _cu.bcstr(context, "GITMSG", "")).isEmpty() ? "" : ("\n<b>VCS Msg:</b> " + tmp);
+            // Short form, and called Commit rather than VCS Hash. Forty hex characters wrapped
+            // across two lines and said nothing to anyone; eight is what identifies a commit in
+            // practice and matches the hash the release APKs are named with, so a build on a
+            // phone can be matched to one in the Downloads folder.
+            //
+            // The line below this one used to be the subject of the last commit, which meant a
+            // settings screen reading "VCS Msg: Delete Markor's introduction screens". That is
+            // a note between developers and no business of anyone reading Settings.
+            tmp = _cu.bcstr(context, "GITHASH", "");
+            summary += tmp.isEmpty() ? ""
+                    : ("\n<b>Commit:</b> " + (tmp.length() > 8 ? tmp.substring(0, 8) : tmp));
             pref.setSummary(_cu.htmlToSpanned(summary.trim().replace("\n", "<br/>")));
         }
 
