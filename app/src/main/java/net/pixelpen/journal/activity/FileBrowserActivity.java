@@ -18,6 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -62,6 +63,7 @@ public class FileBrowserActivity extends AutumnBaseActivity {
     private File _home;
     private File _current;
     private TextView _path;
+    private ImageButton _up;
     private TextView _empty;
     private final List<File> _entries = new ArrayList<>();
     private Adapter _adapter;
@@ -91,6 +93,8 @@ public class FileBrowserActivity extends AutumnBaseActivity {
         }
 
         _path = findViewById(R.id.fb_path);
+        _up = findViewById(R.id.fb_up);
+        _up.setOnClickListener(v -> goUp());
         _empty = findViewById(R.id.fb_empty);
 
         final RecyclerView list = findViewById(R.id.fb_list);
@@ -146,6 +150,11 @@ public class FileBrowserActivity extends AutumnBaseActivity {
                     .replace(File.separator, "  /  ");
         }
         _path.setText(shown);
+        // Nothing above the home folder is reachable, so the arrow goes away there rather than
+        // sitting enabled and doing nothing when tapped.
+        if (_up != null) {
+            _up.setVisibility(dir.getAbsolutePath().equals(home) ? View.INVISIBLE : View.VISIBLE);
+        }
         setTitle(dir.getAbsolutePath().equals(home) ? _home.getName() : dir.getName());
 
         _entries.clear();

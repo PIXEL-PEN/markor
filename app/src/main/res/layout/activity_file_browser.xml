@@ -13,20 +13,45 @@
     android:background="@android:color/white"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/fb_path"
+    <!--
+      The path line doubles as the up control. Going up was only ever on the Back button, which
+      works and is invisible: nothing on the screen said the folder had a parent. The arrow sits
+      where a file manager puts it, and goes INVISIBLE rather than GONE at the top so the path
+      text does not shift sideways as you walk up and down.
+    -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/cal_chip_bg"
-        android:ellipsize="start"
-        android:paddingStart="16dp"
-        android:paddingTop="10dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="10dp"
-        android:singleLine="true"
-        android:textColor="@color/cal_accent"
-        android:textSize="13sp"
-        android:textStyle="bold" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingEnd="16dp">
+
+        <ImageButton
+            android:id="@+id/fb_up"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/up_one_level"
+            android:padding="9dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_baseline_arrow_upward_24"
+            android:tint="@color/cal_accent" />
+
+        <TextView
+            android:id="@+id/fb_path"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="start"
+            android:paddingStart="6dp"
+            android:singleLine="true"
+            android:textColor="@color/cal_accent"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
 
     <View
         android:layout_width="match_parent"
