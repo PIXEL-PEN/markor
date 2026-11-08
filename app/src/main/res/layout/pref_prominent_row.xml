@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A preference row with more weight than the rest.
+
+  Editing is the only item at the top level that is not inside a category, so it had no
+  header above it and read as a stray line rather than the first of three destinations.
+  This gives it a taller row, a bolder and larger title, and space above it.
+
+  The ids are the framework's: androidx.preference binds @android:id/icon and
+  @android:id/title by id, so these have to be exactly those and no others are needed here,
+  since this row has no summary and no widget.
+
+  No tint here, checked rather than assumed. GsPreferenceFragmentBase tints every preference
+  icon itself, with _defaultIconTintColor, which is white or black depending on whether the
+  background is dark. The drawable arrives already tinted, so setting android:tint would
+  override that and leave this one row a different colour from all the others.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="16dp"
+    android:paddingTop="22dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="22dp">
+
+    <ImageView
+        android:id="@android:id/icon"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_marginEnd="22dp"
+        android:contentDescription="@null"
+        android:scaleType="fitCenter" />
+
+    <TextView
+        android:id="@android:id/title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+</LinearLayout>
