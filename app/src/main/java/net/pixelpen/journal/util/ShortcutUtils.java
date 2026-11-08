@@ -16,6 +16,11 @@ import android.net.Uri;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.pm.ShortcutInfoCompat;
+import androidx.core.content.pm.ShortcutManagerCompat;
+import androidx.core.graphics.drawable.IconCompat;
+
+import net.gsantner.opoc.util.GsFileUtils;
 
 import net.pixelpen.journal.ApplicationObject;
 import net.pixelpen.journal.R;
@@ -38,6 +43,44 @@ public class ShortcutUtils {
     private static final int MAX_RECENT_DOCUMENTS = 1;
 
     private ShortcutUtils() {
+    }
+
+    /**
+     * Pin a launcher shortcut that opens one note, and say whether the launcher took it.
+     *
+     * <p>Here rather than in the two callers because the Tree and the editor both offer it.
+     *
+     * <p>The boolean is the point. The inherited helper calls requestPinShortcut and discards
+     * what it returns, so a launcher that quietly declines looks identical to one that worked:
+     * nothing appears either way and nothing says which happened. This hands the answer back so
+     * the caller can tell the person.
+     *
+     * <p>The id is derived from the path, so pinning the same note twice replaces the shortcut
+     * rather than littering the home screen with copies of it.
+     */
+    public static boolean pinNote(@NonNull final Context context, final File file) {
+        if (file == null || !ShortcutManagerCompat.isRequestPinShortcutSupported(context)) {
+            return false;
+        }
+        final String title = GsFileUtils.getFilenameWithoutExtension(file);
+        final Intent open = new Intent(context, OpenFromShortcutOrWidgetActivity.class)
+                .setAction(Intent.ACTION_VIEW)
+                .setData(Uri.fromFile(file))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        final ShortcutInfoCompat shortcut =
+                new ShortcutInfoCompat.Builder(context, ID_PREFIX + file.getAbsolutePath().hashCode())
+                        .setIntent(open)
+                        .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_shortcut_file))
+                        .setShortLabel(title)
+                        .setLongLabel(title)
+                        .build();
+        try {
+            return ShortcutManagerCompat.requestPinShortcut(context, shortcut, null);
+        } catch (final Exception ignored) {
+            // Launchers vary in what they accept and some throw rather than returning false.
+            return false;
+        }
     }
 
     /**

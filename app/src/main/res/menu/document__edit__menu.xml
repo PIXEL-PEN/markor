@@ -98,6 +98,11 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_create_shortcut"
+        android:title="@string/create_shortcut"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_share_text"
         android:title="@string/share_as_text"
         app:showAsAction="never" />

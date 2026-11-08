@@ -50,6 +50,7 @@ import net.pixelpen.journal.frontend.DraggableScrollbarScrollView;
 import net.pixelpen.journal.frontend.FileInfoDialog;
 import net.pixelpen.journal.model.CreationIndex;
 import net.pixelpen.journal.util.CategoryManager;
+import net.pixelpen.journal.util.ShortcutUtils;
 import net.pixelpen.journal.frontend.AutumnDialogFactory;
 import net.pixelpen.journal.frontend.filebrowser.AutumnFileBrowserFactory;
 import net.pixelpen.journal.frontend.textview.HighlightingEditor;
@@ -406,6 +407,9 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
         // edit mode means it can never fire with a half-typed buffer in play.
         menu.findItem(R.id.action_move_to_category)
                 .setVisible(isText && _isPreviewVisible && CategoryManager.journalMonthDir(_document.file) != null);
+        // Reading only, like the move. Unlike the move it needs no category slot: a shortcut to a
+        // quicknote is as reasonable as one to a journal entry.
+        menu.findItem(R.id.action_create_shortcut).setVisible(isText && _isPreviewVisible);
 
         menu.findItem(R.id.action_share_pdf).setVisible(true);
 
@@ -562,6 +566,14 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
             }
             case R.id.action_move_to_category: {
                 promptMoveToCategory();
+                return true;
+            }
+            case R.id.action_create_shortcut: {
+                Toast.makeText(getContext(),
+                        ShortcutUtils.pinNote(requireContext(), _document.file)
+                                ? R.string.shortcut_added
+                                : R.string.shortcut_not_supported,
+                        Toast.LENGTH_SHORT).show();
                 return true;
             }
             case R.id.action_share_text: {
