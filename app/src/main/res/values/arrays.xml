@@ -8,22 +8,33 @@
 #########################################################*/
 -->
 <resources>
+    <!--
+      Two, where there were six.
+
+      Auto was MODE_NIGHT_AUTO, deprecated: it drives AppCompat's twilight manager, which
+      wants a location this app does not ask for, so it guessed. Auto (09:00 - 17:00) was a
+      literal hardcoded hour range.
+
+      Dark and Black are gone for a reason worth recording. Night mode remaps nine inherited
+      colours and none of Autumn's own eight, and fragment_calendar.xml's root background is a
+      hardcoded @android:color/white rather than a resource. So Settings went dark, being
+      theme attributes throughout, and the Calendar and Year screens did not. The Tree is the
+      one screen that inherits the theme background, which is why Black appeared to single it
+      out: it went pure black while the text and metadata colours stayed where they were.
+      Offering a setting whose only effect is to half-break the app is worse than not
+      offering it.
+
+      Both remaining values resolve to light on a phone set to light. See the parked note in
+      values-night/colors.xml for what Dark needs before it can come back.
+    -->
     <string-array name="pref_arrdisp__app_themes" translatable="false">
         <item translatable="false">System</item>
-        <item translatable="false">Auto</item>
-        <item translatable="false">Auto (09:00 - 17:00)</item>
         <item translatable="false">@string/light</item>
-        <item translatable="false">@string/dark</item>
-        <item translatable="false">@string/black</item>
     </string-array>
 
     <string-array name="pref_arrkeys__app_themes" translatable="false">
         <item translatable="false">system</item>
-        <item translatable="false">auto</item>
-        <item translatable="false">autocompat</item>
         <item translatable="false">light</item>
-        <item translatable="false">dark</item>
-        <item translatable="false">dark-black</item>
     </string-array>
 
 

@@ -684,11 +684,11 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return rcolor(R.color.primary_text);
     }
 
-    /** Editor background, from the theme. The black variant is a theme, not an override. */
+    /** Editor background, from the theme. */
     public int getEditorBackgroundColor() {
-        if (getAppThemeName().contains("black")) {
-            return Color.BLACK;
-        }
+        // The pure-black branch went with the Black theme. It was the only thing that told
+        // Black and Dark apart: applyDayNightTheme tests pref.contains("dark"), which
+        // "dark-black" satisfies, so both set MODE_NIGHT_YES and differed here alone.
         return rcolor(R.color.background);
     }
 
@@ -696,8 +696,26 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         GsContextUtils.instance.applyDayNightTheme(getString(R.string.pref_key__app_theme, getAppThemeName()));
     }
 
+    /**
+     * The chosen theme, or system if what is stored is no longer on offer.
+     *
+     * <p>The fallback is not defensive padding. Four of the six values were removed, and a
+     * phone that had any of them selected still has that string in its preferences: this
+     * install has had "dark-black" in there from testing. Without the check, the stored value
+     * would keep being handed to applyDayNightTheme, which still understands it, so the app
+     * would come up in a night mode that no longer appears anywhere in Settings and cannot be
+     * switched off except by picking something else.
+     */
     public String getAppThemeName() {
-        return getString(R.string.pref_key__app_theme, _context.getString(R.string.app_theme_system));
+        final String system = _context.getString(R.string.app_theme_system);
+        final String stored = getString(R.string.pref_key__app_theme, system);
+        for (final String offered : _context.getResources().getStringArray(R.array.pref_arrkeys__app_themes)) {
+            if (offered.equals(stored)) {
+                return stored;
+            }
+        }
+        setString(R.string.pref_key__app_theme, system);
+        return system;
     }
 
     public boolean isMultiWindowEnabled() {

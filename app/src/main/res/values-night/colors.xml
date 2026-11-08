@@ -17,8 +17,14 @@
 
          So the Tree is the screen that already behaves. The job is seven night variants
          and replacing that hardcoded white in fragment_calendar.xml, then testing on
-         device. The Theme preference also offers "Auto (09:00 - 17:00)" and "Black",
-         upstream oddities that triple the testing surface. -->
+         device.
+
+         The testing surface is no longer tripled by upstream oddities: Auto, Auto
+         (09:00 - 17:00), Dark and Black have all been removed from the Theme preference,
+         which now offers System and Light only. Both resolve to light on a phone set to
+         light, so this file currently has no effect on anything. It is kept because the
+         nine mappings below are correct and would have to be rewritten otherwise, and
+         because this note is the specification for putting Dark back. -->
 
 
     <!-- Named colors -->
