@@ -109,7 +109,7 @@
 
     <item
         android:id="@+id/action_share_pdf"
-        android:title="@string/print_or_pdf"
+        android:title="@string/save_as_pdf"
         app:showAsAction="never" />
 
 </menu>
