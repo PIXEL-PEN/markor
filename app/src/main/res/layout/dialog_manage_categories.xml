@@ -31,8 +31,13 @@
         android:layout_height="wrap_content"
         android:scrollbars="vertical">
 
+        <!--
+          minHeight so the dialog does not open as a thin strip and then jump. The rows are
+          fetched on a background thread, so for the first moment this really is empty.
+        -->
         <LinearLayout
             android:id="@+id/mc_list"
+            android:minHeight="180dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" />

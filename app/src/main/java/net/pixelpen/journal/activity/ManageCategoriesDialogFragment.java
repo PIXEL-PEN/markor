@@ -63,6 +63,7 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
     }
 
     private LinearLayout _list;
+    private View _scroll;
     private TextView _empty;
 
     @NonNull
@@ -75,19 +76,7 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
         _list = root.findViewById(R.id.mc_list);
         _empty = root.findViewById(R.id.mc_empty);
         root.findViewById(R.id.mc_add).setOnClickListener(v -> promptAdd());
-
-        // Cap the list at a little over half the screen so the Add row below it is always
-        // on screen. Measured after layout, so a short list keeps its natural height and
-        // only a long one is clamped.
-        final View scroll = root.findViewById(R.id.mc_scroll);
-        scroll.post(() -> {
-            final int max = Math.round(getResources().getDisplayMetrics().heightPixels * 0.55f);
-            if (scroll.getHeight() > max) {
-                final ViewGroup.LayoutParams lp = scroll.getLayoutParams();
-                lp.height = max;
-                scroll.setLayoutParams(lp);
-            }
-        });
+        _scroll = root.findViewById(R.id.mc_scroll);
 
         redraw();
 
@@ -163,6 +152,32 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
             row.findViewById(R.id.mc_row_delete).setOnClickListener(v -> promptDelete(name, counts));
             _list.addView(row);
         }
+        capHeight();
+    }
+
+    /**
+     * Keep the list short enough that the Add row below it stays on screen.
+     *
+     * <p>Called from populate and not from onCreateDialog, which is where it was and where it
+     * did nothing: the rows arrive from a background thread, so at creation the list is empty,
+     * it measured a few pixels, and nothing was ever clamped. The list then filled and pushed
+     * Add off the bottom again, which is the bug this was supposed to fix.
+     */
+    private void capHeight() {
+        if (_scroll == null) {
+            return;
+        }
+        _scroll.post(() -> {
+            if (_scroll == null || !isAdded()) {
+                return;
+            }
+            final int max = Math.round(getResources().getDisplayMetrics().heightPixels * 0.55f);
+            if (_scroll.getHeight() > max) {
+                final ViewGroup.LayoutParams lp = _scroll.getLayoutParams();
+                lp.height = max;
+                _scroll.setLayoutParams(lp);
+            }
+        });
     }
 
     /** "12 notes across 3 months", or what is true instead. */
