@@ -17,6 +17,7 @@ import net.pixelpen.journal.R;
 import net.pixelpen.journal.adapter.FolderTreeAdapter;
 import net.pixelpen.journal.model.ArchiveSearch;
 import net.pixelpen.journal.model.CreationIndex;
+import net.pixelpen.journal.util.CategoryManager;
 import net.pixelpen.journal.model.TreeStore;
 import net.pixelpen.journal.util.NoteTimestamp;
 import net.pixelpen.journal.util.ShortcutUtils;
@@ -644,28 +645,33 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         if (file == null || !file.isFile()) {
             return false;
         }
-        final CharSequence[] actions = {
-                getString(R.string.rename),
-                getString(R.string.move),
-                getString(R.string.create_shortcut),
-                getString(R.string.delete),
-        };
+        // Labels and actions are built side by side rather than dispatched on the index. Move is
+        // not offered for a file with no category slot, and with a fixed if-chain on which that
+        // omission would have slid Delete up into Move's place.
+        final List<CharSequence> labels = new ArrayList<>();
+        final List<Runnable> actions = new ArrayList<>();
+
+        labels.add(getString(R.string.rename));
+        actions.add(() -> promptRename(file));
+
+        if (CategoryManager.journalMonthDir(file) != null) {
+            labels.add(getString(R.string.move_to_category));
+            actions.add(() -> promptMove(file));
+        }
+
+        labels.add(getString(R.string.create_shortcut));
+        // Pins a launcher shortcut that opens this one note. The helper, the activity it targets,
+        // its icon and the manifest permissions all survived the trim; only the call site went
+        // with the file browser's menu.
+        actions.add(() -> _cu.createLauncherDesktopShortcut(requireContext(), file));
+
+        labels.add(getString(R.string.delete));
+        actions.add(() -> confirmDelete(file));
+
         new AlertDialog.Builder(requireContext())
                 .setTitle(file.getName())
-                .setItems(actions, (d, which) -> {
-                    if (which == 0) {
-                        promptRename(file);
-                    } else if (which == 1) {
-                        promptMove(file);
-                    } else if (which == 2) {
-                        // Pins a launcher shortcut that opens this one note. The helper, the
-                        // activity it targets, its icon and the manifest permissions all survived
-                        // the trim; only the call site went with the file browser's menu.
-                        _cu.createLauncherDesktopShortcut(requireContext(), file);
-                    } else {
-                        confirmDelete(file);
-                    }
-                })
+                .setItems(labels.toArray(new CharSequence[0]),
+                        (d, which) -> actions.get(which).run())
                 .setNegativeButton(android.R.string.cancel, null)
                 .show();
         return true;
@@ -789,53 +795,38 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
     }
 
     /**
-     * Move a note to another folder in the archive.
+     * Move a note to another category, keeping its year and month.
      *
-     * <p>The destination list is every folder under the home folder, shown by its path relative
-     * to it. A flat list rather than a folder picker: the realistic move here is a mis-filed
-     * category or a note put under the wrong month, and both are easier to spot in one list than
-     * by walking down into them.
+     * <p>This offered every folder under the home folder, by relative path. That was a short list
+     * when the archive was new and an unusable one later: the Year and Month folders of every year
+     * written, plus Images, Files and Quicknotes and their own year folders, to pick a category
+     * from. The realistic move is a note filed under the wrong category in the month it already
+     * belongs to, so that is the only move offered, and the list is just the categories.
      */
     private void promptMove(final File file) {
-        final File root = _root;
-        if (root == null) {
+        final File monthDir = CategoryManager.journalMonthDir(file);
+        if (monthDir == null) {
             return;
         }
-        final File source = file.getParentFile();
-
-        new Thread(() -> {
-            final List<File> dirs = new ArrayList<>();
-            collectDirs(root, dirs, 0);
-            dirs.remove(source);
-
-            final android.app.Activity host = getActivity();
-            if (host == null) {
-                return;
-            }
-            final CharSequence[] labels = new CharSequence[dirs.size()];
-            for (int i = 0; i < dirs.size(); i++) {
-                final String abs = dirs.get(i).getAbsolutePath();
-                final String rel = abs.startsWith(root.getAbsolutePath())
-                        ? abs.substring(root.getAbsolutePath().length()).replaceFirst("^/", "")
-                        : abs;
-                labels[i] = rel.isEmpty() ? root.getName() : rel;
-            }
-
-            host.runOnUiThread(() -> {
-                if (!isAdded()) {
-                    return;
-                }
-                if (dirs.isEmpty()) {
-                    toast(R.string.tree_no_move_targets);
-                    return;
-                }
-                new AlertDialog.Builder(requireContext())
-                        .setTitle(R.string.move)
-                        .setItems(labels, (d, which) -> doMove(file, dirs.get(which)))
-                        .setNegativeButton(android.R.string.cancel, null)
-                        .show();
-            });
-        }).start();
+        final List<String> targets = CategoryManager.moveTargetsFor(requireContext(), file);
+        if (targets.isEmpty()) {
+            toast(R.string.tree_no_move_targets);
+            return;
+        }
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.move_to_category)
+                .setItems(targets.toArray(new CharSequence[0]), (d, which) -> {
+                    // The category can exist in the archive without having a folder in this
+                    // particular month.
+                    final File targetDir = new File(monthDir, targets.get(which));
+                    if (!targetDir.isDirectory() && !targetDir.mkdirs()) {
+                        toast(R.string.error_could_not_open_file);
+                        return;
+                    }
+                    doMove(file, targetDir);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     private void doMove(final File file, final File targetDir) {
@@ -890,23 +881,6 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
             _store.invalidate(b);
         }
         redraw();
-    }
-
-    /** Every folder at or under {@code dir}, depth-capped so a stray deep tree cannot hang this. */
-    private void collectDirs(final File dir, final List<File> out, final int depth) {
-        if (depth > 6 || out.size() > 2000) {
-            return;
-        }
-        out.add(dir);
-        final File[] kids = dir.listFiles();
-        if (kids == null) {
-            return;
-        }
-        for (final File k : kids) {
-            if (k.isDirectory() && !k.getName().startsWith(".")) {
-                collectDirs(k, out, depth + 1);
-            }
-        }
     }
 
     private void toast(final int stringRes) {

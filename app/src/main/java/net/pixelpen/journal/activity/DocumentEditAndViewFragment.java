@@ -68,7 +68,7 @@ import net.gsantner.opoc.web.GsWebViewChromeClient;
 import net.gsantner.opoc.wrapper.GsTextWatcherAdapter;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.List;
 
 @SuppressWarnings({"UnusedReturnValue"})
 @SuppressLint("NonConstantResourceId")
@@ -405,7 +405,7 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
         // while you are looking at it, not while you are typing it, and keeping the move out of
         // edit mode means it can never fire with a half-typed buffer in play.
         menu.findItem(R.id.action_move_to_category)
-                .setVisible(isText && _isPreviewVisible && journalMonthDir(_document.file) != null);
+                .setVisible(isText && _isPreviewVisible && CategoryManager.journalMonthDir(_document.file) != null);
 
         menu.findItem(R.id.action_share_pdf).setVisible(true);
 
@@ -772,22 +772,6 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
 
     // Save the file
     /**
-     * The Month folder of the Year/Month/Category slot this note sits in, or null if it does not
-     * sit in one.
-     *
-     * <p>The year is the test, because it is the only one of the three whose name has a shape:
-     * four digits. A quicknote lives under Quicknotes/Year and an imported file anywhere, and
-     * neither has a category to be moved between, so both come back null and the menu item stays
-     * hidden rather than offering a move that would file them somewhere meaningless.
-     */
-    private static File journalMonthDir(final File file) {
-        final File category = file == null ? null : file.getParentFile();
-        final File month = category == null ? null : category.getParentFile();
-        final File year = month == null ? null : month.getParentFile();
-        return year != null && year.getName().matches("\\d{4}") ? month : null;
-    }
-
-    /**
      * Refile the open note under a different category, keeping its year and month.
      *
      * <p>Offered in view mode only, so there is no live edit buffer to reconcile. The save below
@@ -799,17 +783,11 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
      * came from and resurrect it there.
      */
     private void promptMoveToCategory() {
-        final File monthDir = journalMonthDir(_document.file);
+        final File monthDir = CategoryManager.journalMonthDir(_document.file);
         if (monthDir == null || !saveDocument(false)) {
             return;
         }
-        final String current = _document.file.getParentFile().getName();
-        final ArrayList<String> targets = new ArrayList<>();
-        for (final String c : CategoryManager.listCategories(requireContext()).changedPaths) {
-            if (!c.equalsIgnoreCase(current)) {
-                targets.add(c);
-            }
-        }
+        final List<String> targets = CategoryManager.moveTargetsFor(requireContext(), _document.file);
         if (targets.isEmpty()) {
             Toast.makeText(getContext(), R.string.tree_no_move_targets, Toast.LENGTH_SHORT).show();
             return;

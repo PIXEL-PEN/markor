@@ -70,6 +70,41 @@ public class CategoryManager {
 
     // ---------- Public API ----------
     @NonNull
+    /**
+     * The Month folder of the Year/Month/Category slot a note sits in, or null if it does not sit
+     * in one.
+     *
+     * <p>The year is the test, because it is the only one of the three whose name has a shape:
+     * four digits. A quicknote lives under Quicknotes/Year and an imported file anywhere, and
+     * neither has a category to be moved between.
+     *
+     * <p>Here rather than in either caller because the Tree and the editor both offer the move and
+     * must agree on what is movable. Two copies of this would drift.
+     */
+    public static File journalMonthDir(final File file) {
+        final File category = file == null ? null : file.getParentFile();
+        final File month = category == null ? null : category.getParentFile();
+        final File year = month == null ? null : month.getParentFile();
+        return year != null && year.getName().matches("\\d{4}") ? month : null;
+    }
+
+    /**
+     * The categories a note could move to: every known category except the one it is in.
+     */
+    public static List<String> moveTargetsFor(final Context ctx, final File file) {
+        final List<String> out = new ArrayList<>();
+        final File category = file == null ? null : file.getParentFile();
+        if (journalMonthDir(file) == null || category == null) {
+            return out;
+        }
+        for (final String c : listCategories(ctx).changedPaths) {
+            if (!c.equalsIgnoreCase(category.getName())) {
+                out.add(c);
+            }
+        }
+        return out;
+    }
+
     public static Result listCategories(Context ctx) {
         Set<String> cats = new LinkedHashSet<>(scanCategories());
         cats.addAll(loadCustom(ctx));
