@@ -651,4 +651,6 @@
     <string name="blank_line_bullets_summary">Return on a bullet leaves an empty line before the next one. Takes effect on the next note opened</string>
     <string name="new_note_bullet_title">Start notes with a bullet</string>
     <string name="new_note_bullet_summary">A new note opens with a dash and the cursor beside it, ready to type a list</string>
+    <string name="editing">Editing</string>
+    <string name="lists_and_action_bar">Lists and action bar</string>
 </resources>

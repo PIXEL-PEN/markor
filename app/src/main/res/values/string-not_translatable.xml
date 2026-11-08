@@ -10,6 +10,7 @@ work. If not, see <https://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 <resources>
 
+    <string name="pref_key__editing_screen" translatable="false">pref_key__editing_screen</string>
     <string name="pref_key__new_note_bullet" translatable="false">pref_key__new_note_bullet</string>
     <string name="pref_key__blank_line_between_bullets" translatable="false">pref_key__blank_line_between_bullets</string>
     <string name="app_license_name" translatable="false">GPL-3.0</string>
