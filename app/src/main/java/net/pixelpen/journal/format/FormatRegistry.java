@@ -195,7 +195,12 @@ public class FormatRegistry {
                 format._converter = CONVERTER_MARKDOWN;
                 format._highlighter = new MarkdownSyntaxHighlighter(appSettings);
                 format._textActions = new MarkdownActionButtons(context, document);
-                format._autoFormatInputFilter = new AutoTextFormatter(MarkdownReplacePatternGenerator.formatPatterns);
+                // Markdown alone opts in. The same patterns are handed to CSV, Plaintext,
+                // AsciiDoc, OrgMode and Wikitext through the one-argument constructor, so
+                // none of them change.
+                format._autoFormatInputFilter = new AutoTextFormatter(
+                        MarkdownReplacePatternGenerator.formatPatterns,
+                        appSettings.isBlankLineBetweenBullets());
                 format._autoFormatTextWatcher = new ListHandler(MarkdownReplacePatternGenerator.formatPatterns);
                 break;
             }

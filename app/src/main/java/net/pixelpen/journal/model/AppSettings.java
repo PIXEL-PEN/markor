@@ -265,6 +265,15 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         return getBool(R.string.pref_key__new_note_bullet, false);
     }
 
+    /**
+     * Whether Return on a bullet leaves an empty line before the next one.
+     *
+     * <p>Read when a note's format is built, so a change applies to the next note opened.
+     */
+    public boolean isBlankLineBetweenBullets() {
+        return getBool(R.string.pref_key__blank_line_between_bullets, false);
+    }
+
     public boolean isKeepScreenOn() {
         // Was !IS_TEST_BUILD, so it defaulted off in debug and on in release -- which meant
         // the build actually used day to day was the one without it.

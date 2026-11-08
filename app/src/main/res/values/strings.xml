@@ -647,6 +647,8 @@
     <string name="up_one_level">Up one level</string>
     <string name="category_protected">%1$s cannot be removed. Every note needs a category to fall back on.</string>
     <string name="new_note_category">New note</string>
+    <string name="blank_line_bullets_title">Blank line between bullets</string>
+    <string name="blank_line_bullets_summary">Return on a bullet leaves an empty line before the next one. Takes effect on the next note opened</string>
     <string name="new_note_bullet_title">Start notes with a bullet</string>
     <string name="new_note_bullet_summary">A new note opens with a dash and the cursor beside it, ready to type a list</string>
 </resources>

@@ -215,6 +215,12 @@
                     android:key="@string/pref_key__new_note_bullet"
                     android:summary="@string/new_note_bullet_summary"
                     android:title="@string/new_note_bullet_title" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:icon="@drawable/ic_format_line_spacing_black_24dp"
+                    android:key="@string/pref_key__blank_line_between_bullets"
+                    android:summary="@string/blank_line_bullets_summary"
+                    android:title="@string/blank_line_bullets_title" />
             </PreferenceCategory>
 
             <PreferenceCategory android:title="@string/actionbutton">

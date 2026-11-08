@@ -11,6 +11,7 @@ work. If not, see <https://creativecommons.org/publicdomain/zero/1.0/>.
 <resources>
 
     <string name="pref_key__new_note_bullet" translatable="false">pref_key__new_note_bullet</string>
+    <string name="pref_key__blank_line_between_bullets" translatable="false">pref_key__blank_line_between_bullets</string>
     <string name="app_license_name" translatable="false">GPL-3.0</string>
     <!-- The copyright line, on its own row at the top of About. One string so it can be
          edited without touching layout or code when a legal name replaces PIXEL-PEN. -->

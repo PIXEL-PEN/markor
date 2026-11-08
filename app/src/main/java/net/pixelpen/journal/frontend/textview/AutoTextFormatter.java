@@ -22,9 +22,21 @@ import java.util.regex.Pattern;
 public class AutoTextFormatter implements InputFilter {
 
     private final FormatPatterns _patterns;
+    private final boolean _blankLineBetweenListItems;
 
     public AutoTextFormatter(FormatPatterns patterns) {
+        this(patterns, false);
+    }
+
+    /**
+     * @param blankLineBetweenListItems put an empty line between bullets as they are typed.
+     *                                  Read once, when the format is built, which happens each
+     *                                  time a note is opened; changing the preference takes
+     *                                  effect on the next note rather than in the open one.
+     */
+    public AutoTextFormatter(FormatPatterns patterns, boolean blankLineBetweenListItems) {
         _patterns = patterns;
+        _blankLineBetweenListItems = blankLineBetweenListItems;
     }
 
     @Override
@@ -51,7 +63,18 @@ public class AutoTextFormatter implements InputFilter {
             result = indent + String.format("%s%c ", getNextOrderedValue(oLine.value, false), oLine.delimiter);
         } else if (uLine.isUnorderedOrCheckList && uLine.lineEnd != uLine.groupEnd && dend >= uLine.groupEnd) {
             String itemPrefix = uLine.newItemPrefix;
-            result = indent + itemPrefix;
+            // indent is already the typed newline plus this line's leading whitespace, so one
+            // more newline in front of it is the blank line and nothing else moves. It goes
+            // before the indent rather than after, so the blank line is genuinely empty
+            // instead of carrying trailing spaces.
+            //
+            // Unordered only, as asked. Ordered lists are left alone: renumbering reads the
+            // lines around an item and spacing them out is a bigger question than this one.
+            //
+            // An empty bullet still ends the list, because this branch needs
+            // lineEnd != groupEnd and a bare "- " fails that. Pressing Return twice gets you
+            // out, exactly as before.
+            result = (_blankLineBetweenListItems ? "\n" : "") + indent + itemPrefix;
         } else {
             result = indent;
         }
