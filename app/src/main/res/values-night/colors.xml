@@ -98,7 +98,8 @@
     <color name="year_month_bg">#1B2E26</color>
     <color name="year_month_border">#2F4A42</color>
     <color name="year_page_bg">#121A21</color>
-    <color name="year_slot_empty">#5C6B78</color>
+    <color name="year_slot_empty">#7E93A2</color>
+    <color name="year_prompt">#A7BCC9</color>
 
     <!-- Timeline, the native views only -->
     <color name="tl_card_border">#2E3C47</color>

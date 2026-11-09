@@ -117,7 +117,7 @@
         android:lineSpacingExtra="2dp"
         android:padding="12dp"
         android:textColor="@color/cal_title"
-        android:textSize="14sp" />
+        android:textSize="15sp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/year_months"

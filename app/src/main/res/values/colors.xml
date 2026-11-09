@@ -122,7 +122,11 @@
     <color name="year_month_bg">#D0F4DE</color>
     <color name="year_month_border">#A3C4BC</color>
     <color name="year_page_bg">#F4F4F4</color>
-    <color name="year_slot_empty">#9AB3B8</color>
+    <color name="year_slot_empty">#6E8E96</color>
+    <!-- Prompt text in an empty highlight slot and the growth field. Darker
+         than the dash it sits inside, so the writing leads and the border
+         frames it rather than the two competing at the same weight. -->
+    <color name="year_prompt">#4F6B73</color>
 
     <!-- Life timeline. Sampled from the HTML this screen replaces. -->
     <color name="tl_header">#44546A</color>

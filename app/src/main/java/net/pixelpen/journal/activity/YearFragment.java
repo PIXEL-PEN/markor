@@ -253,7 +253,7 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
             // no idea what belongs in it, and this is the kind of writing nobody starts cold.
             _growth.setText(R.string.year_growth_prompt);
             _growth.setTextColor(androidx.core.content.ContextCompat.getColor(
-                    requireContext(), R.color.cal_weekday));
+                    requireContext(), R.color.year_prompt));
         } else {
             _growth.setText(text);
             _growth.setTextColor(androidx.core.content.ContextCompat.getColor(
@@ -336,8 +336,10 @@ public class YearFragment extends AutumnBaseFragment implements YearMonthAdapter
                 // rather than as room left over.
                 title.setText(getString(R.string.year_highlight_empty, i + 1));
                 title.setTypeface(null, android.graphics.Typeface.NORMAL);
+                // year_prompt, not year_slot_empty: the slot's own colour is the dash, and
+                // using it for the words too made both fade together into one grey suggestion.
                 title.setTextColor(androidx.core.content.ContextCompat.getColor(
-                        requireContext(), R.color.year_slot_empty));
+                        requireContext(), R.color.year_prompt));
                 month.setVisibility(View.GONE);
                 slot.setBackgroundResource(R.drawable.year_slot_empty);
                 slot.setOnClickListener(v -> promptNewHighlight());
