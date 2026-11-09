@@ -116,7 +116,18 @@ public abstract class TextConverterBase {
         if (parent == null) {
             parent = _appSettings.getNotebookDirectory().getAbsolutePath();
         }
-        final String baseFolder = "file://" + parent + "/";
+        // Uri.fromFile, not "file://" + parent.
+        //
+        // Concatenation leaves whatever the path contains sitting raw in a URL. The debug
+        // build's home folder is "Autumn (dev)", so the base came out as
+        //   file:///storage/emulated/0/Documents/Autumn (dev)/2026/11_November/Reference/
+        // with an unencoded space. A WebView cannot resolve a relative src against a base it
+        // cannot parse, so every relative image link in a note was dead -- the markdown was
+        // right, the file was there, and the picture never loaded. The release build's folder
+        // is "Autumn" with no space, which is why this looked like it only affected one build.
+        //
+        // Uri.fromFile percent-encodes the path, giving Autumn%20(dev) and a base that parses.
+        final String baseFolder = Uri.fromFile(new File(parent)).toString() + "/";
 
         webView.loadDataWithBaseURL(baseFolder, html, getContentType(), UTF_CHARSET, null);
 
