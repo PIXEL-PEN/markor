@@ -29,6 +29,10 @@ import java.io.OutputStreamWriter;
 import java.io.FileOutputStream;
 import java.util.Date;
 import java.util.Locale;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.io.FileInputStream;
+import android.util.Base64;
 
 import other.de.stanetz.jpencconverter.JavaPasswordbasedCryption;
 
@@ -139,9 +143,10 @@ public abstract class TextConverterBase {
         final String baseHref = Uri.fromFile(new File(parent)).toString() + "/";
         final String baseTag = "<base href=\"" + baseHref + "\">";
         final int headAt = html.indexOf("<head>");
-        final String doc = (headAt < 0)
+        final String linked = (headAt < 0)
                 ? baseTag + html
                 : html.substring(0, headAt + 6) + baseTag + html.substring(headAt + 6);
+        final String doc = inlineLocalImages(linked, new File(parent));
 
         // Named by content hash, with older previews removed: a fresh URL whenever the note
         // changes, and no accumulation. Guards against the WebView showing a stale render.
@@ -264,4 +269,130 @@ public abstract class TextConverterBase {
     }
 
     protected abstract boolean isFileOutOfThisFormat(final File file, final String name, final String ext);
+
+    private static final Pattern IMG_SRC_PATTERN =
+            Pattern.compile("(?i)(<img\\s[^>]*?src\\s*=\\s*)([\"'])(.*?)\\2");
+
+    /** 16 MB of originals per note. Past that the remaining pictures stay as links. */
+    private static final long INLINE_BUDGET_BYTES = 16L * 1024L * 1024L;
+
+    /**
+     * Replace local image sources with data: URIs.
+     *
+     * <p>Not an optimisation -- the pictures do not appear otherwise. A WebView would not load
+     * them from file:// however the src was written: not relative, not absolute, and not after
+     * the document was given a genuine file:// origin by writing it out and loading it by URL.
+     * Three different shapes of the same failure, each verified on the device.
+     *
+     * <p>A data: URI is part of the document rather than a subresource fetch, so there is no
+     * load for the WebView to refuse. It also fixes archived HTML pages saved into the archive,
+     * whose images failed for exactly the same reason.
+     *
+     * <p>Only local files are touched. http and https sources are left alone -- this app has no
+     * network permission, so they were never going to load, and rewriting them would hide that
+     * rather than fix it. Already-inlined data: URIs are left alone too.
+     */
+    private static String inlineLocalImages(final String html, final File noteDir) {
+        if (html == null || html.isEmpty()) {
+            return html;
+        }
+        final Matcher m = IMG_SRC_PATTERN.matcher(html);
+        final StringBuffer out = new StringBuffer(html.length());
+        long budget = INLINE_BUDGET_BYTES;
+        while (m.find()) {
+            String replacement = m.group(0);
+            final File f = localFileFor(m.group(3), noteDir);
+            if (f != null && f.isFile() && f.length() > 0 && f.length() <= budget) {
+                final String data = dataUri(f);
+                if (data != null) {
+                    budget -= f.length();
+                    replacement = m.group(1) + m.group(2) + data + m.group(2);
+                }
+            }
+            m.appendReplacement(out, Matcher.quoteReplacement(replacement));
+        }
+        m.appendTail(out);
+        return out.toString();
+    }
+
+    /** The file an img src points at, or null if it is not a local file. */
+    private static File localFileFor(final String src, final File noteDir) {
+        if (src == null) {
+            return null;
+        }
+        final String s = src.trim();
+        if (s.isEmpty() || s.startsWith("data:") || s.startsWith("http:")
+                || s.startsWith("https:")) {
+            return null;
+        }
+        String path;
+        if (s.startsWith("file://")) {
+            path = Uri.parse(s).getPath();
+        } else {
+            // Percent-escapes survive into the markup for a name with a space in it.
+            path = Uri.decode(s);
+        }
+        if (path == null || path.isEmpty()) {
+            return null;
+        }
+        final File f = path.startsWith("/") ? new File(path) : new File(noteDir, path);
+        try {
+            return f.getCanonicalFile();
+        } catch (final Exception e) {
+            return f;
+        }
+    }
+
+    private static String dataUri(final File f) {
+        FileInputStream in = null;
+        try {
+            final int size = (int) f.length();
+            final byte[] bytes = new byte[size];
+            in = new FileInputStream(f);
+            int read = 0;
+            while (read < size) {
+                final int n = in.read(bytes, read, size - read);
+                if (n < 0) {
+                    break;
+                }
+                read += n;
+            }
+            if (read < size) {
+                return null;
+            }
+            return "data:" + mimeFor(f.getName()) + ";base64,"
+                    + Base64.encodeToString(bytes, Base64.NO_WRAP);
+        } catch (final Throwable t) {
+            // OutOfMemoryError included: a picture too large to inline leaves the link as it was
+            // rather than taking the whole render down with it.
+            return null;
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (final Exception ignored) {
+                }
+            }
+        }
+    }
+
+    private static String mimeFor(final String name) {
+        final String n = name.toLowerCase(Locale.ROOT);
+        if (n.endsWith(".png")) {
+            return "image/png";
+        }
+        if (n.endsWith(".gif")) {
+            return "image/gif";
+        }
+        if (n.endsWith(".webp")) {
+            return "image/webp";
+        }
+        if (n.endsWith(".svg")) {
+            return "image/svg+xml";
+        }
+        if (n.endsWith(".bmp")) {
+            return "image/bmp";
+        }
+        return "image/jpeg";
+    }
 }
