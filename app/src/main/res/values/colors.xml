@@ -105,6 +105,8 @@
     -->
     <color name="tree_accent">#D35400</color>
     <color name="tree_title">#222222</color>
+    <!-- An open category's label. Blue-grey, distinct from tree_accent's orange. -->
+    <color name="tree_open_label">#2C5777</color>
     <color name="tree_icon">#1C1C1C</color>
     <color name="tree_meta">#6E6E6E</color>
     <color name="tree_divider">#DDDDDD</color>

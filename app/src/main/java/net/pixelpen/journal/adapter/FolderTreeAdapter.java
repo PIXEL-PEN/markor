@@ -7,6 +7,7 @@ import android.graphics.Typeface;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
+import androidx.core.content.ContextCompat;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -215,6 +216,15 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
         h.label.setTextSize(TypedValue.COMPLEX_UNIT_SP, size);
         h.label.setTypeface(null, bold ? Typeface.BOLD : Typeface.NORMAL);
+
+        // An open category is tinted, so the block being read is obvious at a glance without
+        // tracing the indent back up. Depth 3 is the category level -- year, month, category --
+        // so a year or a month opening does not light up: those are structure, not the thing
+        // you chose. Set on both branches because rows are recycled, and a row that kept the
+        // tint from whatever it displayed last would be worse than no tint at all.
+        final boolean openCategory = row.expanded && row.depth == 3;
+        h.label.setTextColor(ContextCompat.getColor(h.label.getContext(),
+                openCategory ? R.color.tree_open_label : R.color.tree_title));
 
         // Rotated, not swapped for a second glyph, so it turns the way the CSS transition did.
         h.arrow.setRotation(row.expanded ? 90f : 0f);

@@ -116,7 +116,7 @@
                     android:includeFontPadding="false"
                     android:paddingTop="13dp"
                     android:textColor="@color/day_card_number"
-                    android:textSize="58sp"
+                    android:textSize="61sp"
                     android:textStyle="bold"
                     tools:text="7" />
 
