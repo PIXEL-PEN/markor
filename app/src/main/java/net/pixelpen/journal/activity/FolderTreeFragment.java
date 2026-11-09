@@ -266,6 +266,9 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
         // to the month or the year, remembering it here would close the month on the next
         // request -- the year and month are the tree's default state, not this mechanism's doing.
         _seededCategory = (relDepth(root, open) > 2) ? opened : null;
+        // Only worth scrolling to a category. A fallback to the month or the year is already
+        // where the reader was looking.
+        _revealPath = _seededCategory;
         for (File f = open; f != null && isUnder(root, f); f = f.getParentFile()) {
             _expanded.add(f.getAbsolutePath());
         }
@@ -363,6 +366,15 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
      * beside it needs a way to be told not to.
      */
     private boolean _scrollToTop;
+    /**
+     * Absolute path of a category just opened by a dropdown choice or Browse, to be brought into
+     * view once the rows are in place; null when there is nothing to reveal.
+     *
+     * <p>The rebuild preserves the scroll position, which is right for an ordinary redraw but
+     * meant that opening a category left it wherever it happened to land -- usually the bottom
+     * edge, with most of its notes below the fold.
+     */
+    private String _revealPath;
 
     /** A note to make visible on the next draw. See {@link #revealPathTo}. */
     private File _pendingReveal;
@@ -578,7 +590,32 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
 
                 _adapter.setRows(rows);
 
-                if (toTop) {
+                final String reveal = _revealPath;
+                _revealPath = null;
+                int revealAt = -1;
+                if (reveal != null) {
+                    for (int i = 0; i < rows.size(); i++) {
+                        final File f = rows.get(i).entry.file;
+                        if (f != null && reveal.equals(f.getAbsolutePath())) {
+                            revealAt = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (revealAt >= 0 && lm instanceof LinearLayoutManager) {
+                    final int at = revealAt;
+                    final LinearLayoutManager llm = (LinearLayoutManager) lm;
+                    // Posted so the list has been measured: the offset is a fraction of its
+                    // height, and before layout that height is zero.
+                    _list.post(() -> {
+                        // A fifth of the way down rather than hard against the top edge. The
+                        // rows above are the year and month this category sits in, and they are
+                        // what makes the position meaningful -- scrolling it to the very top
+                        // throws that context off screen.
+                        llm.scrollToPositionWithOffset(at, Math.max(0, _list.getHeight() / 5));
+                    });
+                } else if (toTop) {
                     _list.scrollToPosition(0);
                 } else if (scroll != null && lm != null) {
                     lm.onRestoreInstanceState(scroll);

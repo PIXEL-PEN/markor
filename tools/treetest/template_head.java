@@ -11,6 +11,7 @@ public class TreeExpansionTest {
     private String _seededMonth;
     private String _seededCategory;
     private String _pendingCategoryExpand;
+    private String _revealPath;
     private File _root;
     private File _focus;
 

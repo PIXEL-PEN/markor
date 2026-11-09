@@ -350,9 +350,20 @@ public class AttachLinkOrFileDialog {
                     attachmentDir = (parent == null) ? notebookDir : new File(parent, "_res");
                 }
                 final File local = copyFileToAttachmentDir(attachment, attachmentDir);
-                path = GsFileUtils.relativePath(document, local);
+                // ArchiveImages.relativeLink, not GsFileUtils.relativePath.
+                    //
+                    // The note is reached one way and the attachment folder another -- one
+                    // through /sdcard, the other through /storage/emulated/0. They are the same
+                    // folder, but they compare as different strings, so relativePath finds no
+                    // common prefix and falls back to an absolute path. The link was written,
+                    // looked right, and pointed nowhere. relativeLink canonicalises all three
+                    // first, which is why the Year entry screen has always produced live links
+                    // while the editor's bottom bar did not.
+                    path = net.pixelpen.journal.model.ArchiveImages.relativeLink(
+                            document, local, notebookDir);
             } else {
-                path = GsFileUtils.relativePath(document, attachment);
+                path = net.pixelpen.journal.model.ArchiveImages.relativeLink(
+                        document, attachment, notebookDir);
             }
         }
 
