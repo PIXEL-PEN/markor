@@ -33,7 +33,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -64,8 +63,6 @@ public class CalendarFragment extends AutumnBaseFragment
 
 
     private static final String DEFAULT_CATEGORY = "General";
-    private static final String ADD_CATEGORY_ITEM = "➕ Add category…";
-    private static final int CATEGORY_MAX_LEN = 40;
 
     // UI-maintained categories
     private static final String PREFS_NAME = "category_ui_prefs";
@@ -385,9 +382,6 @@ public class CalendarFragment extends AutumnBaseFragment
             return null;
         }
         final String category = sel.toString();
-        if (ADD_CATEGORY_ITEM.equals(category)) {
-            return null;
-        }
         return noteParentDir(
                 category, NoteTimestamp.combineSelectedDateWithCurrentTime(selectedCalendarDate));
     }
@@ -457,9 +451,10 @@ public class CalendarFragment extends AutumnBaseFragment
         }
         List<String> cats = loadCategoriesForSpinner();
 
-        // Build display list with special "Add…" item appended
+        // Adding a category happens in Manage categories. The spinner is for choosing one:
+        // a row that is not a category, sitting in the same list as the categories, was the
+        // thing most often tapped by accident and had to be undone on every selection.
         List<String> display = new ArrayList<>(cats);
-        display.add(ADD_CATEGORY_ITEM);
 
         if (categoryAdapter == null) {
             categoryAdapter = new ArrayAdapter<>(requireContext(), R.layout.spinner_item, display);
@@ -552,93 +547,19 @@ public class CalendarFragment extends AutumnBaseFragment
 
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                final String chosen = (String) parent.getItemAtPosition(position);
-
                 // Above the firstFire guard on purpose. That flag is re-armed on every rebind
                 // and is only disarmed by a programmatic setSelection that actually moves; a
                 // rebind on the already-selected category leaves it armed, and it would eat this.
                 // Comparing positions does not need the flag to have been disarmed.
-                if (!ADD_CATEGORY_ITEM.equals(chosen)) {
-                    reportCategoryToTree(position);
-                }
+                reportCategoryToTree(position);
 
                 if (firstFire) { firstFire = false; return; }
-                if (ADD_CATEGORY_ITEM.equals(chosen)) {
-                    spinnerCategory.setSelection(lastRealCategorySelection, false);
-                    showAddCategoryDialog();
-                } else {
-                    lastRealCategorySelection = position;
-                }
+                lastRealCategorySelection = position;
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) { /* no-op */ }
         });
-    }
-
-    private void showAddCategoryDialog() {
-        final EditText input = new EditText(requireContext());
-        input.setSingleLine(true);
-        input.setHint("New category name");
-        input.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(CATEGORY_MAX_LEN) });
-
-        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setTitle("Add Category")
-                .setMessage("Choose a concise name (no \\/:*?\"<>|)")
-                .setView(input)
-                .setNegativeButton(android.R.string.cancel, null)
-                .setPositiveButton("Add", (d, w) -> {
-                    String name = input.getText() == null ? "" : input.getText().toString();
-                    if (!isValidCategoryName(name)) {
-                        Toast.makeText(requireContext(),
-                                "Invalid or duplicate name.\n(Disallowed: \\/:*?\"<>|, max " + CATEGORY_MAX_LEN + " chars)",
-                                Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                    addCategoryPersistAndSelect(name.trim());
-                })
-                .show();
-    }
-
-    private boolean isValidCategoryName(String name) {
-        if (name == null) return false;
-        String trimmed = name.trim();
-        if (trimmed.isEmpty()) return false;
-        if (trimmed.length() > CATEGORY_MAX_LEN) return false;
-        if (trimmed.matches(".*[\\\\/:*?\"<>|].*")) return false;
-
-        // Case-insensitive uniqueness against current UI list
-        List<String> existing = loadCategoriesForSpinner();
-        return indexOfIgnoreCase(existing, trimmed) < 0;
-    }
-
-    private void addCategoryPersistAndSelect(String newName) {
-        List<String> list = loadCategoriesForSpinner();
-        list.add(newName);
-        try { Collections.sort(list, String.CASE_INSENSITIVE_ORDER); } catch (Throwable ignored) { }
-
-        // Through CategoryManager, so the dialog and the spinner see the same thing. This
-        // used to write a separate preferences list that only the spinner read.
-        CategoryManager.addCategory(requireContext(), newName);
-
-        List<String> display = new ArrayList<>(list);
-        display.add(ADD_CATEGORY_ITEM);
-
-        if (categoryAdapter == null) {
-            categoryAdapter = new ArrayAdapter<>(requireContext(), R.layout.spinner_item, display);
-            categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinnerCategory.setAdapter(categoryAdapter);
-        } else {
-            categoryAdapter.clear();
-            categoryAdapter.addAll(display);
-            categoryAdapter.notifyDataSetChanged();
-        }
-
-        int idxNew = indexOfIgnoreCase(list, newName);
-        if (idxNew >= 0) {
-            spinnerCategory.setSelection(idxNew, false);
-            lastRealCategorySelection = idxNew;
-        }
     }
 
     private static int indexOfIgnoreCase(List<String> list, String target) {
@@ -661,11 +582,6 @@ public class CalendarFragment extends AutumnBaseFragment
                 ? DEFAULT_CATEGORY
                 : spinnerCategory.getSelectedItem().toString();
 
-        // Guard against special Add item
-        if (ADD_CATEGORY_ITEM.equals(category)) {
-            Toast.makeText(requireContext(), "Please choose a category.", Toast.LENGTH_SHORT).show();
-            return null;
-        }
         // Stamp = the day the user picked, plus the current wall-clock time so that several
         // entries backdated to the same day keep a stable order.
         //
