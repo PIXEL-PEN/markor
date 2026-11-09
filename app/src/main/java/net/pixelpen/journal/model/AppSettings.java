@@ -10,12 +10,14 @@ package net.pixelpen.journal.model;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Environment;
 import android.util.Pair;
 
 import androidx.annotation.ColorRes;
+import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
@@ -701,7 +703,7 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
      * the resource gives the right answer for the current configuration without asking.
      */
     public int getEditorForegroundColor() {
-        return rcolor(R.color.primary_text);
+        return ContextCompat.getColor(colorContext(), R.color.primary_text);
     }
 
     /** Editor background, from the theme. */
@@ -709,7 +711,41 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         // The pure-black branch went with the Black theme. It was the only thing that told
         // Black and Dark apart: applyDayNightTheme tests pref.contains("dark"), which
         // "dark-black" satisfies, so both set MODE_NIGHT_YES and differed here alone.
-        return rcolor(R.color.background);
+        return ContextCompat.getColor(colorContext(), R.color.background);
+    }
+
+    /**
+     * A context whose configuration carries the theme the app has chosen, for resolving colours.
+     *
+     * <p>AppSettings holds the application context -- ApplicationObject constructs it with
+     * getApplicationContext() -- and AppCompat's MODE_NIGHT_YES/MODE_NIGHT_NO override applies to
+     * activity contexts, not to that one. So rcolor() read values/ while the activity on screen was
+     * drawing from values-night/. Pinning the app to Dark on a light phone gave a dark frame around
+     * a white editor; Light on a dark phone gave the reverse. It looked correct only when the app's
+     * choice happened to agree with the phone's, which is why following the system always worked and
+     * the explicit settings did not.
+     *
+     * <p>Following the system needs no correction, because then the application context already
+     * carries the right configuration -- so that case returns it untouched rather than building a
+     * second Resources for nothing.
+     */
+    private Context colorContext() {
+        final int mode = AppCompatDelegate.getDefaultNightMode();
+        final int wanted;
+        if (mode == AppCompatDelegate.MODE_NIGHT_YES) {
+            wanted = Configuration.UI_MODE_NIGHT_YES;
+        } else if (mode == AppCompatDelegate.MODE_NIGHT_NO) {
+            wanted = Configuration.UI_MODE_NIGHT_NO;
+        } else {
+            return _context;
+        }
+        final Configuration current = _context.getResources().getConfiguration();
+        if ((current.uiMode & Configuration.UI_MODE_NIGHT_MASK) == wanted) {
+            return _context;
+        }
+        final Configuration cfg = new Configuration(current);
+        cfg.uiMode = (cfg.uiMode & ~Configuration.UI_MODE_NIGHT_MASK) | wanted;
+        return _context.createConfigurationContext(cfg);
     }
 
     /**
