@@ -238,15 +238,50 @@ public class FolderTreeFragment extends AutumnBaseFragment implements FolderTree
             // Left over from another archive root; it could never draw.
             return;
         }
-        if (_seededCategory != null && !_seededCategory.equals(wanted)) {
+
+        // Open only what is actually on disk.
+        //
+        // A category has no folder until something is filed in it, and an imported archive
+        // commonly holds a category in earlier months but not this one. Adding the requested
+        // path regardless put an entry in _expanded that collect() could never reach: the
+        // request was recorded, the tree redrew, and nothing opened -- indistinguishable, from
+        // the outside, from the expansion logic being broken.
+        //
+        // Walking up to the deepest folder that does exist means the month still opens, which
+        // is the useful half of the answer when the category itself has nothing here yet.
+        File open = target;
+        while (open != null && isUnder(root, open) && !open.isDirectory()) {
+            open = open.getParentFile();
+        }
+        if (open == null || !isUnder(root, open)) {
+            return;
+        }
+        final String opened = open.getAbsolutePath();
+        if (_seededCategory != null && !_seededCategory.equals(opened)) {
             // Close the one opened by the previous request, so two cannot show at once when no
             // tab switch has intervened to collapse them.
             _expanded.remove(_seededCategory);
         }
-        _seededCategory = wanted;
-        for (File f = target; f != null && isUnder(root, f); f = f.getParentFile()) {
+        // Only a category-depth folder is ours to close next time. When the walk above fell back
+        // to the month or the year, remembering it here would close the month on the next
+        // request -- the year and month are the tree's default state, not this mechanism's doing.
+        _seededCategory = (relDepth(root, open) > 2) ? opened : null;
+        for (File f = open; f != null && isUnder(root, f); f = f.getParentFile()) {
             _expanded.add(f.getAbsolutePath());
         }
+    }
+
+    /** How many path segments below the root this folder sits: year 1, month 2, category 3. */
+    private static int relDepth(final File root, final File f) {
+        final String rp = root.getAbsolutePath();
+        final String p = f.getAbsolutePath();
+        if (p.equals(rp)) {
+            return 0;
+        }
+        if (!p.startsWith(rp + "/")) {
+            return -1;
+        }
+        return p.substring(rp.length() + 1).split("/").length;
     }
 
     /**

@@ -537,7 +537,12 @@ public class CalendarFragment extends AutumnBaseFragment
         }
         _categoryReportedToTree = position;
         if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).onCategoryChosen(currentTargetDir());
+            // selectedCategoryDir, not currentTargetDir. currentTargetDir is where a note
+            // written now WOULD go, which for an imported category is a folder that does not
+            // exist yet -- this month's, in a category whose notes are all in earlier months.
+            // The tree was being asked to open a path that was not on disk. Browse already
+            // resolved it this way; the dropdown did not, so the two disagreed.
+            ((MainActivity) getActivity()).onCategoryChosen(selectedCategoryDir());
         }
     }
 
