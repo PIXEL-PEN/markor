@@ -171,10 +171,22 @@ public class MainActivity extends AutumnBaseActivity {
 
         reduceViewpagerSwipeSensitivity();
 
-        // Always on. The setting that switched these also switched the QuickNote and ToDo
-        // launchers, which no longer exist; share-into and PROCESS_TEXT are how other apps
-        // reach Autumn and are not an optional extra.
-        _cu.applySpecialLaunchersVisibility(this, true);
+        // Nothing here mutates component enabled-state any more.
+        //
+        // This used to call applySpecialLaunchersVisibility(this, true) on every launch, which
+        // called setComponentEnabledSetting twice. The PROCESS_TEXT alias is declared
+        // enabled="false" in the manifest, so installing the app reset it to disabled and the
+        // next launch switched it back on -- a real component change, and therefore a
+        // package-changed broadcast, seconds after every install. That is exactly when a
+        // launcher is deciding where to put the app's icon, and on MIUI the icon did not
+        // survive it. The alias is now simply declared enabled, so there is nothing to switch.
+        //
+        // The other call named OpenShareIntoActivity, which is not declared in the manifest at
+        // all. setComponentEnabledSetting throws IllegalArgumentException for an unknown
+        // component and the helper swallows it, so that one had been failing silently on every
+        // launch since the package was renamed. Share-into is NOT reachable by other apps as a
+        // result -- it needs a manifest entry, which is a separate piece of work and not
+        // something to bundle into an icon fix.
 
     }
 
