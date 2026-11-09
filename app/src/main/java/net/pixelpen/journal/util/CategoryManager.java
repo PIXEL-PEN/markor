@@ -339,6 +339,33 @@ public class CategoryManager {
         return t.replaceAll("\\s+", " ");
     }
 
+    /** Set once the starting categories have been laid down, so they are never re-added. */
+    private static final String PREF_SEEDED = "categories_seeded";
+
+    /**
+     * Lay down the starting set of categories, once per install.
+     *
+     * <p>This used to be guarded on the category list being empty, which it never is: General is
+     * protected and always present, so the list always had one entry and the other seven were
+     * never written. A fresh install came up with General alone.
+     *
+     * <p>A flag rather than emptiness also means a user who deletes the defaults keeps them
+     * deleted. Emptiness would have restored the whole set the moment someone pruned down to
+     * the protected one.
+     */
+    public static void seedDefaultsOnce(final Context ctx, final String[] defaults) {
+        final SharedPreferences sp = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        if (sp.getBoolean(PREF_SEEDED, false)) {
+            return;
+        }
+        if (defaults != null) {
+            for (final String d : defaults) {
+                addCategory(ctx, d);
+            }
+        }
+        sp.edit().putBoolean(PREF_SEEDED, true).apply();
+    }
+
     private static Set<String> loadCustom(Context ctx) {
         SharedPreferences sp = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         return new LinkedHashSet<>(sp.getStringSet(PREF_KEY, Collections.emptySet()));

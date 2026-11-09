@@ -430,17 +430,12 @@ public class CalendarFragment extends AutumnBaseFragment
      * them, because they are the same thing.
      */
     private List<String> loadCategoriesForSpinner() {
-        final List<String> cats = CategoryManager.listCategories(requireContext()).changedPaths;
-        if (cats.isEmpty()) {
-            // A fresh install has no folders and nothing added, so seed the starting set.
-            // Only ever on genuine emptiness: a user who deletes everything but the
-            // protected category still has that, so this does not undo their choice.
-            for (final String d : getResources().getStringArray(R.array.category_list)) {
-                CategoryManager.addCategory(requireContext(), d);
-            }
-            return CategoryManager.listCategories(requireContext()).changedPaths;
-        }
-        return cats;
+        // Seeding is guarded by a one-time flag inside CategoryManager, not by the list being
+        // empty. It never was empty: General is protected and always present, so the other
+        // seven defaults were never written and a fresh install came up with General alone.
+        CategoryManager.seedDefaultsOnce(
+                requireContext(), getResources().getStringArray(R.array.category_list));
+        return CategoryManager.listCategories(requireContext()).changedPaths;
     }
 
     private void bindCategories(boolean keepSelection) {
