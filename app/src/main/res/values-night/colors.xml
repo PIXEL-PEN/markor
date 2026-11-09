@@ -88,7 +88,8 @@
     <color name="tree_icon">#C6D2DE</color>
     <color name="tree_meta">#9AA8B5</color>
     <color name="tree_title">#E6ECF2</color>
-    <color name="tree_open_label">#8FB8DC</color>
+    <color name="tree_open_label">#DCEBF8</color>
+    <color name="tree_open_band">#24435F</color>
 
     <!-- Year overview -->
     <color name="year_dropdown">#2BB3A8</color>

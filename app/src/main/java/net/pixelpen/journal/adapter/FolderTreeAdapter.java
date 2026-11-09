@@ -3,6 +3,7 @@ package net.pixelpen.journal.adapter;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -223,8 +224,24 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         // you chose. Set on both branches because rows are recycled, and a row that kept the
         // tint from whatever it displayed last would be worse than no tint at all.
         final boolean openCategory = row.expanded && row.depth == 3;
-        h.label.setTextColor(ContextCompat.getColor(h.label.getContext(),
+        final Context ctx = h.label.getContext();
+        h.label.setTextColor(ContextCompat.getColor(ctx,
                 openCategory ? R.color.tree_open_label : R.color.tree_title));
+
+        // setBackgroundColor, never setBackgroundResource: a drawable brings its own padding
+        // and REPLACES the view's, which is what collapsed the row the last time a band was
+        // tried here. A colour leaves padding alone.
+        h.label.setBackgroundColor(openCategory
+                ? ContextCompat.getColor(ctx, R.color.tree_open_band)
+                : Color.TRANSPARENT);
+
+        // The same padding either way, so the label does not jump sideways as it opens. It only
+        // gives the band room; with none, the fill hugs the glyphs and reads as a highlighter
+        // smudge rather than a band.
+        final float density = ctx.getResources().getDisplayMetrics().density;
+        final int padH = (int) (8f * density);
+        final int padV = (int) (3f * density);
+        h.label.setPadding(padH, padV, padH, padV);
 
         // Rotated, not swapped for a second glyph, so it turns the way the CSS transition did.
         h.arrow.setRotation(row.expanded ? 90f : 0f);
