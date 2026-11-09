@@ -25,6 +25,8 @@ import net.gsantner.opoc.util.GsContextUtils;
 import net.gsantner.opoc.util.GsFileUtils;
 
 import java.io.File;
+import java.io.OutputStreamWriter;
+import java.io.FileOutputStream;
 import java.util.Date;
 import java.util.Locale;
 
@@ -116,20 +118,65 @@ public abstract class TextConverterBase {
         if (parent == null) {
             parent = _appSettings.getNotebookDirectory().getAbsolutePath();
         }
-        // Uri.fromFile, not "file://" + parent.
+// The document is written to a file and loaded by URL, rather than handed to
+        // loadDataWithBaseURL.
         //
-        // Concatenation leaves whatever the path contains sitting raw in a URL. The debug
-        // build's home folder is "Autumn (dev)", so the base came out as
-        //   file:///storage/emulated/0/Documents/Autumn (dev)/2026/11_November/Reference/
-        // with an unencoded space. A WebView cannot resolve a relative src against a base it
-        // cannot parse, so every relative image link in a note was dead -- the markdown was
-        // right, the file was there, and the picture never loaded. The release build's folder
-        // is "Autumn" with no space, which is why this looked like it only affected one build.
+        // loadDataWithBaseURL with a non-http base gives the document an OPAQUE origin on
+        // modern WebView, not the file:// origin the base URL suggests. A document with an
+        // opaque origin may not load file:// subresources at all, so every local image in a
+        // note failed -- and failed whether the src was relative or absolute, which is what
+        // ruled out the path as the cause. The markdown was right, the file was on disk, the
+        // link resolved correctly, and the picture still never appeared.
         //
-        // Uri.fromFile percent-encodes the path, giving Autumn%20(dev) and a base that parses.
-        final String baseFolder = Uri.fromFile(new File(parent)).toString() + "/";
+        // Loading a real file gives a real file:// origin, which setAllowFileAccess(true)
+        // already permits to read other file:// URLs.
+        //
+        // The preview lives in the app's cache, never in the archive -- the archive is the
+        // thing this app exists to keep, and it should not collect render artefacts. A <base>
+        // element pointed at the note's own folder makes relative links such as
+        // ../../../Images/2026/x.jpg resolve into the archive regardless of where the HTML
+        // itself sits, so nothing has to rewrite src attributes.
+        final String baseHref = Uri.fromFile(new File(parent)).toString() + "/";
+        final String baseTag = "<base href=\"" + baseHref + "\">";
+        final int headAt = html.indexOf("<head>");
+        final String doc = (headAt < 0)
+                ? baseTag + html
+                : html.substring(0, headAt + 6) + baseTag + html.substring(headAt + 6);
 
-        webView.loadDataWithBaseURL(baseFolder, html, getContentType(), UTF_CHARSET, null);
+        // Named by content hash, with older previews removed: a fresh URL whenever the note
+        // changes, and no accumulation. Guards against the WebView showing a stale render.
+        File preview = null;
+        try {
+            final File dir = new File(context.getCacheDir(), "preview");
+            if (dir.isDirectory()) {
+                final File[] stale = dir.listFiles();
+                if (stale != null) {
+                    for (final File old : stale) {
+                        old.delete();
+                    }
+                }
+            } else {
+                dir.mkdirs();
+            }
+            final File out = new File(dir, "v" + Integer.toHexString(doc.hashCode()) + ".html");
+            final OutputStreamWriter w =
+                    new OutputStreamWriter(new FileOutputStream(out), UTF_CHARSET);
+            try {
+                w.write(doc);
+            } finally {
+                w.close();
+            }
+            preview = out;
+        } catch (final Exception ignored) {
+            // Cache unwritable: fall back below rather than showing nothing.
+            preview = null;
+        }
+
+        if (preview != null) {
+            webView.loadUrl(Uri.fromFile(preview).toString());
+        } else {
+            webView.loadDataWithBaseURL(baseHref, doc, getContentType(), UTF_CHARSET, null);
+        }
 
         // When TOKEN_TEXT_CONVERTER_MAX_ZOOM_OUT_BY_DEFAULT is contained in text zoom out as far possible
         // Notice: overViewMode / useWideViewPort work differently
