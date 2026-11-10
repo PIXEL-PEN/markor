@@ -152,10 +152,19 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
      * single walk and appear at once; the counts arrive behind them.
      */
     private void countsInBackground(final LinkedHashMap<String, TextView> details) {
+        // Taken here, on the UI thread, while the fragment is certainly attached. The counts
+        // walk the whole archive, which is slow enough that the dialog is often closed before
+        // they finish -- and describe() reaches resources through requireContext(), which
+        // throws the moment the fragment is detached. The guards below were in the wrong place
+        // to help: they come after the loop, so the crash happened before they were reached.
+        //
+        // The application context outlives the fragment, so the strings can always be built.
+        // Whether anything is done with them is still decided on the UI thread, below.
+        final Context strings = requireContext().getApplicationContext();
         new Thread(() -> {
             final LinkedHashMap<String, String> text = new LinkedHashMap<>();
             for (final String name : details.keySet()) {
-                text.put(name, describe(CategoryManager.countNotes(name)));
+                text.put(name, describe(strings, CategoryManager.countNotes(name)));
             }
             final Activity host = getActivity();
             if (host == null) {
@@ -198,19 +207,21 @@ public class ManageCategoriesDialogFragment extends DialogFragment {
         });
     }
     /** "12 notes across 3 months", or what is true instead. */
-    private String describe(final int[] counts) {
+    private static String describe(final Context ctx, final int[] counts) {
         final int notes = counts[0];
         final int months = counts[1];
         if (months == 0) {
             // In the list but never written to: no folder exists for it anywhere yet.
-            return getString(R.string.category_unused);
+            return ctx.getString(R.string.category_unused);
         }
         if (notes == 0) {
-            return getString(R.string.category_empty);
+            return ctx.getString(R.string.category_empty);
         }
-        final String n = getResources().getQuantityString(R.plurals.notes_count, notes, notes);
-        final String m = getResources().getQuantityString(R.plurals.months_count, months, months);
-        return getString(R.string.category_detail, n, m);
+        final String n =
+                ctx.getResources().getQuantityString(R.plurals.notes_count, notes, notes);
+        final String m =
+                ctx.getResources().getQuantityString(R.plurals.months_count, months, months);
+        return ctx.getString(R.string.category_detail, n, m);
     }
 
     // --------------------------------------------------------------- actions
