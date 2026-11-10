@@ -37,6 +37,23 @@ public abstract class AutumnBaseActivity extends GsActivityBase<AppSettings, Aut
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // The forced night mode does not stay put.
+        //
+        // Android resets this process's resource configuration behind the app's back: starting
+        // a WebView does it, and so does coming back from another app. Once that happens the
+        // application context is on the system's uiMode again while the activity still draws
+        // the chosen one, and every colour read without a view in hand comes back from the
+        // wrong palette -- tree rows the colour of their background, year cells inverted,
+        // dialog icons tinted for a background they are not on.
+        //
+        // Setting it once at startup is not enough, so it is re-asserted here. Both calls are
+        // no-ops when nothing has changed, so this costs nothing in the ordinary case.
+        _appSettings.applyAppTheme();
+    }
+
     protected boolean onReceiveKeyPress(GsFragmentBase fragment, int keyCode, KeyEvent event) {
         return fragment.onReceiveKeyPress(keyCode, event);
     }
