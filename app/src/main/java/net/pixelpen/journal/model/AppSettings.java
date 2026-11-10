@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Environment;
@@ -764,6 +765,47 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        }
+        syncApplicationNightMode();
+    }
+
+    /**
+     * Make the application's own resources agree with the theme the app has chosen.
+     *
+     * <p>setDefaultNightMode overrides the configuration of ACTIVITY contexts. The application
+     * context keeps the system's, and a great deal of this app reads colours through it: this
+     * class holds it, AutumnContextUtils is built with it, and anything resolving a colour
+     * without a view in hand ends up there. Pinned to Dark on a light phone, those lookups all
+     * returned the light palette while the activity drew the dark one -- tree rows the colour of
+     * their own background, year cells white where their neighbours were black, dialog icons
+     * tinted for a background they were not on.
+     *
+     * <p>Fixing the lookups one at a time was the wrong shape: it left every future colour
+     * lookup to get the same thing wrong again. One configuration, set once, and they all agree.
+     *
+     * <p>Following the system needs nothing, since the application context already has it.
+     */
+    private void syncApplicationNightMode() {
+        final int mode = AppCompatDelegate.getDefaultNightMode();
+        final int wanted;
+        if (mode == AppCompatDelegate.MODE_NIGHT_YES) {
+            wanted = Configuration.UI_MODE_NIGHT_YES;
+        } else if (mode == AppCompatDelegate.MODE_NIGHT_NO) {
+            wanted = Configuration.UI_MODE_NIGHT_NO;
+        } else {
+            return;
+        }
+        try {
+            final Resources res = _context.getResources();
+            final Configuration current = res.getConfiguration();
+            if ((current.uiMode & Configuration.UI_MODE_NIGHT_MASK) == wanted) {
+                return;
+            }
+            final Configuration cfg = new Configuration(current);
+            cfg.uiMode = (cfg.uiMode & ~Configuration.UI_MODE_NIGHT_MASK) | wanted;
+            res.updateConfiguration(cfg, res.getDisplayMetrics());
+        } catch (final Exception ignored) {
+            // A theme that will not apply is not worth taking the app down for.
         }
     }
 
