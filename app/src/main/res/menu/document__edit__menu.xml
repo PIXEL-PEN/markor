@@ -97,6 +97,15 @@
         android:title="@string/move_to_category"
         app:showAsAction="never" />
 
+    <!--
+      Settings, reachable while reading a note so the app's behaviour can be adjusted without
+      walking back out to the main screen first.
+    -->
+    <item
+        android:id="@+id/action_settings"
+        android:title="@string/settings"
+        app:showAsAction="never" />
+
     <item
         android:id="@+id/action_create_shortcut"
         android:title="@string/create_shortcut"

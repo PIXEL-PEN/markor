@@ -410,6 +410,9 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
         // Reading only, like the move. Unlike the move it needs no category slot: a shortcut to a
         // quicknote is as reasonable as one to a journal entry.
         menu.findItem(R.id.action_create_shortcut).setVisible(isText && _isPreviewVisible);
+        // Reading only, matching the two above. Nothing here would misfire in edit mode, but the
+        // edit overflow is already the busier of the two and this is not an editing action.
+        menu.findItem(R.id.action_settings).setVisible(_isPreviewVisible);
 
         menu.findItem(R.id.action_share_pdf).setVisible(true);
 
@@ -562,6 +565,11 @@ public class DocumentEditAndViewFragment extends AutumnBaseFragment implements F
             }
             case R.id.action_preview_edit_toggle: {
                 setViewModeVisibility(!_isPreviewVisible);
+                return true;
+            }
+            case R.id.action_settings: {
+                startActivity(new android.content.Intent(
+                        requireContext(), net.pixelpen.journal.activity.SettingsActivity.class));
                 return true;
             }
             case R.id.action_move_to_category: {
