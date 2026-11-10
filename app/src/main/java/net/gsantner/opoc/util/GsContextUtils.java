@@ -560,11 +560,33 @@ public class GsContextUtils {
     }
 
     public <T extends GsContextUtils> T setAppLocale(final Context context, final Locale locale) {
-        Configuration config = context.getResources().getConfiguration();
+        final Resources res = context.getResources();
+        // A copy. getConfiguration hands back the live object, and mutating that writes through
+        // to resources this call has no business changing.
+        final Configuration config = new Configuration(res.getConfiguration());
         config.locale = (locale != null ? locale : Resources.getSystem().getConfiguration().locale);
-        context.getResources().updateConfiguration(config, null);
-        //noinspection ConstantConditions
-        Locale.setDefault(locale);
+
+        // Carry the forced night mode through.
+        //
+        // updateConfiguration writes the WHOLE Configuration, and AppCompat's forced dark lives
+        // in uiMode. This runs from onPreCreate, before AppCompat has applied night mode to the
+        // activity, so the uiMode read here is the system's -- light, when the app is pinned to
+        // dark. Writing that back into Resources the Application shares meant every @color
+        // resolved afterwards came back light: the app would be correct throughout until
+        // something recreated an activity, such as returning from another app, and then parts
+        // of it were not. Taking the value from AppCompatDelegate instead of from the stale
+        // configuration is what keeps a language pass from quietly undoing the theme.
+        final int night = AppCompatDelegate.getDefaultNightMode();
+        if (night == AppCompatDelegate.MODE_NIGHT_YES) {
+            config.uiMode = (config.uiMode & ~Configuration.UI_MODE_NIGHT_MASK)
+                    | Configuration.UI_MODE_NIGHT_YES;
+        } else if (night == AppCompatDelegate.MODE_NIGHT_NO) {
+            config.uiMode = (config.uiMode & ~Configuration.UI_MODE_NIGHT_MASK)
+                    | Configuration.UI_MODE_NIGHT_NO;
+        }
+
+        res.updateConfiguration(config, res.getDisplayMetrics());
+        Locale.setDefault(config.locale);
         return thisp();
     }
 

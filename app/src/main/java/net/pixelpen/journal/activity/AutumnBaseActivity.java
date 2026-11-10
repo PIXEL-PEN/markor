@@ -25,7 +25,16 @@ public abstract class AutumnBaseActivity extends GsActivityBase<AppSettings, Aut
             getWindow().setEnterTransition(null);
             getWindow().setExitTransition(null);
         }
-        _cu.setAppLanguage(this, _appSettings.getLanguage());
+        // Only when a language has actually been chosen.
+        //
+        // Following the system needs no override, and the override is not free: it goes through
+        // Resources.updateConfiguration, which rewrites the whole Configuration. Skipping it
+        // entirely for the common case removes any chance of it disturbing the theme, and leaves
+        // one code path to reason about rather than one that runs for everybody.
+        final String language = _appSettings.getLanguage();
+        if (language != null && !language.trim().isEmpty()) {
+            _cu.setAppLanguage(this, language);
+        }
     }
 
     protected boolean onReceiveKeyPress(GsFragmentBase fragment, int keyCode, KeyEvent event) {
