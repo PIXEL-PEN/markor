@@ -7,6 +7,7 @@
   nothing happen. A screen of its own can be opened from anywhere.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -16,6 +17,29 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <!--
+      A spacer, so the field sits above the middle of the screen rather than tight under the
+      toolbar. Weighted rather than a fixed margin: the proportion holds on a short phone and a
+      tall one alike, and it keeps its place once results appear below.
+    -->
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.3" />
+
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/search_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_search_card"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        app:iconifiedByDefault="false"
+        app:queryHint="@string/search_hint" />
 
     <FrameLayout
         android:layout_width="match_parent"

@@ -70,19 +70,16 @@ public class SearchActivity extends AutumnBaseActivity implements FolderTreeAdap
         _list.setItemAnimator(null);
 
         _message.setText(R.string.search_prompt);
-    }
 
-    @Override
-    public boolean onCreateOptionsMenu(final Menu menu) {
-        final MenuItem item = menu.add(0, R.id.action_search, 0, R.string.search);
-        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS | MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
-        final SearchView search = new SearchView(this);
-        item.setActionView(search);
-        search.setQueryHint(getString(R.string.search_hint));
+        // The field is part of the screen now, not an action view collapsed into the toolbar.
+        // It had been expanded on arrival anyway, so it was already behaving like a fixed field
+        // while living somewhere that made it look temporary.
+        final SearchView search = findViewById(R.id.search_input);
         search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(final String query) {
                 // Already matched as it was typed; the key just dismisses the keyboard.
+                search.clearFocus();
                 return true;
             }
 
@@ -92,11 +89,8 @@ public class SearchActivity extends AutumnBaseActivity implements FolderTreeAdap
                 return true;
             }
         });
-        // Open and focused on arrival: this screen exists only to be typed into, so making
-        // someone tap a magnifier to reach the field it already shows would be ceremony.
-        item.expandActionView();
-        search.setIconified(false);
-        return true;
+        // This screen exists only to be typed into.
+        search.requestFocus();
     }
 
     @Override

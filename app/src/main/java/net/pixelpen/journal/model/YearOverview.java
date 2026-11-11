@@ -29,7 +29,15 @@ public final class YearOverview {
     };
 
     /** The category selected when the screen opens, as in the original. */
-    public static final String DEFAULT_CATEGORY = "Key Events";
+    /**
+     * The category the Year screen opens on.
+     *
+     * <p>"General" rather than "Key Events": General is the protected category, the one that
+     * always exists and cannot be deleted, and it is what the Calendar already opens on. The two
+     * screens disagreeing meant the Year view opened on a category that a new install has no
+     * folder for.
+     */
+    public static final String DEFAULT_CATEGORY = "General";
 
     /** Shown in the dropdown above the individual categories. */
     public static final String ALL_CATEGORIES = "All";
