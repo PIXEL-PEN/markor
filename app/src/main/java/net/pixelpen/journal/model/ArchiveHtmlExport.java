@@ -176,7 +176,7 @@ public final class ArchiveHtmlExport {
      * @param workDir a folder this class owns: anything already in it is deleted first, so an
      *                earlier export does not sit in the cache beside the new one
      * @param md      renders a note's markdown to HTML
-     * @return the zip, or null when the archive holds no notes and no timeline
+     * @return the zip, or null when the archive holds no notes
      * @throws IOException if anything fails; nothing is left behind to be shared by accident
      */
     public static File export(final File home, final File workDir, final Markdown md,
@@ -185,22 +185,15 @@ public final class ArchiveHtmlExport {
         if (home == null || !home.isDirectory() || workDir == null) {
             return null;
         }
+        // The Timeline is not included: it has its own export, from the Timeline screen.
         final List<Year> years = scan(home);
-        final Timeline timeline = Timeline.read(Timeline.folderIn(home));
-        boolean hasTimeline = false;
-        for (final Timeline.Year y : timeline.years) {
-            if (HtmlExport.yearHasContent(y)) {
-                hasTimeline = true;
-                break;
-            }
-        }
         int total = 0;
         for (final Year y : years) {
             for (final Month m : y.months) {
                 total += m.notes.size();
             }
         }
-        if (total == 0 && !hasTimeline) {
+        if (total == 0) {
             return null;
         }
 
@@ -219,7 +212,7 @@ public final class ArchiveHtmlExport {
             try {
                 w = new OutputStreamWriter(
                         new FileOutputStream(new File(site, "index.html")), StandardCharsets.UTF_8);
-                writePage(w, home, years, timeline, hasTimeline, total, md, assets, progress);
+                writePage(w, home, years, total, md, assets, progress);
                 w.flush();
             } finally {
                 closeQuietly(w);
@@ -350,7 +343,6 @@ public final class ArchiveHtmlExport {
     // ------------------------------------------------------------------- page
 
     private static void writePage(final Writer w, final File home, final List<Year> years,
-                                  final Timeline timeline, final boolean hasTimeline,
                                   final int total, final Markdown md, final Assets assets,
                                   final Progress progress) throws IOException {
         final String when = new SimpleDateFormat("d MMMM yyyy", Locale.ENGLISH).format(new Date());
@@ -395,9 +387,6 @@ public final class ArchiveHtmlExport {
             }
             w.write("</select>\n");
         }
-        if (hasTimeline) {
-            w.write("<a class='y' href='#timeline'>Timeline</a>\n");
-        }
         for (final Year y : years) {
             w.write("<a class='y' href='#y" + y.year + "'>" + y.year + "</a>\n");
             for (final Month m : y.months) {
@@ -405,13 +394,6 @@ public final class ArchiveHtmlExport {
             }
         }
         w.write("</nav>\n<div class='content'>\n");
-
-        // ---- timeline
-        if (hasTimeline) {
-            w.write("<details id='timeline'><summary class='sh'>Timeline</summary>\n");
-            HtmlExport.writeDecades(w, timeline, assets);
-            w.write("</details>\n");
-        }
 
         // ---- the archive
         int done = 0;
@@ -807,7 +789,7 @@ public final class ArchiveHtmlExport {
                     + "text-align:left}\n"
                     + "summary.sh{cursor:pointer;margin:18px 0 10px;font-size:24px;font-weight:700;"
                     + "color:var(--teal);border-bottom:1px solid var(--line);padding-bottom:6px}\n"
-                    + "#timeline>summary.sh{margin-top:0}\n"
+                    + ".content>details:first-child>summary.sh{margin-top:0}\n"
                     + ".month>h3{margin:20px 0 10px;font-size:13px;font-weight:700;"
                     + "letter-spacing:1.4px;text-transform:uppercase;color:var(--dim)}\n"
                     + ".note{background:var(--card);border:1px solid var(--line);border-radius:10px;"
@@ -849,7 +831,7 @@ public final class ArchiveHtmlExport {
                     + "years.forEach(function(d,i){\n"
                     + "var hit=!!d.querySelector('.note:not([hidden])');\n"
                     + "d.hidden=on&&!hit;d.open=on?hit:wasOpen[i];});\n"
-                    + "var t=document.getElementById('timeline');if(t){t.hidden=on;}\n"
+
                     + "}\n"
                     + "q.addEventListener('input',run);q.addEventListener('search',run);\n"
                     + "if(c){c.addEventListener('change',run);}\n"
