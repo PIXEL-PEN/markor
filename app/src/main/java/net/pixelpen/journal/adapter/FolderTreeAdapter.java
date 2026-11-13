@@ -325,15 +325,12 @@ public class FolderTreeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 i.setDataAndType(uri, (mime != null) ? mime : "*/*");
                 i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 context.startActivity(Intent.createChooser(i, target.getName()));
-            } else if (name.endsWith(".html") || name.endsWith(".htm")) {
-                final android.net.Uri uri = androidx.core.content.FileProvider.getUriForFile(
-                        context, BuildConfig.APPLICATION_ID + ".provider", target);
-                final Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setDataAndType(uri, "text/html");
-                i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                i.setPackage(context.getPackageName());
-                context.startActivity(i);
             } else if (context instanceof Activity) {
+                // A saved page goes down this same path as a note. It used to be sent as an
+                // implicit VIEW intent restricted to this package, but DocumentActivity is not
+                // exported and has no intent-filter, so nothing could ever match it: the tap
+                // ended in the "could not open" toast and the page never reached the renderer.
+                //
                 // The app's own entry point rather than a hand-built intent. That distinction is
                 // what broke jumping to a line the first time: a raw intent skips the format
                 // check, the multi-window and single-top flags, and -- the part that actually
