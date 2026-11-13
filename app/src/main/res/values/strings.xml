@@ -600,7 +600,7 @@
     <string name="export_working">Building the page\u2026</string>
     <string name="export_failed">Export failed.</string>
     <string name="export_empty">Nothing in the timeline to export yet.</string>
-    <string name="export_archive">Export archive as web pages</string>
+    <string name="export_archive">Export html archive</string>
     <string name="export_archive_working">Building the web pages\u2026</string>
     <!-- %1$d of %2$d is a count of notes. -->
     <string name="export_archive_progress">Building the web pages\u2026 %1$d of %2$d</string>

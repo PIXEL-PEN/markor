@@ -39,6 +39,11 @@ public final class FlexmarkHtml implements ArchiveHtmlExport.Markdown {
                 TablesExtension.create(),
                 StrikethroughSubscriptExtension.create(),
                 TaskListExtension.create()));
+        // Raw HTML in a note is shown as text, not obeyed. An unclosed comment or style tag
+        // pasted into one note would otherwise swallow the rest of the page, script included.
+        options.set(HtmlRenderer.ESCAPE_HTML, true);
+        // A single line break in a note is a line break on the phone, so it is one here too.
+        options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
         _parser = Parser.builder(options).build();
         _renderer = HtmlRenderer.builder(options).build();
     }

@@ -71,12 +71,39 @@ public final class ArchiveHtmlExport {
         void onNote(int done, int total);
     }
 
+    /**
+     * Reduces pictures for the export. Android decoding lives behind this so the rest of the class
+     * still runs on a plain JDK.
+     */
+    public interface Pictures {
+        /** True when the picture's longest edge is already within the export size. */
+        boolean fits(File src);
+
+        /**
+         * Writes a reduced JPEG of {@code src} to {@code dest}. False when the picture cannot be
+         * decoded, in which case nothing usable was written.
+         */
+        boolean writeJpeg(File src, File dest) throws IOException;
+    }
+
+    /**
+     * A picture already within the size and at most this many bytes goes in unchanged, which
+     * keeps small PNGs and GIFs as they are. Anything bigger is re-encoded.
+     */
+    private static final long SMALL_PICTURE = 200L * 1024L;
+
+    /**
+     * Attachments and saved pages above this are left out and named instead. The export is for
+     * reading; a video or a scanned PDF would outweigh every note and picture together.
+     */
+    private static final long MAX_ATTACHMENT = 2L * 1024L * 1024L;
+
     private static final Pattern NUM_PREFIX = Pattern.compile("^\\d{1,2}[_-]");
     private static final Pattern EXTENSION = Pattern.compile("\\.[A-Za-z0-9]{1,8}$");
     private static final Pattern YEAR_DIR = Pattern.compile("\\d{4}");
 
-    /** A markdown link or image: group 1 up to the opening bracket, 2 the target, 3 the close. */
-    private static final Pattern LINK = Pattern.compile("(!?\\[[^\\]]*\\]\\()([^)]+)(\\))");
+    /** A markdown link or image: group 1 the bang, 2 the label, 3 the target. */
+    private static final Pattern LINK = Pattern.compile("(!?)\\[([^\\]]*)\\]\\(([^)]+)\\)");
 
     private static final Set<String> NOTE_EXTS = new HashSet<>();
     private static final Set<String> PAGE_EXTS = new HashSet<>();
@@ -153,7 +180,8 @@ public final class ArchiveHtmlExport {
      * @throws IOException if anything fails; nothing is left behind to be shared by accident
      */
     public static File export(final File home, final File workDir, final Markdown md,
-                              final Progress progress) throws IOException {
+                              final Pictures pictures, final Progress progress)
+            throws IOException {
         if (home == null || !home.isDirectory() || workDir == null) {
             return null;
         }
@@ -186,7 +214,7 @@ public final class ArchiveHtmlExport {
         }
 
         try {
-            final Assets assets = new Assets(home, site);
+            final Assets assets = new Assets(home, site, pictures);
             Writer w = null;
             try {
                 w = new OutputStreamWriter(
@@ -380,17 +408,22 @@ public final class ArchiveHtmlExport {
 
         // ---- timeline
         if (hasTimeline) {
-            w.write("<section id='timeline'><h2 class='sh'>Timeline</h2>\n");
+            w.write("<details id='timeline'><summary class='sh'>Timeline</summary>\n");
             HtmlExport.writeDecades(w, timeline, assets);
-            w.write("</section>\n");
+            w.write("</details>\n");
         }
 
         // ---- the archive
         int done = 0;
-        for (final Year y : years) {
-            w.write("<section class='ysec' id='y" + y.year + "'><h2 class='sh'>" + y.year + "</h2>\n");
+        for (int i = 0; i < years.size(); i++) {
+            final Year y = years.get(i);
+            // Each year opens and closes on its heading. The newest starts open, so the page
+            // does not open on a blank list of years.
+            w.write("<details class='ysec' id='y" + y.year + "'"
+                    + (i == years.size() - 1 ? " open" : "") + "><summary class='sh'>"
+                    + y.year + "</summary>\n");
             for (final Month m : y.months) {
-                w.write("<section class='mo' id='" + m.id + "'><h3>" + HtmlExport.esc(m.name)
+                w.write("<section class='month' id='" + m.id + "'><h3>" + HtmlExport.esc(m.name)
                         + "</h3>\n");
                 for (final Note n : m.notes) {
                     writeNote(w, n, md, assets);
@@ -401,7 +434,13 @@ public final class ArchiveHtmlExport {
                 }
                 w.write("</section>\n");
             }
-            w.write("</section>\n");
+            w.write("</details>\n");
+        }
+        if (assets.omitted > 0) {
+            w.write("<p class='omit'>" + assets.omitted + (assets.omitted == 1
+                    ? " file was" : " files were") + " left out: attachments and saved pages over "
+                    + megabytes(MAX_ATTACHMENT) + ", and pictures that could not be read. "
+                    + "Each is named where it appeared.</p>\n");
         }
 
         w.write("</div>\n</div>\n");
@@ -421,9 +460,15 @@ public final class ArchiveHtmlExport {
 
         if (n.page) {
             writeCategory(w, n);
-            w.write("</div>\n<p class='body'><a href='");
-            w.write(HtmlExport.esc(url(assets.place(n.file, "Pages"))));
-            w.write("'>Open the saved page</a></p>\n</article>\n");
+            final String placed = assets.place(n.file, "Pages");
+            if (placed == null) {
+                w.write("</div>\n<p class='body'><em>Saved page not included: "
+                        + megabytes(n.file.length()) + "</em></p>\n</article>\n");
+            } else {
+                w.write("</div>\n<p class='body'><a href='");
+                w.write(HtmlExport.esc(url(placed)));
+                w.write("'>Open the saved page</a></p>\n</article>\n");
+            }
             return;
         }
 
@@ -439,7 +484,9 @@ public final class ArchiveHtmlExport {
             dateLabel = first.trim();
             text = nl < 0 ? "" : text.substring(nl + 1);
         }
-        w.write(HtmlExport.esc(dateLabel));
+        if (!dateLabel.isEmpty()) {
+            w.write("<span class='date'>" + HtmlExport.esc(dateLabel) + "</span>");
+        }
         writeCategory(w, n);
         w.write("</div>\n");
 
@@ -470,14 +517,22 @@ public final class ArchiveHtmlExport {
         final Matcher m = LINK.matcher(text);
         final StringBuffer sb = new StringBuffer(text.length() + 64);
         while (m.find()) {
-            final String target = m.group(2).trim();
-            final File f = resolveLocal(noteDir, target);
-            String shown = m.group(2);
+            final File f = resolveLocal(noteDir, m.group(3).trim());
+            String out = m.group(0);
             if (f != null) {
                 final boolean image = IMAGE_EXTS.contains(extensionOf(f.getName()));
-                shown = url(assets.place(f, image ? "Images" : "Files"));
+                final String placed = assets.place(f, image ? "Images" : "Files");
+                if (placed != null) {
+                    out = m.group(1) + "[" + m.group(2) + "](" + url(placed) + ")";
+                } else {
+                    // Left out of the export. Say so in the note, where the reader would have
+                    // seen it, rather than leave a broken picture or a link to nothing.
+                    out = "*(" + (image ? "picture" : "attachment") + " not included: "
+                            + f.getName().replace("*", "").replace("_", "\\_") + ", "
+                            + megabytes(f.length()) + ")*";
+                }
             }
-            m.appendReplacement(sb, Matcher.quoteReplacement(m.group(1) + shown + m.group(3)));
+            m.appendReplacement(sb, Matcher.quoteReplacement(out));
         }
         m.appendTail(sb);
         return sb.toString();
@@ -536,12 +591,16 @@ public final class ArchiveHtmlExport {
     private static final class Assets implements HtmlExport.ImageSink {
         private final File home;
         private final File site;
+        private final Pictures pictures;
+        /** Source to page-relative path; a null value means the file was left out. */
         private final Map<String, String> placed = new HashMap<>();
         private final Set<String> used = new HashSet<>();
+        int omitted;
 
-        Assets(final File home, final File site) {
+        Assets(final File home, final File site, final Pictures pictures) {
             this.home = canon(home);
             this.site = site;
+            this.pictures = pictures;
         }
 
         @Override
@@ -549,16 +608,19 @@ public final class ArchiveHtmlExport {
             if (img == null || !img.isFile()) {
                 return null;
             }
-            return url(place(canon(img), "Images"));
+            final String placed = place(canon(img), "Images");
+            return placed == null ? null : url(placed);
         }
 
-        /** The path of the copy, relative to the page, e.g. {@code Images/2026/a.jpg}. */
+        /**
+         * The path of the copy, relative to the page, e.g. {@code Images/2026/a.jpg}, or null
+         * when the file is left out of the export.
+         */
         String place(final File source, final String bucket) throws IOException {
             final File src = canon(source);
             final String key = bucket + "|" + src.getAbsolutePath();
-            final String known = placed.get(key);
-            if (known != null) {
-                return known;
+            if (placed.containsKey(key)) {
+                return placed.get(key);
             }
             String rel = "Pages".equals(bucket)
                     ? under(src, home)
@@ -566,15 +628,51 @@ public final class ArchiveHtmlExport {
             if (rel == null) {
                 rel = "other/" + src.getName();
             }
-            String dest = bucket + "/" + rel;
-            for (int n = 2; !used.add(dest); n++) {
-                final int dot = rel.lastIndexOf('.');
-                final String stem = dot > rel.lastIndexOf('/') ? rel.substring(0, dot) : rel;
-                final String ext = dot > rel.lastIndexOf('/') ? rel.substring(dot) : "";
-                dest = bucket + "/" + stem + "-" + n + ext;
+
+            final boolean picture = "Images".equals(bucket);
+            final boolean reduce = picture
+                    && !(src.length() <= SMALL_PICTURE && pictures.fits(src));
+            if (reduce) {
+                rel = withExtension(rel, ".jpg");
+            } else if (src.length() > MAX_ATTACHMENT) {
+                placed.put(key, null);
+                omitted++;
+                return null;
             }
-            copy(src, new File(site, dest));
+
+            final String dest = unique(bucket + "/", rel);
+            final File out = new File(site, dest);
+            final File parent = out.getParentFile();
+            if (parent != null && !parent.isDirectory() && !parent.mkdirs()) {
+                throw new IOException("Cannot create " + parent);
+            }
+            if (reduce) {
+                if (!pictures.writeJpeg(src, out)) {
+                    // Android cannot read it, so a desktop browser most likely cannot either.
+                    //noinspection ResultOfMethodCallIgnored
+                    out.delete();
+                    used.remove(dest);
+                    placed.put(key, null);
+                    omitted++;
+                    return null;
+                }
+            } else {
+                copy(src, out);
+            }
             placed.put(key, dest);
+            return dest;
+        }
+
+        /** {@code prefix + rel}, with a numeric suffix if that path is already taken. */
+        private String unique(final String prefix, final String rel) {
+            String dest = prefix + rel;
+            final int slash = rel.lastIndexOf('/');
+            final int dot = rel.lastIndexOf('.');
+            final String stem = dot > slash ? rel.substring(0, dot) : rel;
+            final String ext = dot > slash ? rel.substring(dot) : "";
+            for (int n = 2; !used.add(dest); n++) {
+                dest = prefix + stem + "-" + n + ext;
+            }
             return dest;
         }
 
@@ -583,6 +681,19 @@ public final class ArchiveHtmlExport {
             final String path = f.getAbsolutePath();
             return path.startsWith(prefix) ? path.substring(prefix.length()) : null;
         }
+    }
+
+    private static String withExtension(final String rel, final String ext) {
+        final int slash = rel.lastIndexOf('/');
+        final int dot = rel.lastIndexOf('.');
+        return (dot > slash ? rel.substring(0, dot) : rel) + ext;
+    }
+
+    private static String megabytes(final long bytes) {
+        if (bytes < 1024L * 1024L) {
+            return Math.max(1L, Math.round(bytes / 1024.0)) + " KB";
+        }
+        return String.format(Locale.ENGLISH, "%.1f MB", bytes / (1024.0 * 1024.0));
     }
 
     private static void copy(final File from, final File to) throws IOException {
@@ -683,56 +794,72 @@ public final class ArchiveHtmlExport {
     // Single quotes throughout the emitted markup, so none of this needs escaping in Java.
     private static final String CSS =
             "[hidden]{display:none!important}\n"
-                    + ".wrap{display:flex;align-items:flex-start;max-width:1160px;margin:0 auto}\n"
-                    + "#nav{position:sticky;top:0;flex:0 0 240px;max-height:100vh;overflow:auto;"
-                    + "padding:20px 14px 40px 16px;font-size:14px}\n"
-                    + "#nav input,#nav select{width:100%;margin:0 0 8px;padding:7px 9px;"
-                    + "border:1px solid var(--line);border-radius:6px;font:inherit;"
-                    + "background:var(--card);color:var(--ink)}\n"
-                    + "#nav a{display:block;color:var(--ink);text-decoration:none;padding:2px 0}\n"
-                    + "#nav a:hover{color:var(--teal)}\n"
-                    + "#nav a.y{font-weight:700;color:var(--teal);margin-top:10px}\n"
-                    + "#nav a.m{padding-left:12px;color:var(--dim)}\n"
-                    + ".content{flex:1 1 auto;min-width:0;max-width:820px;padding:24px 16px 64px}\n"
-                    + ".sh{margin:28px 0 10px;font-size:24px;font-weight:700;color:var(--teal);"
-                    + "border-bottom:1px solid var(--line);padding-bottom:6px}\n"
-                    + "#timeline>.sh{margin-top:0}\n"
-                    + ".mo>h3{margin:22px 0 10px;font-size:13px;font-weight:700;letter-spacing:1.4px;"
-                    + "text-transform:uppercase;color:var(--dim)}\n"
+                    + ".wrap{display:flex;align-items:flex-start}\n"
+                    + "#nav{position:sticky;top:0;flex:0 0 230px;height:100vh;overflow:auto;"
+                    + "background:var(--teal);color:#fff;padding:16px 14px 40px;font-size:14px}\n"
+                    + "#nav input,#nav select{width:100%;margin:0 0 8px;padding:7px 9px;border:0;"
+                    + "border-radius:6px;font:inherit;background:#fff;color:var(--ink)}\n"
+                    + "#nav a{display:block;color:#fff;text-decoration:none;padding:2px 0}\n"
+                    + "#nav a:hover{text-decoration:underline}\n"
+                    + "#nav a.y{font-weight:700;margin-top:10px}\n"
+                    + "#nav a.m{padding-left:12px;color:rgba(255,255,255,.85)}\n"
+                    + ".content{flex:1 1 auto;min-width:0;max-width:860px;padding:20px 20px 64px;"
+                    + "text-align:left}\n"
+                    + "summary.sh{cursor:pointer;margin:18px 0 10px;font-size:24px;font-weight:700;"
+                    + "color:var(--teal);border-bottom:1px solid var(--line);padding-bottom:6px}\n"
+                    + "#timeline>summary.sh{margin-top:0}\n"
+                    + ".month>h3{margin:20px 0 10px;font-size:13px;font-weight:700;"
+                    + "letter-spacing:1.4px;text-transform:uppercase;color:var(--dim)}\n"
                     + ".note{background:var(--card);border:1px solid var(--line);border-radius:10px;"
-                    + "padding:14px 18px;margin:0 0 12px}\n"
+                    + "padding:14px 18px;margin:0 0 12px;text-align:left}\n"
                     + ".note h4{margin:0;font-size:17px;line-height:1.35;overflow-wrap:anywhere}\n"
                     + ".by{font-size:12.5px;color:var(--dim);margin:3px 0 0}\n"
-                    + ".cat{background:var(--line);border-radius:999px;padding:1px 9px;margin-left:8px}\n"
+                    + ".cat{background:var(--line);color:var(--ink);border-radius:999px;"
+                    + "padding:1px 9px;margin-left:8px}\n"
                     + ".cat:first-child{margin-left:0}\n"
                     + ".body{margin-top:10px;overflow-wrap:anywhere}\n"
                     + ".body>:first-child{margin-top:0}.body>:last-child{margin-bottom:0}\n"
+                    + ".body ul{list-style:disc;padding-left:1.4em}\n"
+                    + ".body ol{list-style:decimal;padding-left:1.6em}\n"
+                    + ".body li{margin:2px 0}\n"
                     + ".body img{max-width:100%;height:auto;border-radius:6px;cursor:zoom-in}\n"
                     + ".body pre{overflow:auto;background:#eef3f2;padding:10px;border-radius:6px}\n"
                     + ".body table{border-collapse:collapse}\n"
                     + ".body th,.body td{border:1px solid var(--line);padding:4px 8px}\n"
                     + ".body a{color:var(--teal)}\n"
+                    + ".omit{color:var(--dim);font-size:13px;margin-top:24px}\n"
                     + "@media (max-width:820px){.wrap{display:block}"
-                    + "#nav{position:static;max-height:none}}\n"
+                    + "#nav{position:static;height:auto}}\n"
                     + "@media print{#nav{display:none}.note{break-inside:avoid;border-color:#ccc}}\n";
 
     private static final String JS =
             "(function(){\n"
                     + "var q=document.getElementById('q'),c=document.getElementById('cat');\n"
                     + "var notes=[].slice.call(document.querySelectorAll('.note')),txt=[];\n"
+                    + "var years=[].slice.call(document.querySelectorAll('details.ysec'));\n"
+                    + "var wasOpen=years.map(function(d){return d.open;});\n"
                     + "function run(){\n"
                     + "var s=q.value.trim().toLowerCase(),k=c?c.value:'',on=s!==''||k!=='';\n"
                     + "notes.forEach(function(n,i){\n"
                     + "if(txt[i]===undefined){txt[i]=n.textContent.toLowerCase();}\n"
-                    + "n.hidden=!((k===''||n.getAttribute('data-cat')===k)&&(s===''||txt[i].indexOf(s)>=0));});\n"
-                    + "[].forEach.call(document.querySelectorAll('.mo'),function(m){"
-                    + "m.hidden=!m.querySelector('.note:not([hidden])');});\n"
-                    + "[].forEach.call(document.querySelectorAll('.ysec'),function(y){"
-                    + "y.hidden=!y.querySelector('.mo:not([hidden])');});\n"
+                    + "n.hidden=on&&!((k===''||n.getAttribute('data-cat')===k)"
+                    + "&&(s===''||txt[i].indexOf(s)>=0));});\n"
+                    + "[].forEach.call(document.querySelectorAll('section.month'),function(m){"
+                    + "m.hidden=on&&!m.querySelector('.note:not([hidden])');});\n"
+                    + "years.forEach(function(d,i){\n"
+                    + "var hit=!!d.querySelector('.note:not([hidden])');\n"
+                    + "d.hidden=on&&!hit;d.open=on?hit:wasOpen[i];});\n"
                     + "var t=document.getElementById('timeline');if(t){t.hidden=on;}\n"
                     + "}\n"
-                    + "q.addEventListener('input',run);\n"
+                    + "q.addEventListener('input',run);q.addEventListener('search',run);\n"
                     + "if(c){c.addEventListener('change',run);}\n"
+                    // A link in the contents column opens the year it points into, which a
+                    // closed year would otherwise swallow.
+                    + "document.getElementById('nav').addEventListener('click',function(e){\n"
+                    + "var a=e.target.closest&&e.target.closest('a');if(!a){return;}\n"
+                    + "var el=document.getElementById(a.getAttribute('href').slice(1));if(!el){return;}\n"
+                    + "var d=el.tagName==='DETAILS'?el:el.closest('details');if(d){d.open=true;}\n"
+                    + "e.preventDefault();el.scrollIntoView();history.replaceState(null,'','#'+el.id);});\n"
                     + "document.addEventListener('click',function(e){var t=e.target;"
                     + "if(t.tagName==='IMG'&&t.closest&&t.closest('.body')){big(t);}});\n"
                     + "})();\n";

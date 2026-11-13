@@ -454,6 +454,7 @@ public class MainActivity extends AutumnBaseActivity {
                 zip = net.pixelpen.journal.model.ArchiveHtmlExport.export(archive,
                         new File(getCacheDir(), "web-export"),
                         new net.pixelpen.journal.model.FlexmarkHtml(),
+                        new net.pixelpen.journal.model.ExportPictures(),
                         (done, total) -> {
                             if (done % 10 == 0 || done == total) {
                                 runOnUiThread(() -> dialog.setMessage(
