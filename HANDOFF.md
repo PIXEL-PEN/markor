@@ -1,302 +1,329 @@
 # Autumn — Handoff
 
-Written at commit `b64569d7`. Read this before changing anything; several
-decisions below look arbitrary until you know what they cost to learn.
+Current as of commit `b1201ab9` (13 Nov 2026). Replaces the earlier handoff entirely.
+Read sections 1–4 before touching code. Section 8 is the list of things that have
+already cost an evening each; read it before you think you have found something new.
 
 ---
 
 ## 1. What this is
 
-Autumn is a journal and personal archive for Android, forked from
-[Markor](https://github.com/gsantner/markor) at tag `markor-plus-v1.2.6`.
-Repo: `github.com/PIXEL-PEN/markor`. Package `net.pixelpen.journal`.
-Licence GPL-3.0, copyright PIXEL-PEN (placeholder).
+**Autumn** (`net.pixelpen.journal`) is a journaling / archiving / timeline Android app
+rebuilt from a Markor fork. Repo: `https://github.com/PIXEL-PEN/autumn` (renamed from
+`markor` on 13 Nov 2026; old URL redirects). Branch: **`autumn`**, the only branch and the
+default. Markor's `master` and `markor-plus-v1.2.6` branches are deleted; the fork point
+`c4cd8a82` is an ancestor of `autumn` and is the baseline for the static checks.
 
-Markor is a general-purpose text editor. Autumn is a journal that happens to
-store plain Markdown. **Most of the work has been deciding what a journal does
-not need**, and that framing resolves most design questions: if a feature
-serves a text editor rather than someone keeping a journal, it goes.
+Archive layout on the device: `<home>/<yyyy>/<MM_MMMM>/<Category>/note.md`, with
+`<home>/Images/<yyyy>/` for attachments. Two installs coexist:
 
-Notes live in `/Documents/Autumn`, organised as categories containing
-`<Category>/<Year>/` note files, with `Images/<year>` and `Files/<year>` for
-attachments. The archive is plain files on disk, readable without the app —
-that is the point of it.
+| Build   | applicationId               | Label        | Home folder                 |
+|---------|-----------------------------|--------------|-----------------------------|
+| debug   | `net.pixelpen.journal.dev`  | Autumn (dev) | `/Documents/Autumn (dev)`   |
+| release | `net.pixelpen.journal`      | Autumn       | `/Documents/Autumn`         |
+
+Both are signed with the debug key for now. The user field-tests on **debug** by
+default and says when release should get a change too.
 
 ### Hard constraints
 
-- **Strictly offline.** `INTERNET` and `REQUEST_INSTALL_PACKAGES` are removed
-  from the manifest. The app *cannot* reach the network. Do not add a feature
-  that needs it, and do not add a link that leaves the app.
-- **Plain files, no database.** The filesystem is the data model.
-- **English only.** `resConfigs "en"` in `app/build.gradle`.
+- **Strictly offline.** No `INTERNET` permission, no outbound links, nothing that needs
+  a network. Do not add any.
+- The user's email identifies them only. Never put it in a request to any service.
+- **Claude cannot build, push, or reach the phone.** No Android SDK in the session, no
+  GitHub credential. The user builds, installs and pushes. Everything is delivered as
+  commands to paste and a git bundle to fetch (section 4).
+- General is the protected category: always exists, cannot be deleted.
 
 ---
 
-## 2. Build
+## 2. Toolchain and build (new laptop, 13 Nov 2026)
+
+Linux Mint. Android Studio at `/opt/android-studio` (the "Rabbit" release). Clone at
+`~/StudioProjects/autumn`. Phone: Xiaomi 2506BPN68G (MIUI), USB debugging.
+
+Pinned by the project and **must stay in step**: AGP `8.8.0`, Gradle `8.10.2`,
+compileSdk/targetSdk `35`, build-tools `35.0.0`, minSdk `24`, Java source/target `1.8`.
+Gradle 8.10.2 runs on JDK 8–23 only; Studio's bundled JDK is newer, so the **Gradle JDK
+is set to 21** in Studio settings (it offered "Use JVM 21" on first sync — that was
+the fix). Lifting that ceiling means moving Gradle to 8.14+ and probably AGP with it:
+a separate afternoon, not something to bolt onto other work.
+
+Build and install, debug only (the default):
 
 ```
-./gradlew installDebug      # installs as net.pixelpen.journal.dev
+cd ~/StudioProjects/autumn
+./gradlew assembleDebug --console=plain 2>&1 | tail -3 && \
+adb install -r "$(ls -t app/build/outputs/apk/debug/*.apk|head -1)"
 ```
 
-AGP 8.8.0, Gradle 8.10.2, compileSdk 35, minSdk 24, JDK 21.
+Release: `assembleRelease` and `.../release/*.apk`. Both can be installed side by side.
 
-**There are no product flavours.** Four were removed; `debug` and `release` are
-the only variants, so the task is `installDebug`, not `installDevDebug`. Debug
-carries `applicationIdSuffix ".dev"` and writes to `Autumn (dev)`, so it sits
-alongside a release install and cannot touch the live archive.
+### Landmine: the APK name changes daily
 
-`app/thirdparty/java` is a **second source root** and `app/thirdparty/assets` a
-second asset root, both added by `app/build.gradle` `sourceSets`. Any tool that
-walks the source tree must include them — one of my checks missed a bug for
-exactly this reason.
+`versionCode = yyMMdd` and `archivesBaseName = applicationId-v<versionCode>-<versionName>`,
+so the APK is e.g. `net.pixelpen.journal-v261113-1.2.5-debug.apk` and a different name
+tomorrow. **Never hardcode an APK filename.** The `ls -t ... | head -1` above is the
+reliable form. Note the debug APK's *filename* has no `.dev` suffix; only the installed
+package does.
 
-### Landmine: versionCode is a date
+### Landmine: MIUI and adb
 
-```groovy
-versionCode Integer.parseInt(new Date().format('yyMMdd'))
-```
-
-It changes **every day**. Anything gated on "is this a new version" fires on any
-build made on a later day than the last install. This is what made the changelog
-dialog ambush launch, and it will bite the next thing gated that way.
+`INSTALL_FAILED_USER_RESTRICTED` means MIUI refusing a **new** package over adb; updates
+to an installed package are fine. First install of a build type: sideload the APK from
+the phone's file manager. Also: the phone has a Second Space (user 10); apps installed in
+user 0 don't appear there. `adb shell pm list packages | grep pixelpen` settles "is it
+installed".
 
 ### Landmine: res/raw is partly generated
 
-`build.gradle`'s `copyRepoFiles` task copies root files into
-`app/src/main/res/raw/`, lowercasing them, before every build. That is why
-`R.raw.readme` resolves with no such file committed. The generated copies are
-gitignored. Currently only `README.md` and `LICENSE.txt` are copied.
-
-If you go looking for `res/raw/readme.md` and don't find it, this is why. I lost
-time believing I'd written code that couldn't compile.
+`copyRepoFiles` in the root `build.gradle` copies `ROOT_TO_RAW_COPYFILES`
+(`["LICENSE.txt"]`) into `res/raw`, lowercased. Do not hand-edit those.
 
 ---
 
 ## 3. Verification — read this before writing code
 
-**There is no compiler in the Claude session.** Everything below exists because
-a broken commit costs the user a build cycle, and one shipped AAPT error
-(a duplicate `<string>`) cost them an evening.
+There is no compiler in the Claude session. Everything below exists because a broken
+commit costs the user a build cycle.
 
-```
-bash /home/claude/check-vs-base.sh     # the one to run
-```
-
-Three layers:
+`tools/check/` — the static checks, now **in the repo** (they used to live only in the
+session container, which is lost when a chat ends):
 
 | Script | What it does |
 |---|---|
-| `check.py` | Static checks on the tree as it stands: brace/structure balance, field and type sanity, unresolved `R.string` / `R.color` / `R.drawable` / `R.layout` / `R.id` / `R.raw`, XML well-formedness, `--` inside XML comments, duplicate resource names, undeclared locals, imports of deleted classes |
-| `check-vs-base.sh` | Runs `check.py` at the base tag and now, and reports only the **difference**. Compares by basename, because the `net.gsantner.markor` → `net.pixelpen.journal` rename makes every finding in a renamed file read as new |
-| `check-removed-methods.py` | Compares method declarations at the base tag against now for watched classes, and fails if a removed method is still called — including from inside its own class |
+| `check.py` | Static checks on the tree: brace/structure balance, field and type sanity, unresolved resources, duplicate resource names, empty resources, unthemed drawable fills, DayNight theme parent, untinted black icons, `--` inside XML comments. Noisy on inherited Markor code, by design. |
+| `check-vs-base.sh` | Runs `check.py` at the pinned base commit `c4cd8a82` and at HEAD and reports only the **difference**. Refuses to compare if a check crashed. |
+| `check-removed-methods.py` | Compares method declarations at the base against now for watched classes; flags removed methods still called. |
+
+`tools/treetest/run.py` — lifts `FolderTreeFragment`'s expansion methods **verbatim** on
+every run and executes them against a temporary archive. JDK only, no SDK, seconds.
+It caught a real regression once already. Run it after any change to the Tree.
 
 ### The gate
 
-```sh
-if bash check-vs-base.sh 2>&1 | grep -q "NO NEW PROBLEMS"; then ... ; fi
+```
+bash tools/check/check-vs-base.sh 2>&1 | grep -q "NO NEW PROBLEMS" && echo OK
+python3 tools/treetest/run.py | tail -1
 ```
 
-**Do not gate on `check.py`'s exit code.** It is always non-zero: there are 48
-pre-existing findings at the base tag. I made that mistake and it silently
-skipped a commit.
-
-Current baseline: **48 at base, 46 at HEAD.** "NO NEW PROBLEMS" is the only
-acceptable state before sending.
+**Grep for `NO NEW PROBLEMS`. Never gate on `check.py`'s exit code** — it is always
+non-zero because the base has ~45 pre-existing findings. Current baseline: 45 at base,
+44 at HEAD.
 
 ### What the checks cannot do
 
-They do not compile, and they do not reason. They catch typos, imbalance and
-dangling references. They do **not** catch logic errors, Android lifecycle
-mistakes, or layout behaviour. For those, three habits earned their place:
-
-1. **Scripted edits that assert on their anchor.** Every edit asserts the exact
-   old text occurs exactly once before replacing. A regex that "walks back to
-   the preceding `public`" ate a method whose signature spanned two lines.
-2. **Round-trip simulation in Python** for anything stateful before shipping —
-   a spinner's event sequence, a parse/serialise cycle.
-3. **Validate inside the cloned bundle**, not the working tree. Clone the
-   bundle, then parse every XML in the clone.
+They cannot compile. They have missed: a method referenced from a lambda that was later
+deleted; an import removed while still used (the grep that "confirmed" it was truncated);
+a `@Override` stacked on another because an edit was anchored on the signature line while
+the annotation sat above it (**three times** — always anchor edits to include the
+annotation, and run the gate, which now catches this). When a build fails on the user's
+machine, the fix is the first thing in the next reply, not the last.
 
 ### Never invent a resource name
 
-I invented `ic_lock_black_24dp`, `needs_restart_to_apply_the_setting` and
-`R.string.copied_to_clipboard` across this session. All three were caught, but
-the cheaper habit is: **when moving markup, recover the original verbatim from
-git** rather than retyping it.
-
-```sh
-git show <rev>:path/to/file.xml
-```
+Every `R.color`, `R.string`, `R.id`, `R.drawable` used must be grepped for in `res/`
+before use. The checks flag unresolved ones but only if they run; a typo in a check can
+mask it.
 
 ---
 
 ## 4. Delivery
 
-The user builds locally from a git bundle.
+Incremental **git bundles**, fetched by the user into their clone, plus the exact commands.
 
-```sh
-git bundle create autumn-<hash>-incr.bundle <their-last-known-hash>..HEAD
+```
+# cut (in the session)
+git branch -f autumn HEAD
+git bundle create /mnt/user-data/outputs/autumn-<topic>-<hash>.bundle <prereq>..autumn
+git bundle list-heads <file>      # MUST show refs/heads/autumn, not only HEAD
 ```
 
-**Send incremental bundles.** ~20 KB versus 42 MB for `--all`. I sent full
-bundles far too long out of defensiveness; two "does not look like a v2 or v3
-bundle file" failures were simply the user running `verify` before 42 MB had
-finished downloading. Incremental bundles make that impossible.
-
-Pick a prerequisite you are confident they have; an ancestor is safe either way,
-and git fails loudly rather than misapplying.
-
-Always test-clone before sending:
-
-```sh
-git clone -q <bundle> /tmp/x   # full bundle
-# or, for incremental: clone the repo, checkout the prerequisite, pull the bundle
+```
+# apply (user pastes)
+cd ~/StudioProjects/autumn
+git fetch ~/Downloads/autumn-<topic>-<hash>.bundle "refs/heads/*:refs/remotes/bundle/*" --force && \
+git merge --ff-only <hash> && git log --oneline -1
 ```
 
-Name every bundle by its commit hash. Re-sending the same filename means the
-browser saves `(1)` and the user keeps building the stale one. This happened
-twice.
+Rules, each learned the hard way:
 
-Better still: push a branch to `PIXEL-PEN/markor` and skip file transfer.
+- **The prerequisite must be a commit the user actually has.** Ask for
+  `git log --oneline -1` if unsure. Three bundles once silently delivered nothing because
+  the range form `<prereq>..HEAD` writes a ref named `HEAD`, which `refs/heads/*` does not
+  match; the fetch "succeeded" with zero refs and the merge said "not something we can
+  merge". Always bundle `..autumn` (a branch) and check `list-heads`.
+- **Unique filename per cut.** Re-issuing a name makes the browser save `name (1)` and
+  the user runs the stale one. Hash in the name, plus a topic word.
+- **No wildcard deletes next to fresh files.** `rm ~/Downloads/apply-*.sh` once deleted
+  the file just sent.
+- **Bare commands, not wrapper scripts.** The user asked for this explicitly after
+  scripts hid failures. One paste block, `&&`-chained so it stops at the first failure.
+- Debug-only install by default; say when release should get it too.
+- After a successful apply: `git push origin autumn --follow-tags`. GitHub auth on the
+  new laptop is `gh` (Ubuntu's 2.4.0 — `gh auth setup-git` does not exist in it; the
+  helper is set manually: `git config --global credential.helper '!gh auth git-credential'`).
 
 ---
 
 ## 5. Architecture, and why
 
-### Navigation
-Four tabs, order fixed by `main__bottom_nav.xml`: **Calendar, Tree, Year,
-Settings**. `MainActivity.tabIdToPos` / `getPosTitle` / `getPosFragment` and
-`SectionsPagerAdapter.getItemCount()` all follow that menu. **Change one, change
-all.**
+**Navigation**: bottom tabs Calendar / Tree / Year / Quicknote (`MainActivity`,
+`main__bottom_nav.xml`). Overflow has Home (opens the archive in the system file manager,
+i.e. *leaves the app*), Settings, Search (its own screen, `SearchActivity`, field in a
+card above centre).
 
-Calendar is first so the app opens on capture, not on a file browser.
+**Capture (Calendar)**: `CalendarFragment`. Category spinner reads
+`CategoryManager.listCategories()` = folders found on disk ∪ stored custom list; no
+"Add" row in it — adding lives in Manage categories. `selectedCategoryDir()` resolves
+to the newest folder holding the category when this month has none; the dropdown and
+Browse both use it. Day card numeral 61sp.
 
-### Capture
-`CalendarFragment` owns what capturing means: picked date, category, title, and
-the date stamp written as line 1. The FAB only asks it to proceed. A second,
-smaller FAB saves a title-only note without opening the editor — titles run to
-252 characters, so many entries need no body.
+**Categories**: `CategoryManager`. `rename/delete/merge` all update the stored list
+(`saveCustom`) — they did not, for a long time. Defaults are seeded **once per install**
+by a flag (`seedDefaultsOnce`), not on emptiness, because General is always present so
+the list is never empty. Seeds: General, Medical-Health, Reference, Ideas, Projects,
+Social, Key Events, Finance. `ManageCategoriesDialogFragment` counts notes on a
+background thread; it captures the application context *before* the thread starts.
 
-`MonthGrid` replaces Android's `CalendarView`, which **ignores
-`dateTextAppearance` and colour attributes on API 21+** in Material mode; only
-`colorAccent` works. That is why there is a custom grid.
-`MonthGrid.setMarkedDays()` is built and **not wired** — marking days that have
-notes is an open item.
+**Tree**: `FolderTreeFragment` + `TreeStore` (cached scan, rebuilt per view) +
+`FolderTreeAdapter`. Expansion is a set of absolute paths; `seedExpansion` opens the
+chain for a requested category **only if the folder exists on disk**, walking up to the
+nearest existing ancestor otherwise (a recorded-but-absent path is undrawable and looked
+exactly like broken expansion). A newly opened category is scrolled to a fifth of the
+way down. An open category's label gets a filled band (`setBackgroundColor`, never
+`setBackgroundResource`). `.skip-scan` hides a folder from the Tree; `.nomedia` no longer
+does (Autumn plants `.nomedia` in `Images/` and `Files/` itself, so those folders are now
+visible under "Other files" — side effect, see open items).
 
-### Edit vs view mode
-Decided by **how the document was reached**, not by a setting:
+**Year**: `YearOverview` builds its category list from folders present *in that year*;
+empty seeded categories do not appear there by design. Default category General.
+Highlight slots and growth prompt use `year_prompt` text over a `year_slot_empty` 1dp dash.
 
-- browsing → view mode (Tree, Home browser, a link inside a note)
-- writing → editor (new note from Calendar, year growth note, jump to a line)
-- the top bar toggle switches; nothing is remembered per document
+**Settings**: one Editing screen (Text / Lists and action bar / Syntax highlighting),
+General (Theme at top), About. `preferences_master.xml`.
 
-Callers pass `Boolean.FALSE` to `DocumentActivity.launch` for the editor,
-`Boolean.TRUE` for view, `null` to take the default.
+**Rendering (view mode)**: `TextConverterBase.convertMarkupShowInWebView` writes the HTML
+to the app's **cache** (never the archive), injects `<base href="file://<note dir>/">`,
+loads it by URL, and **inlines local images as `data:` URIs** (16 MB budget per note).
+Three verified failures led here: the WebView would not load `file://` images from a
+`loadDataWithBaseURL` document (opaque origin), nor relative, nor absolute, nor from a
+real-file document. Data URIs are the only thing that rendered. `http(s)` sources are left
+alone — no network permission.
 
-**`DocumentActivity` must read that flag with `hasExtra`, not
-`getBooleanExtra(.., false)`** — otherwise an explicit `false` is
-indistinguishable from no flag and the caller's instruction is silently dropped.
-That bug was latent and harmless only while the default happened to agree.
+**Theme**: `ApplicationObject.onCreate` calls `applyAppTheme()` **before any Activity
+exists**. That ordering is the whole dark-mode fix: AppCompat can only apply a forced
+night mode robustly (`createConfigurationContext`) if it knows the mode at
+`attachBaseContext`; set later, it mutates Resources in place and the platform reverts
+that on resume from another app and when a WebView starts. `AppSettings.colorContext()`
+gives app-context colour lookups their own override. `AppTheme.Unified` sets
+`forceDarkAllowed=false` (MIUI force-darkens light apps per app otherwise). Debug builds
+log `AutumnTheme` on every resume — `adb logcat -s AutumnTheme` — so a regression is
+measured, not theorised. `values-night/` has 43 variants; `tree_*`, `year_*`,
+`tree_open_*`, `surface_card` are themed.
 
-### Settings
-**25 preferences across four screens, from 90 across sixteen.** One destination:
-the gear tab and the overflow menu both show `SettingsFragmentMaster`.
-
-Because that fragment is now hosted twice, two things are host-aware and must
-stay that way:
-
-- a theme change calls `finish()` from `SettingsActivity` but `recreate()` from
-  the tab — `finish()` from the tab closes the app
-- `MoreFragment.onBackPressed()` walks back up preference sub-screens, because
-  in the tab the press arrives at `MainActivity` first. Without it, Back from
-  "Edit mode" leaves the app
-
-Removing a preference does **not** remove behaviour: the getter stays and answers
-from its default. That is how five format screens disappeared while every format
-kept working. Check callers before deleting a getter.
-
-### Markdown
-Single newline is **always** a hard line break
-(`isMarkdownNewlineNewparagraphEnabled()` returns `true`). Standard Markdown
-folds a single newline into the paragraph above, which turns a phone-typed
-journal entry into a wall of text — and view mode is what browsing opens in.
-
-### Rendering
-All renderer assets are local under `file:///android_asset`, in
-`app/thirdparty/assets`: KaTeX, AsciiDoc, Orgmode, Mermaid, Prism (~7.3 MB).
-Nothing fetches. Verify this stays true.
+**Launcher icon**: nothing in the app changes component enabled-state any more.
+`applySpecialLaunchersVisibility` toggled an alias on every launch, which fired a
+package-changed broadcast seconds after each install and MIUI dropped the icon. Deleted.
 
 ---
 
 ## 6. Open items
 
-### Known gaps, in rough priority order
+### Known gaps, rough priority
 
-1. **Dark / Black theme.** Autumn's eight own colours have no night variant, so
-   Year and Calendar stay light while the rest goes dark; Black makes a pit of
-   the Tree. The list is in `values-night/colors.xml`. Autumn's layouts contain
-   **zero hardcoded hex** and `values-night` already works, so this is seven
-   night colours plus one stray `@android:color/white` in
-   `fragment_calendar.xml` — an hour with the device, not a reconfiguration.
-   The Tree is the screen that already behaves, because it inherits the theme
-   background instead of setting its own.
-2. **Licensing final pass.** Append the canonical GPL-3 text to `LICENSE.txt`
-   (`curl https://www.gnu.org/licenses/gpl-3.0.txt`), replace the `PIXEL-PEN`
-   placeholder, then delete the "not in this file yet" paragraph. Source files
-   added by this fork carry **no licence header**; inherited files keep their
-   Apache ones. Apache 2.0 is one-way compatible with GPL-3, which is what makes
-   the relicence possible — not legal advice.
-3. **`FormatRegistry` declares nine formats** and the editor's overflow menu will
-   switch a note to any of them, CSV and embed-binary included. A footgun on a
-   journal note. The unused ones carry ~3.5 MB of assets.
-4. **Exports.** Year-overview HTML and a whole-archive HTML site. The archive
-   site should share one `Images/` folder rather than inlining, unlike the
-   Timeline export which is deliberately self-contained.
-5. **In-app guide.**
-6. **Field testing**, then final UI pass.
+1. **Archived HTML pages don't render** (saved web pages in the archive). Unexplored.
+   Check first whether `.html` even reaches `TextConverterBase` or is treated as text —
+   if view mode shows raw source or blank, that's a different path from the image fix.
+2. **Share-into is unreachable.** `OpenShareIntoActivity` exists but has no manifest
+   entry, so other apps cannot share into Autumn. Needs an `<activity>` with the SEND
+   filters. Small, deliberate change; test the icon survives after.
+3. **`Images/` and `Files/` now show in the Tree** under Other files, since `.nomedia`
+   stopped hiding folders. Decide: hide those two by name, or leave visible.
+4. **Category Manager six-point spec** (user's words, 9 Nov): seeded categories ✓;
+   General protected ✓; rename/delete/add ✓; delete offers move-or-delete with an
+   "are you sure" (verify the second branch's wording); manual folders picked up ✓;
+   collapse/expand ✓. User later said "sufficiently intact" — confirm before spending.
+5. **HTML export** of Year overview / whole archive (Timeline HTML exists:
+   `HtmlExport.exportTimeline`). User said "I'll sleep on it"; design not settled.
+6. Guide: sections still unwritten; tagline provisional ("You remember what happened.
+   Autumn remembers when."). No term "pill" anywhere user-facing.
+7. First-run screen replacing the bare storage-permission prompt.
+8. Repo hygiene: `.github/ISSUE_TEMPLATE/` (four Markor templates), `CHANGELOG.md`,
+   `build.gradle.ui-polish-backup`, stock `drawable/ic_launcher_background.xml` (unused;
+   the adaptive icon uses `@color/`). `settings.gradle` already says `Autumn`.
+9. Parked: GPL-3 headers on new files; full GPL text; replace `PIXEL-PEN` placeholder
+   in the copyright line; OFL/Ubuntu font licence texts; `.jenc` removal; `MonthGrid`
+   unused; API 24–25 has no raster fallback for 7 icon names.
+10. Launcher-icon WEBP conversion was uncommitted on the old laptop and is lost. The
+    PNG set in the repo is what the icon fix was verified against.
 
-### Parked bugs
+### Toolchain debt
 
-- Search scroll-to-line lands imprecisely in some cases.
-- `MonthGrid.setMarkedDays()` unwired — days with notes are not marked.
-- Inactive bottom-nav icons are too faint; brightening them nearly matches the
-  active one, so it needs a different approach.
-- Calendar input box depth varies by device; workable, not solved.
-- `.jenc` encryption machinery still present across ~7 files, unused.
-- `copyright_license_text_official` has no reader and still names Apache 2.0.
+Gradle 8.10.2 / AGP 8.8.0 / Java 8 target. Studio warns on all three. Upgrade as one
+deliberate job with a build at each step, not opportunistically.
 
 ---
 
 ## 7. Working with this user
 
-- They test on device every round, report precisely, and are usually right about
-  what they saw. **When they say something didn't change, believe them and look
-  for a second cause** rather than assuming they didn't build. Twice the real
-  answer was elsewhere: a "not working" spinner was a pre-existing `firstFire`
-  re-arm bug, and an "unchanged" contributors list meant the *files in the tree*,
-  not the screen.
-- They value predictability over cleverness. State that resets — collapsed
-  categories, the spinner returning to General, view mode not remembered — is a
-  deliberate preference, not an oversight.
-- They are blunt and fair. When they asked why I was sending 42 MB instead of a
-  patch, the honest answer was that I'd already identified the fix myself and
-  not applied it. Own that directly; don't over-apologise.
-- Explain the *why* behind a fix. Several bugs had non-obvious causes — a bare
-  `<shape>` used as a view background is stretched to view bounds, which is why
-  a day highlight was an oval; a green that "never worked" was a debug-only
-  resource override. Those explanations landed better than the fixes.
+- Field-tests on the phone between replies; reports symptoms precisely. **Their
+  observations have cracked every hard bug** ("absolute fails too", "only a note with an
+  image triggers it", "System+Dark works"). Ask for the one measurement that decides it
+  rather than offering a theory; they will run it.
+- Warn before anything risky or long; do risky things one at a time.
+- Short replies. No recaps, no "I'll now…", no restating their message. Lead with the
+  finding or the command.
+- Placeholders get typed literally (`<your clone>` was). Use real paths:
+  `~/StudioProjects/autumn`, `~/Downloads/`. Say which lines are commands and which are
+  output to look for (a log line in a code block got pasted into bash once).
+- `!` inside double quotes trips bash history expansion; single-quote or avoid.
+- No jargon in UI text ("pill").
+- They are on a Pro plan with weekly limits and watch usage. Long chats are expensive
+  per message; prefer a fresh chat with this file, and a lighter model for shell work.
+- After "we'll resume tomorrow" or similar, stop; don't add offers.
 
 ---
 
-## 8. Gotchas, collected
+## 8. Gotchas, collected (each cost real time)
 
-| Symptom | Cause |
-|---|---|
-| XML "invalid token" at a column | `--` inside an XML comment. Illegal. Hit three times |
-| A circle renders as an oval | A bare `<shape>` as a view background stretches to bounds. Use a layer-list with a fixed size and `gravity="center"` |
-| Calendar colours ignored | Stock `CalendarView` ignores them on API 21+ |
-| Spinner change does nothing | `firstFire` guard re-arms on every `bindCategories()`; `setSelection` to the same index fires no event |
-| A keyboard eats a view | `adjustResize` squeezes a weighted child first. Use a fixed height inside a `ScrollView` |
-| `R.raw.x` missing from the tree | Generated by `copyRepoFiles` at build time |
-| Duplicate resource name | Hard AAPT error, not a warning |
-| A "new" check finding after a rename | `check-vs-base.sh` compares basenames for this reason |
+**Android / AppCompat**
+- Forced night mode must be set in `Application.onCreate`, before any Activity. (§5 Theme.)
+- `Resources.updateConfiguration` rewrites the *whole* configuration incl. `uiMode`;
+  `setAppLocale` used to call it on every activity creation. Now only when a language is
+  chosen, on a copy, preserving night bits.
+- The application context never carries AppCompat's night override; colours read
+  through it come back in the system palette. Use an activity/view context or
+  `colorContext()`.
+- `loadDataWithBaseURL` with a non-http base ⇒ opaque origin ⇒ no `file://` subresources.
+- `setBackgroundResource` **replaces** the view's padding with the drawable's.
+- `android:tint` on a preference icon is wrong; `GsPreferenceFragmentBase` already tints.
+- A `<solid android:color="@android:color/white">` in a drawable is invisible to
+  `values-night`. Use `@color/` and give it a night variant (unless it's a tint base).
+- `MODE_NIGHT_AUTO` is deprecated; `pref.contains("dark")` matches `"dark-black"`.
+- A fragment's `getString`/`getResources` on a background thread throws once detached;
+  capture a context first. Guards placed *after* the throwing call are not guards.
+- `setComponentEnabledSetting` on an undeclared component throws (swallowed); on a
+  declared one it broadcasts package-changed, which MIUI's launcher answers by dropping
+  the icon.
+- Markor's `GsFileUtils.relativePath` fails across `/sdcard` vs `/storage/emulated/0`
+  (same folder, different strings) and emits absolute paths. `ArchiveImages.relativeLink`
+  canonicalises.
+- Build type `resValue` strings and `archivesBaseName` are evaluated from `defaultConfig`.
+
+**XML / resources**
+- `--` inside an XML comment is a hard AAPT error. (Six times.)
+- Duplicate `<string name>` is a hard AAPT error; the checks catch it.
+- 65 zero-byte PNGs inherited from markor-plus broke only release (debug doesn't crunch).
+- `strings.xml` was emptied by a machine crash mid-build once (ext4 journalled metadata,
+  lost data). Keep commits small and pushed.
+- A layout weight only works if the parent is bounded.
+
+**Process**
+- A truncated grep led to a wrong conclusion twice. Never conclude from `head`.
+- Edits anchored on a signature line with `@Override` above it ⇒ stacked annotations.
+- `check.py`'s exit code is meaningless; grep `NO NEW PROBLEMS`.
+- Shallow clones can't compute merge-bases; deepen before pinning hashes.
+- Bundles from a range `..HEAD` carry no branch ref. Bundle `..autumn`.
+- A theory that explains one symptom and not the mirror image is wrong. Dark-on-light
+  and light-on-dark had *different* causes (late override vs Force Dark); both needed.
