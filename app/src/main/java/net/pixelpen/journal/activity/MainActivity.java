@@ -94,6 +94,7 @@ public class MainActivity extends AutumnBaseActivity {
     /** Opens the search screen, on the tabs that cannot draw results themselves. */
     private MenuItem _searchElsewhereItem;
     private MenuItem _backupItem;
+    private MenuItem _exportItem;
     private MenuItem _settingsItem;
 
     private androidx.appcompat.widget.Toolbar _toolbar;
@@ -285,6 +286,10 @@ public class MainActivity extends AutumnBaseActivity {
             runBackup();
             return true;
         }
+        if (item.getItemId() == R.id.action_export_archive) {
+            runArchiveExport();
+            return true;
+        }
         if (item.getItemId() == R.id.action_search_screen) {
             _cu.animateToActivity(this, SearchActivity.class, false, null);
             return true;
@@ -309,6 +314,7 @@ public class MainActivity extends AutumnBaseActivity {
         _timelineItem = menu.findItem(R.id.action_timeline);
         _searchElsewhereItem = menu.findItem(R.id.action_search_screen);
         _backupItem = menu.findItem(R.id.action_backup);
+        _exportItem = menu.findItem(R.id.action_export_archive);
         _searchItem = menu.findItem(R.id.action_search);
         final androidx.appcompat.widget.SearchView search =
                 (androidx.appcompat.widget.SearchView) _searchItem.getActionView();
@@ -422,6 +428,66 @@ public class MainActivity extends AutumnBaseActivity {
     }
 
     /**
+     * Writes the whole archive as web pages and hands the zip to the share sheet.
+     *
+     * <p>Off the main thread: it reads every note and copies every picture the notes use. The
+     * dialog counts notes as they go, because on a long archive this is minutes, not seconds.
+     */
+    private void runArchiveExport() {
+        final File archive = _appSettings.getNotebookDirectory();
+        if (archive == null || !archive.isDirectory()) {
+            android.widget.Toast.makeText(this, R.string.export_archive_empty,
+                    android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final androidx.appcompat.app.AlertDialog dialog =
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setMessage(R.string.export_archive_working)
+                        .setCancelable(false)
+                        .show();
+
+        new Thread(() -> {
+            File zip = null;
+            boolean failed = false;
+            try {
+                zip = net.pixelpen.journal.model.ArchiveHtmlExport.export(archive,
+                        new File(getCacheDir(), "web-export"),
+                        new net.pixelpen.journal.model.FlexmarkHtml(),
+                        (done, total) -> {
+                            if (done % 10 == 0 || done == total) {
+                                runOnUiThread(() -> dialog.setMessage(
+                                        getString(R.string.export_archive_progress, done, total)));
+                            }
+                        });
+            } catch (final Exception e) {
+                failed = true;
+            }
+            final File result = zip;
+            final boolean error = failed;
+            runOnUiThread(() -> {
+                if (isFinishing()) {
+                    return;
+                }
+                dialog.dismiss();
+                if (error) {
+                    android.widget.Toast.makeText(this, R.string.export_failed,
+                            android.widget.Toast.LENGTH_LONG).show();
+                    return;
+                }
+                if (result == null) {
+                    android.widget.Toast.makeText(this, R.string.export_archive_empty,
+                            android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                android.widget.Toast.makeText(this, R.string.export_archive_done,
+                        android.widget.Toast.LENGTH_LONG).show();
+                _cu.shareStream(this, result, "application/zip");
+            });
+        }).start();
+    }
+
+    /**
      * Hand the home folder to Android's own file UI.
      *
      * <p>Home is not a view inside this app. Two earlier attempts treated it as one -- rooting the
@@ -484,6 +550,9 @@ public class MainActivity extends AutumnBaseActivity {
         }
         if (_backupItem != null) {
             _backupItem.setVisible(wanted);
+        }
+        if (_exportItem != null) {
+            _exportItem.setVisible(wanted);
         }
         if (_settingsItem != null) {
             _settingsItem.setVisible(wanted);

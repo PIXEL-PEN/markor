@@ -50,6 +50,20 @@ public final class HtmlExport {
     }
 
     /**
+     * Where a picture goes when it is written into a page, and what the page then says about it.
+     *
+     * <p>The single-file export embeds the bytes and answers with a {@code data:} URI. The
+     * whole-archive export copies the file beside the page and answers with its relative path.
+     * Returns null for a picture that cannot be used; the page simply leaves it out.
+     */
+    interface ImageSink {
+        String src(File img) throws IOException;
+    }
+
+    /** The single-file sink: the picture itself, as a {@code data:} URI. */
+    private static final ImageSink EMBED = HtmlExport::dataUri;
+
+    /**
      * Writes the whole timeline to a self-contained HTML file in the cache and returns it.
      *
      * @param context used for the cache folder only
@@ -129,9 +143,26 @@ public final class HtmlExport {
         w.write(esc(when));
         w.write("</p></header>\n<main>\n");
 
+        writeDecades(w, timeline, EMBED);
+
+        w.write("</main>\n");
+        w.write("<div id='lb' onclick='this.classList.remove(\"on\")'><img id='lbi' alt=''></div>\n");
+        w.write("<script>\n");
+        w.write(JS);
+        w.write("\n</script>\n</body>\n</html>\n");
+    }
+
+    /** True when a year has something to show: a bullet or a highlight. */
+    static boolean yearHasContent(final Timeline.Year y) {
+        return y.hasNotes() || !isBlank(y.highlight);
+    }
+
+    /** The timeline's years, grouped under decade headings. Shared by both exports. */
+    static void writeDecades(final Writer w, final Timeline timeline, final ImageSink images)
+            throws IOException {
         int openDecade = Integer.MIN_VALUE;
         for (final Timeline.Year y : timeline.years) {
-            if (!y.hasNotes() && isBlank(y.highlight)) {
+            if (!yearHasContent(y)) {
                 continue;
             }
             if (y.decade() != openDecade) {
@@ -143,20 +174,14 @@ public final class HtmlExport {
                 w.write(esc(openDecade + "s"));
                 w.write("</h2>\n");
             }
-            writeYear(w, y, home);
+            writeYear(w, y, images);
         }
         if (openDecade != Integer.MIN_VALUE) {
             w.write("</section>\n");
         }
-
-        w.write("</main>\n");
-        w.write("<div id='lb' onclick='this.classList.remove(\"on\")'><img id='lbi' alt=''></div>\n");
-        w.write("<script>\n");
-        w.write(JS);
-        w.write("\n</script>\n</body>\n</html>\n");
     }
 
-    private static void writeYear(final Writer w, final Timeline.Year y, final File home)
+    private static void writeYear(final Writer w, final Timeline.Year y, final ImageSink images)
             throws IOException {
         w.write("<article class='year'>\n<div class='yhead'><span class='yr'>");
         w.write(esc(String.valueOf(y.year)));
@@ -189,18 +214,18 @@ public final class HtmlExport {
             w.write("</ul>\n");
         }
 
-        writeImages(w, y, home);
+        writeImages(w, y, images);
         w.write("</article>\n");
     }
 
-    private static void writeImages(final Writer w, final Timeline.Year y, final File home)
+    private static void writeImages(final Writer w, final Timeline.Year y, final ImageSink images)
             throws IOException {
         if (y.images.isEmpty()) {
             return;
         }
         final List<String> embedded = new ArrayList<>();
         for (final File img : y.images) {
-            final String uri = dataUri(img);
+            final String uri = images.src(img);
             if (uri != null) {
                 embedded.add(uri);
             }
@@ -213,7 +238,7 @@ public final class HtmlExport {
             // Thumbnail and full view are the same bytes: the page is already carrying them, and
             // a second copy at a larger size would double the file for nothing.
             w.write("<img loading='lazy' alt='' onclick='big(this)' src='");
-            w.write(uri);
+            w.write(esc(uri));
             w.write("'>\n");
         }
         w.write("</div>\n");
@@ -256,7 +281,7 @@ public final class HtmlExport {
 
     // ----------------------------------------------------------------- utils
 
-    private static boolean isBlank(final String s) {
+    static boolean isBlank(final String s) {
         return s == null || s.trim().isEmpty();
     }
 
@@ -271,7 +296,7 @@ public final class HtmlExport {
     }
 
     /** Escapes text for HTML. Entries are the user's own words and may contain anything. */
-    private static String esc(final String s) {
+    static String esc(final String s) {
         if (s == null) {
             return "";
         }
@@ -303,7 +328,7 @@ public final class HtmlExport {
     }
 
     // Single quotes throughout the emitted markup, so none of this needs escaping in Java.
-    private static final String CSS =
+    static final String CSS =
             ":root{--ink:#22312f;--dim:#6d7f7c;--teal:#2e6f68;--pill:#f2d26b;--line:#dde5e3;"
                     + "--bg:#f7f9f8;--card:#ffffff}\n"
                     + "*{box-sizing:border-box}\n"
@@ -340,7 +365,7 @@ public final class HtmlExport {
                     + "border-bottom:2px solid var(--teal)}.decade>h2{position:static}"
                     + ".year{break-inside:avoid;border-color:#ccc}#lb{display:none!important}}\n";
 
-    private static final String JS =
+    static final String JS =
             "function big(el){var b=document.getElementById('lb');"
                     + "document.getElementById('lbi').src=el.src;b.classList.add('on');}\n"
                     + "document.addEventListener('keydown',function(e){"

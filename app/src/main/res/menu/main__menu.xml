@@ -70,6 +70,18 @@
         app:showAsAction="never" />
 
     <!--
+      The whole archive as a folder of web pages with its pictures, zipped, for reading on a
+      desktop. Sits with the backup: both pick the whole archive up and hand it somewhere else.
+    -->
+    <item
+        android:id="@+id/action_export_archive"
+        android:icon="@drawable/ic_save_black_24dp"
+        android:orderInCategory="51"
+        android:title="@string/export_archive"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <!--
       In the overflow rather than gated behind a preference, so the bar has a menu at all. Its
       visibility follows the tab, which is what puts the overflow on the Calendar and Tree screens
       and leaves it off the More screen, where it would only point back at itself.
