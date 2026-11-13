@@ -183,13 +183,6 @@ public abstract class TextConverterBase {
             webView.loadDataWithBaseURL(baseHref, doc, getContentType(), UTF_CHARSET, null);
         }
 
-        // Putting the night mode back, because the WebView just took it away.
-        //
-        // Bringing up a WebView resets this process's resource configuration to the system's,
-        // which silently undoes a forced dark or forced light. It is why opening a note that
-        // renders -- one with a picture in it -- left the rest of the app on the wrong palette
-        // afterwards, while a note that never reached the WebView was harmless.
-        _appSettings.applyAppTheme();
 
         // When TOKEN_TEXT_CONVERTER_MAX_ZOOM_OUT_BY_DEFAULT is contained in text zoom out as far possible
         // Notice: overViewMode / useWideViewPort work differently

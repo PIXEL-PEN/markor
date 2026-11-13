@@ -40,6 +40,28 @@ public class ApplicationObject extends MultiDexApplication {
         _app = this;
         _appSettings = new AppSettings().init(getApplicationContext());
 
+        // The chosen theme is applied HERE, before any Activity exists, and nowhere else at
+        // startup. This is the fix for dark mode falling apart after a resume or a WebView.
+        //
+        // AppCompat has two ways to force a night mode onto an Activity. If it knows the mode
+        // when the Activity's base context is attached, it wraps that context with
+        // createConfigurationContext: a real override, part of the resources' identity, which
+        // the platform preserves whenever it re-applies the system configuration. If the mode
+        // arrives later -- as it did, from AutumnBaseActivity.onPreCreate, one step after
+        // attachBaseContext -- AppCompat can only mutate the Activity's existing Resources in
+        // place, and that mutation is precisely what ResourcesManager throws away the next time
+        // it pushes the system configuration out: on return from another app, and when a
+        // WebView initialises. Everything resolved after that moment -- dialogs, icon tints,
+        // navigation colours -- came back in the phone's palette instead of the app's.
+        //
+        // Following the system never showed it because then no override is needed. Dark on a
+        // light phone and light on a dark phone both did, which is the mirror image that pointed
+        // here.
+        //
+        // The throwaway WebView below is the old workaround for WebView resetting resources. It
+        // stays: it is harmless, and with the override applied properly it no longer matters.
+        _appSettings.applyAppTheme();
+
         // Per https://stackoverflow.com/a/54191884/4717438
         try {
             new WebView(getApplicationContext());

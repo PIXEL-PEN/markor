@@ -20,7 +20,11 @@ public abstract class AutumnBaseActivity extends GsActivityBase<AppSettings, Aut
     protected void onPreCreate(@Nullable Bundle savedInstanceState) {
         super.onPreCreate(savedInstanceState); // _appSettings, _cu gets available
         setTheme(R.style.AppTheme_Unified);
-        _appSettings.applyAppTheme();
+        // Not applied here. The night mode is set in ApplicationObject.onCreate, before any
+        // Activity's base context is attached; setting it from an Activity is one step too late
+        // and forces AppCompat onto the in-place path the platform reverts. SettingsActivity
+        // still calls applyAppTheme when the user changes the theme, which recreates activities
+        // through AppCompat properly.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setEnterTransition(null);
             getWindow().setExitTransition(null);
@@ -40,18 +44,22 @@ public abstract class AutumnBaseActivity extends GsActivityBase<AppSettings, Aut
     @Override
     protected void onResume() {
         super.onResume();
-        // The forced night mode does not stay put.
-        //
-        // Android resets this process's resource configuration behind the app's back: starting
-        // a WebView does it, and so does coming back from another app. Once that happens the
-        // application context is on the system's uiMode again while the activity still draws
-        // the chosen one, and every colour read without a view in hand comes back from the
-        // wrong palette -- tree rows the colour of their background, year cells inverted,
-        // dialog icons tinted for a background they are not on.
-        //
-        // Setting it once at startup is not enough, so it is re-asserted here. Both calls are
-        // no-ops when nothing has changed, so this costs nothing in the ordinary case.
-        _appSettings.applyAppTheme();
+        // A measurement, not a fix. Debug builds only. If the theme ever comes apart again,
+        // `adb logcat -s AutumnTheme` before and after the trigger shows whether it is the
+        // Activity's configuration, the Application's, or the default mode that moved --
+        // which is the question that was guessed at for far too long.
+        if (net.pixelpen.journal.BuildConfig.DEBUG) {
+            final int mask = android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+            final int activityNight = getResources().getConfiguration().uiMode & mask;
+            final int appNight =
+                    getApplicationContext().getResources().getConfiguration().uiMode & mask;
+            android.util.Log.d("AutumnTheme", getClass().getSimpleName()
+                    + " resume: default="
+                    + androidx.appcompat.app.AppCompatDelegate.getDefaultNightMode()
+                    + " activity.uiMode.night=" + activityNight
+                    + " app.uiMode.night=" + appNight
+                    + "  (32 = night, 16 = day; default 2 = dark, 1 = light, -1 = system)");
+        }
     }
 
     protected boolean onReceiveKeyPress(GsFragmentBase fragment, int keyCode, KeyEvent event) {

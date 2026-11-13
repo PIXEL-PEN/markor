@@ -28,6 +28,13 @@
       screen that showed the mistake.
     -->
     <style name="AppTheme.Unified" parent="Theme.AppCompat.DayNight.DarkActionBar">
+        <!--
+          The app decides its own palette. Without this, a phone in dark mode may apply Force
+          Dark to a light-themed activity, and MIUI does it per app, inverting parts of a UI
+          the app deliberately drew light. It is the other half of the mirrored bug: dark app
+          on a light phone was the late-override problem, light app on a dark phone was this.
+        -->
+        <item name="android:forceDarkAllowed" tools:targetApi="29">false</item>
         <item name="android:windowActionModeOverlay">true</item>
         <item name="windowActionModeOverlay">true</item>
         <item name="windowActionBarOverlay">true</item>

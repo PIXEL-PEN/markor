@@ -766,7 +766,11 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         }
-        syncApplicationNightMode();
+        // Deliberately nothing else. An earlier version also rewrote the application
+        // context's configuration in place here, which is the same fragile mutation the
+        // platform reverts; see ApplicationObject.onCreate for the mechanism. Colours read
+        // through the application context go through colorContext() instead, which is a
+        // createConfigurationContext override and survives.
     }
 
     /**
@@ -785,31 +789,7 @@ public class AppSettings extends GsSharedPreferencesPropertyBackend {
      *
      * <p>Following the system needs nothing, since the application context already has it.
      */
-    private void syncApplicationNightMode() {
-        final int mode = AppCompatDelegate.getDefaultNightMode();
-        final int wanted;
-        if (mode == AppCompatDelegate.MODE_NIGHT_YES) {
-            wanted = Configuration.UI_MODE_NIGHT_YES;
-        } else if (mode == AppCompatDelegate.MODE_NIGHT_NO) {
-            wanted = Configuration.UI_MODE_NIGHT_NO;
-        } else {
-            return;
-        }
-        try {
-            final Resources res = _context.getResources();
-            final Configuration current = res.getConfiguration();
-            if ((current.uiMode & Configuration.UI_MODE_NIGHT_MASK) == wanted) {
-                return;
-            }
-            final Configuration cfg = new Configuration(current);
-            cfg.uiMode = (cfg.uiMode & ~Configuration.UI_MODE_NIGHT_MASK) | wanted;
-            res.updateConfiguration(cfg, res.getDisplayMetrics());
-        } catch (final Exception ignored) {
-            // A theme that will not apply is not worth taking the app down for.
-        }
-    }
-
-    /**
+        /**
      * The chosen theme, or system if what is stored is not on offer.
      *
      * <p>The check earns its place twice over. Six values were cut to two and then restored as
