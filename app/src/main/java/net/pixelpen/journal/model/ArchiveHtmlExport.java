@@ -387,23 +387,27 @@ public final class ArchiveHtmlExport {
             }
             w.write("</select>\n");
         }
+        w.write("<p id='found' aria-live='polite'></p>\n");
+        // The contents column is the only navigation. A year opens its list of months here and
+        // shows its notes in the panel; the panel itself has no toggles of its own.
         for (final Year y : years) {
-            w.write("<a class='y' href='#y" + y.year + "'>" + y.year + "</a>\n");
+            w.write("<div class='ny' data-y='y" + y.year + "'><a class='y' data-y='y" + y.year
+                    + "' href='#y" + y.year + "'>" + y.year + "</a><div class='ms'>\n");
             for (final Month m : y.months) {
-                w.write("<a class='m' href='#" + m.id + "'>" + HtmlExport.esc(m.name) + "</a>\n");
+                w.write("<a class='m' data-y='y" + y.year + "' href='#" + m.id + "'>"
+                        + HtmlExport.esc(m.name) + "</a>\n");
             }
+            w.write("</div></div>\n");
         }
         w.write("</nav>\n<div class='content'>\n");
 
         // ---- the archive
         int done = 0;
-        for (int i = 0; i < years.size(); i++) {
-            final Year y = years.get(i);
-            // Each year opens and closes on its heading. The newest starts open, so the page
-            // does not open on a blank list of years.
-            w.write("<details class='ysec' id='y" + y.year + "'"
-                    + (i == years.size() - 1 ? " open" : "") + "><summary class='sh'>"
-                    + y.year + "</summary>\n");
+        for (final Year y : years) {
+            // Every year is written out in full, so the page still reads top to bottom with
+            // scripts off. The script narrows it to one year at a time.
+            w.write("<section class='ysec' id='y" + y.year + "'><h2 class='sh'>" + y.year
+                    + "</h2>\n");
             for (final Month m : y.months) {
                 w.write("<section class='month' id='" + m.id + "'><h3>" + HtmlExport.esc(m.name)
                         + "</h3>\n");
@@ -416,7 +420,7 @@ public final class ArchiveHtmlExport {
                 }
                 w.write("</section>\n");
             }
-            w.write("</details>\n");
+            w.write("</section>\n");
         }
         if (assets.omitted > 0) {
             w.write("<p class='omit'>" + assets.omitted + (assets.omitted == 1
@@ -784,12 +788,18 @@ public final class ArchiveHtmlExport {
                     + "#nav a{display:block;color:#fff;text-decoration:none;padding:2px 0}\n"
                     + "#nav a:hover{text-decoration:underline}\n"
                     + "#nav a.y{font-weight:700;margin-top:10px}\n"
-                    + "#nav a.m{padding-left:12px;color:rgba(255,255,255,.85)}\n"
+                    + "#nav a.y::before{content:'\\25B8';display:inline-block;width:1.1em}\n"
+                    + "#nav .ny.open a.y::before{content:'\\25BE'}\n"
+                    + "#nav .ny.cur a.y{text-decoration:underline}\n"
+                    + ".js #nav .ms{display:none}\n"
+                    + ".js #nav .ny.open .ms{display:block}\n"
+                    + "#found{margin:0 0 4px;font-size:13px;min-height:1em}\n"
+                    + "#nav a.m{padding-left:1.6em;color:rgba(255,255,255,.85)}\n"
                     + ".content{flex:1 1 auto;min-width:0;max-width:860px;padding:20px 20px 64px;"
                     + "text-align:left}\n"
-                    + "summary.sh{cursor:pointer;margin:18px 0 10px;font-size:24px;font-weight:700;"
+                    + ".sh{margin:18px 0 10px;font-size:24px;font-weight:700;"
                     + "color:var(--teal);border-bottom:1px solid var(--line);padding-bottom:6px}\n"
-                    + ".content>details:first-child>summary.sh{margin-top:0}\n"
+                    + ".ysec:first-child>.sh,.js .ysec>.sh{margin-top:0}\n"
                     + ".month>h3{margin:20px 0 10px;font-size:13px;font-weight:700;"
                     + "letter-spacing:1.4px;text-transform:uppercase;color:var(--dim)}\n"
                     + ".note{background:var(--card);border:1px solid var(--line);border-radius:10px;"
@@ -816,33 +826,44 @@ public final class ArchiveHtmlExport {
 
     private static final String JS =
             "(function(){\n"
-                    + "var q=document.getElementById('q'),c=document.getElementById('cat');\n"
-                    + "var notes=[].slice.call(document.querySelectorAll('.note')),txt=[];\n"
-                    + "var years=[].slice.call(document.querySelectorAll('details.ysec'));\n"
-                    + "var wasOpen=years.map(function(d){return d.open;});\n"
-                    + "function run(){\n"
-                    + "var s=q.value.trim().toLowerCase(),k=c?c.value:'',on=s!==''||k!=='';\n"
-                    + "notes.forEach(function(n,i){\n"
-                    + "if(txt[i]===undefined){txt[i]=n.textContent.toLowerCase();}\n"
-                    + "n.hidden=on&&!((k===''||n.getAttribute('data-cat')===k)"
-                    + "&&(s===''||txt[i].indexOf(s)>=0));});\n"
-                    + "[].forEach.call(document.querySelectorAll('section.month'),function(m){"
-                    + "m.hidden=on&&!m.querySelector('.note:not([hidden])');});\n"
-                    + "years.forEach(function(d,i){\n"
-                    + "var hit=!!d.querySelector('.note:not([hidden])');\n"
-                    + "d.hidden=on&&!hit;d.open=on?hit:wasOpen[i];});\n"
-
+                    + "document.documentElement.className+=' js';\n"
+                    + "var q=document.getElementById('q'),c=document.getElementById('cat'),"
+                    + "found=document.getElementById('found');\n"
+                    + "var notes=[].slice.call(document.querySelectorAll('.note')),txt=null;\n"
+                    + "var years=[].slice.call(document.querySelectorAll('section.ysec'));\n"
+                    + "var months=[].slice.call(document.querySelectorAll('section.month'));\n"
+                    + "var nys=[].slice.call(document.querySelectorAll('#nav .ny'));\n"
+                    + "var cur=years.length?years[years.length-1].id:'',openY=cur;\n"
+                    + "var h=location.hash.slice(1),he=h&&document.getElementById(h);\n"
+                    + "if(he){var hy=he.closest('section.ysec');if(hy){cur=openY=hy.id;}}\n"
+                    + "function show(){\n"
+                    + "var s=q.value.trim().toLowerCase(),k=c?c.value:'',on=s!==''||k!=='',n=0;\n"
+                    // The text of every note is read once, on the first search, not per key.
+                    + "if(on&&!txt){txt=notes.map(function(x){return x.textContent.toLowerCase();});}\n"
+                    + "notes.forEach(function(x,i){var ok=!on||((k===''||x.getAttribute('data-cat')===k)"
+                    + "&&(s===''||txt[i].indexOf(s)>=0));x.hidden=!ok;if(on&&ok){n++;}});\n"
+                    + "months.forEach(function(m){m.hidden=on&&!m.querySelector('.note:not([hidden])');});\n"
+                    + "years.forEach(function(y){y.hidden=on?!y.querySelector('.note:not([hidden])'):y.id!==cur;});\n"
+                    + "nys.forEach(function(x){var y=x.getAttribute('data-y');"
+                    + "x.classList.toggle('open',y===openY);x.classList.toggle('cur',!on&&y===cur);});\n"
+                    + "found.textContent=on?(n+(n===1?' note found':' notes found')):'';\n"
                     + "}\n"
-                    + "q.addEventListener('input',run);q.addEventListener('search',run);\n"
-                    + "if(c){c.addEventListener('change',run);}\n"
-                    // A link in the contents column opens the year it points into, which a
-                    // closed year would otherwise swallow.
+                    + "var timer=null;\n"
+                    + "q.addEventListener('input',function(){clearTimeout(timer);timer=setTimeout(show,300);});\n"
+                    + "q.addEventListener('keydown',function(e){if(e.key==='Enter'){clearTimeout(timer);show();}});\n"
+                    + "if(c){c.addEventListener('change',show);}\n"
                     + "document.getElementById('nav').addEventListener('click',function(e){\n"
                     + "var a=e.target.closest&&e.target.closest('a');if(!a){return;}\n"
-                    + "var el=document.getElementById(a.getAttribute('href').slice(1));if(!el){return;}\n"
-                    + "var d=el.tagName==='DETAILS'?el:el.closest('details');if(d){d.open=true;}\n"
-                    + "e.preventDefault();el.scrollIntoView();history.replaceState(null,'','#'+el.id);});\n"
+                    + "e.preventDefault();var y=a.getAttribute('data-y');\n"
+                    // A second click on the open year folds its months away again.
+                    + "if(a.classList.contains('y')&&y===openY&&y===cur){openY='';show();return;}\n"
+                    // Picking a place in the archive leaves any search, rather than landing on
+                    // a month the filter is hiding.
+                    + "q.value='';if(c){c.value='';}cur=openY=y;show();\n"
+                    + "var el=document.getElementById(a.getAttribute('href').slice(1));\n"
+                    + "if(el){el.scrollIntoView();history.replaceState(null,'','#'+el.id);}});\n"
                     + "document.addEventListener('click',function(e){var t=e.target;"
                     + "if(t.tagName==='IMG'&&t.closest&&t.closest('.body')){big(t);}});\n"
+                    + "show();\n"
                     + "})();\n";
 }
