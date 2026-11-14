@@ -42,6 +42,9 @@ public class ShortcutUtils {
 
     private static final int MAX_RECENT_DOCUMENTS = 1;
 
+    /** Part of a pinned note's shortcut id; see {@link #pinNote}. */
+    private static final int NOTE_ICON_VERSION = 4;
+
     private ShortcutUtils() {
     }
 
@@ -74,7 +77,11 @@ public class ShortcutUtils {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         final ShortcutInfoCompat shortcut =
-                new ShortcutInfoCompat.Builder(context, ID_PREFIX + file.getAbsolutePath().hashCode())
+                // The id carries the icon's version. MIUI files a pinned shortcut's icon under its
+                // id and showed the stored one whatever was sent; a new version is a new id, so a
+                // re-pin is drawn afresh. Bump NOTE_ICON_VERSION whenever noteIcon changes.
+                new ShortcutInfoCompat.Builder(context, ID_PREFIX + "note" + NOTE_ICON_VERSION + "_"
+                        + file.getAbsolutePath().hashCode())
                         .setIntent(open)
                         .setIcon(noteIcon(context))
                         .setShortLabel(title)
