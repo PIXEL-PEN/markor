@@ -59,8 +59,8 @@ public class ShortcutUtils {
      * rather than littering the home screen with copies of it.
      *
      * <p>The shortcut opens the note ready to write in, not in view mode: a note pinned to the
-     * home screen is one being added to. Its icon is the Autumn leaf on the white shortcut cell;
-     * that adaptive icon exists from Android 8, and older launchers get the app icon.
+     * home screen is one being added to. Its icon is painted here ({@link #noteIcon}): the
+     * Autumn icon with a pencil badge, so it is not mistaken for the app itself.
      */
     public static boolean pinNote(@NonNull final Context context, final File file) {
         if (file == null || !ShortcutManagerCompat.isRequestPinShortcutSupported(context)) {
@@ -73,15 +73,10 @@ public class ShortcutUtils {
                 .putExtra(Document.EXTRA_DO_PREVIEW, false)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        final int icon = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-                // MIUI caches a shortcut icon by resource name and goes on drawing an earlier
-                // version after the drawable changes. When this icon's look changes, give the
-                // file a new name (it was ic_shortcut_note, then ic_shortcut_note_badged).
-                ? R.mipmap.ic_shortcut_note_v3 : R.mipmap.ic_launcher;
         final ShortcutInfoCompat shortcut =
                 new ShortcutInfoCompat.Builder(context, ID_PREFIX + file.getAbsolutePath().hashCode())
                         .setIntent(open)
-                        .setIcon(IconCompat.createWithResource(context, icon))
+                        .setIcon(noteIcon(context))
                         .setShortLabel(title)
                         .setLongLabel(title)
                         .build();
@@ -94,6 +89,41 @@ public class ShortcutUtils {
         } catch (final Exception ignored) {
             // Launchers vary in what they accept and some throw rather than returning false.
             return false;
+        }
+    }
+
+    /**
+     * The icon of a pinned note, painted as one finished picture: the app icon, and a pencil
+     * badge over its lower right covering about two fifths of it.
+     *
+     * <p>A bitmap, not a resource. Built from adaptive-icon layers, the badge was at the mercy
+     * of the launcher: MIUI shrinks the whole adaptive icon into its own tile, so the badge came
+     * out ant-sized, and it caches resource icons by name, so changes did not show at all.
+     */
+    private static IconCompat noteIcon(@NonNull final Context context) {
+        try {
+            final android.app.ActivityManager am =
+                    (android.app.ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            final int size = Math.max(96, am != null ? am.getLauncherLargeIconSize() : 192);
+            final android.graphics.Bitmap bmp = android.graphics.Bitmap.createBitmap(
+                    size, size, android.graphics.Bitmap.Config.ARGB_8888);
+            final android.graphics.Canvas canvas = new android.graphics.Canvas(bmp);
+
+            final android.graphics.drawable.Drawable app =
+                    androidx.core.content.ContextCompat.getDrawable(context, R.mipmap.ic_launcher);
+            final android.graphics.drawable.Drawable badge =
+                    androidx.core.content.ContextCompat.getDrawable(context, R.drawable.ic_shortcut_note_badge);
+            if (app == null || badge == null) {
+                return IconCompat.createWithResource(context, R.mipmap.ic_launcher);
+            }
+            app.setBounds(0, 0, size, size);
+            app.draw(canvas);
+            final int b = Math.round(size * 0.42f);
+            badge.setBounds(size - b, size - b, size, size);
+            badge.draw(canvas);
+            return IconCompat.createWithBitmap(bmp);
+        } catch (final Exception | OutOfMemoryError e) {
+            return IconCompat.createWithResource(context, R.mipmap.ic_launcher);
         }
     }
 
