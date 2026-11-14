@@ -122,8 +122,6 @@
 
 
     <color name="qn_widget_bg">#1B242B</color>
-    <color name="qn_widget_field">#26323B</color>
-    <color name="qn_widget_border">#3A4A55</color>
     <color name="qn_widget_hint">#A3B4BE</color>
 
 </resources>
