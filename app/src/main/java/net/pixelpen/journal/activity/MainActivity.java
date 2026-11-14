@@ -53,7 +53,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 
-import other.writeily.widget.WrMarkorWidgetProvider;
 
 import android.widget.Toast;
 
@@ -972,7 +971,6 @@ public class MainActivity extends AutumnBaseActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        WrMarkorWidgetProvider.updateLauncherWidgets();
     }
 
     @Override
