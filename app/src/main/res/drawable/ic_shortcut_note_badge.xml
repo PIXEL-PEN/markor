@@ -8,8 +8,8 @@
     <path
         android:fillColor="@color/shortcut_badge_disc"
         android:strokeColor="@color/shortcut_badge_ink"
-        android:strokeWidth="1.2"
-        android:pathData="M12,0.8a11.2,11.2 0,1 1,0 22.4a11.2,11.2 0,1 1,0 -22.4z" />
+        android:strokeWidth="1.8"
+        android:pathData="M12,1.1a10.9,10.9 0,1 1,0 21.8a10.9,10.9 0,1 1,0 -21.8z" />
     <group
         android:pivotX="12"
         android:pivotY="12"
