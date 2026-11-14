@@ -57,6 +57,10 @@ public class ShortcutUtils {
      *
      * <p>The id is derived from the path, so pinning the same note twice replaces the shortcut
      * rather than littering the home screen with copies of it.
+     *
+     * <p>The shortcut opens the note ready to write in, not in view mode: a note pinned to the
+     * home screen is one being added to. Its icon is the Autumn leaf on the white shortcut cell;
+     * that adaptive icon exists from Android 8, and older launchers get the app icon.
      */
     public static boolean pinNote(@NonNull final Context context, final File file) {
         if (file == null || !ShortcutManagerCompat.isRequestPinShortcutSupported(context)) {
@@ -66,12 +70,15 @@ public class ShortcutUtils {
         final Intent open = new Intent(context, OpenFromShortcutOrWidgetActivity.class)
                 .setAction(Intent.ACTION_VIEW)
                 .setData(Uri.fromFile(file))
+                .putExtra(Document.EXTRA_DO_PREVIEW, false)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        final int icon = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                ? R.mipmap.ic_shortcut_note : R.mipmap.ic_launcher;
         final ShortcutInfoCompat shortcut =
                 new ShortcutInfoCompat.Builder(context, ID_PREFIX + file.getAbsolutePath().hashCode())
                         .setIntent(open)
-                        .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_shortcut_file))
+                        .setIcon(IconCompat.createWithResource(context, icon))
                         .setShortLabel(title)
                         .setLongLabel(title)
                         .build();
