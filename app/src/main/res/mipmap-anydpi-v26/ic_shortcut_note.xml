@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A note pinned to the home screen: the white shortcut cell with the Autumn leaf. -->
+<!-- A note pinned to the home screen: the Autumn leaf with a pencil badge, on the shortcut cell. -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@color/ic_shortcut_background" />
-    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+    <foreground android:drawable="@drawable/ic_shortcut_note_foreground" />
 </adaptive-icon>

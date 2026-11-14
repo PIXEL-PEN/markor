@@ -246,4 +246,8 @@
     <color name="qn_widget_tile">#1E2135</color>
     <color name="qn_widget_hint">#4F6B73</color>
 
+    <!-- Badge on a pinned note's home-screen icon. Launcher icons ignore dark mode: no night variant. -->
+    <color name="shortcut_badge_disc">#1E2135</color>
+    <color name="shortcut_badge_ink">#FFFFFF</color>
+
 </resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Foreground of a pinned note's icon: the leaf, and the badge at its lower right. An adaptive
+  icon's foreground is 108dp; launchers keep the middle 66dp, so the badge (56..80dp) stays
+  inside whatever shape the launcher cuts.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@mipmap/ic_launcher_foreground" />
+    <item
+        android:bottom="28dp"
+        android:drawable="@drawable/ic_shortcut_note_badge"
+        android:left="56dp"
+        android:right="28dp"
+        android:top="56dp" />
+</layer-list>
