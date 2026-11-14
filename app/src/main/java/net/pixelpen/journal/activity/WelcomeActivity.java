@@ -118,6 +118,8 @@ public class WelcomeActivity extends AutumnBaseActivity {
         }
 
         _pager.setOffscreenPageLimit(PAGES.length);
+        // A gap between cards while swiping, so each reads as its own card.
+        _pager.setPageMargin(dp(12));
         _pager.setAdapter(new Pages());
         _pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
@@ -245,6 +247,9 @@ public class WelcomeActivity extends AutumnBaseActivity {
         @Override
         public Object instantiateItem(@NonNull final ViewGroup container, final int position) {
             final View page = getLayoutInflater().inflate(PAGES[position], container, false);
+            // Each page is a card: rounded, with room inside, on the darker surround.
+            page.setBackgroundResource(R.drawable.welcome_page_bg);
+            page.setPadding(dp(16), dp(4), dp(16), dp(16));
             container.addView(page);
             animate(page);
             return page;

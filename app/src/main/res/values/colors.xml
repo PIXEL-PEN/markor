@@ -216,6 +216,8 @@
 
     <!-- Welcome cards, first launch. A dark teal page so the light pictures stand out; the
          same in light and dark mode, so there are no night variants. -->
+    <!-- Around the cards: darker, so each card reads as a card. -->
+    <color name="welcome_outer">#172629</color>
     <color name="welcome_bg">#2B4650</color>
     <color name="welcome_card">#3F5F69</color>
     <color name="welcome_border">#5C7C86</color>
