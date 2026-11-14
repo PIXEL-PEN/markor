@@ -83,6 +83,10 @@ public class ShortcutUtils {
                         .setLongLabel(title)
                         .build();
         try {
+            // Android keeps a pinned shortcut's details by id, removed from the home screen or
+            // not, and pinning that id again reuses them: the old icon and the old view-mode
+            // intent came back. Update first, so a re-pin carries what is set here now.
+            ShortcutManagerCompat.updateShortcuts(context, java.util.Collections.singletonList(shortcut));
             return ShortcutManagerCompat.requestPinShortcut(context, shortcut, null);
         } catch (final Exception ignored) {
             // Launchers vary in what they accept and some throw rather than returning false.
