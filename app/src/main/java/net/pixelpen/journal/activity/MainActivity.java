@@ -599,6 +599,12 @@ public class MainActivity extends AutumnBaseActivity {
         // gate would have read a preference nothing sets any more: isFirstStart would be
         // permanently true, the condition permanently false, and a fresh install would never
         // be asked for storage at all.
+        // The welcome cards come first on a first launch: they end on the storage request,
+        // with the reasons for it, rather than the bare dialog landing on an empty screen.
+        // The rest of resume runs when they close and this activity resumes again.
+        if (WelcomeActivity.showIfDue(this)) {
+            return;
+        }
         StoragePermissionActivity.requestPermissions(this);
 
         if (_appSettings.isRecreateMainRequired()) {

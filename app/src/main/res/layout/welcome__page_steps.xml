@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="@string/welcome_title"
+            android:textColor="@color/welcome_title"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="6dp"
+            android:lineSpacingMultiplier="1.15"
+            android:text="@string/welcome_tagline"
+            android:textColor="@color/welcome_dim"
+            android:textSize="15sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/welcome_step_1"
+                android:textColor="@color/welcome_step"
+                android:textSize="12sp"
+                android:letterSpacing="0.08"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/welcome_step_1_title"
+                android:textColor="@color/welcome_strong"
+                android:textSize="17sp"
+                android:layout_marginTop="2dp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:lineSpacingMultiplier="1.15"
+                android:text="@string/welcome_step_1_body"
+                android:textColor="@color/welcome_text"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="104dp"
+            android:layout_height="104dp"
+            android:background="@drawable/welcome_card_bg"
+            android:importantForAccessibility="noHideDescendants"
+            android:orientation="vertical"
+            android:padding="10dp">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/welcome_field_bg"
+                android:drawableEnd="@drawable/welcome_ic_chevron"
+                android:paddingStart="6dp"
+                android:paddingTop="3dp"
+                android:paddingEnd="4dp"
+                android:paddingBottom="3dp"
+                android:text="@string/welcome_demo_category"
+                android:textColor="@color/welcome_strong"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="6dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:text="@string/welcome_demo_general"
+                android:textColor="@color/welcome_text"
+                android:textSize="11sp"
+                android:layout_marginTop="4dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="6dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:text="@string/welcome_demo_category"
+                android:textColor="@color/welcome_band_text"
+                android:textSize="11sp"
+                android:background="@drawable/welcome_band_bg"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="6dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:text="@string/welcome_demo_projects"
+                android:textColor="@color/welcome_text"
+                android:textSize="11sp" />
+        </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/welcome_step_2"
+                android:textColor="@color/welcome_step"
+                android:textSize="12sp"
+                android:letterSpacing="0.08"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/welcome_step_2_title"
+                android:textColor="@color/welcome_strong"
+                android:textSize="17sp"
+                android:layout_marginTop="2dp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:lineSpacingMultiplier="1.15"
+                android:text="@string/welcome_step_2_body"
+                android:textColor="@color/welcome_text"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="104dp"
+            android:layout_height="104dp"
+            android:background="@drawable/welcome_card_bg"
+            android:importantForAccessibility="noHideDescendants"
+            android:orientation="vertical"
+            android:padding="10dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/welcome_demo_date"
+                android:textColor="@color/welcome_step"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+            <View
+                android:layout_width="76dp"
+                android:layout_height="5dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/welcome_bar_bg" />
+            <View
+                android:layout_width="64dp"
+                android:layout_height="5dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/welcome_bar_bg" />
+            <View
+                android:layout_width="80dp"
+                android:layout_height="5dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/welcome_bar_bg" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="38dp"
+                    android:layout_height="5dp"
+                    android:background="@drawable/welcome_bar_bg" />
+
+                <View
+                    android:id="@+id/welcome__cursor"
+                    android:layout_width="2dp"
+                    android:layout_height="13dp"
+                    android:layout_marginStart="2dp"
+                    android:background="@color/welcome_accent" />
+            </LinearLayout>
+        </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/welcome_step_3"
+                android:textColor="@color/welcome_step"
+                android:textSize="12sp"
+                android:letterSpacing="0.08"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/welcome_step_3_title"
+                android:textColor="@color/welcome_strong"
+                android:textSize="17sp"
+                android:layout_marginTop="2dp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:lineSpacingMultiplier="1.15"
+                android:text="@string/welcome_step_3_body"
+                android:textColor="@color/welcome_text"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="104dp"
+            android:layout_height="104dp"
+            android:background="@drawable/welcome_card_bg"
+            android:importantForAccessibility="noHideDescendants"
+            android:orientation="vertical"
+            android:padding="8dp">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="0dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:singleLine="true"
+                android:text="@string/welcome_demo_year"
+                android:textColor="@color/welcome_text"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="8dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:singleLine="true"
+                android:text="@string/welcome_demo_month"
+                android:textColor="@color/welcome_text"
+                android:textSize="10.5sp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="16dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:singleLine="true"
+                android:text="@string/welcome_demo_open"
+                android:textColor="@color/welcome_band_text"
+                android:textSize="10.5sp"
+                android:background="@drawable/welcome_band_bg"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="26dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:singleLine="true"
+                android:text="@string/welcome_demo_note"
+                android:textColor="@color/welcome_text"
+                android:textSize="10.5sp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="26dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:singleLine="true"
+                android:text="@string/welcome_demo_new"
+                android:textColor="@color/welcome_accent"
+                android:textSize="10.5sp"
+                android:id="@+id/welcome__tree_new"
+                android:textStyle="bold" />
+        </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

@@ -213,4 +213,30 @@
     <color name="band_oct">#C2410C</color>
     <color name="band_nov">#96203C</color>
     <color name="band_dec">#115E42</color>
+
+    <!-- Welcome cards, first launch. Same family as the guide: teal headings on a pale page. -->
+    <color name="welcome_bg">#F4F7F9</color>
+    <color name="welcome_card">#FFFFFF</color>
+    <color name="welcome_border">#D6DFE5</color>
+    <color name="welcome_text">#2B3545</color>
+    <color name="welcome_dim">#4F6B73</color>
+    <color name="welcome_strong">#1E2135</color>
+    <color name="welcome_title">#005F73</color>
+    <color name="welcome_step">#0A9396</color>
+    <color name="welcome_bar">#A8B6C0</color>
+    <color name="welcome_band">#CFE1F2</color>
+    <color name="welcome_band_text">#123E5E</color>
+    <color name="welcome_accent">#D35400</color>
+    <color name="welcome_button">#1E2135</color>
+    <color name="welcome_button_text">#FFFFFF</color>
+    <color name="welcome_popup">#FFFDF0</color>
+    <color name="welcome_popup_border">#F0DC7A</color>
+    <color name="welcome_popup_label">#7A6400</color>
+    <color name="welcome_highlight">#FFE680</color>
+    <color name="welcome_highlight_text">#4A3700</color>
+    <color name="welcome_navbar">#1E2135</color>
+    <color name="welcome_navbar_text">#CBDAEE</color>
+    <color name="welcome_quicknote">#FFD400</color>
+    <color name="welcome_folder">#44546A</color>
+
 </resources>

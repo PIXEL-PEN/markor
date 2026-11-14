@@ -120,4 +120,24 @@
     <color name="guide_page_bg">#141D24</color>
     <color name="guide_title">#4FD1C5</color>
 
+    <color name="welcome_bg">#141D24</color>
+    <color name="welcome_card">#1F2A33</color>
+    <color name="welcome_border">#33424E</color>
+    <color name="welcome_text">#D8E0E6</color>
+    <color name="welcome_dim">#A3B4BE</color>
+    <color name="welcome_strong">#F1F4F6</color>
+    <color name="welcome_title">#4FD1C5</color>
+    <color name="welcome_step">#2BB3A8</color>
+    <color name="welcome_bar">#5E6E79</color>
+    <color name="welcome_band">#24384A</color>
+    <color name="welcome_band_text">#CFE1F2</color>
+    <color name="welcome_accent">#F0803C</color>
+    <color name="welcome_button">#3B4A63</color>
+    <color name="welcome_popup">#2E2A18</color>
+    <color name="welcome_popup_border">#6B5D1E</color>
+    <color name="welcome_popup_label">#E8D27A</color>
+    <color name="welcome_highlight">#5A4A10</color>
+    <color name="welcome_highlight_text">#FFE680</color>
+    <color name="welcome_folder">#5E6E79</color>
+
 </resources>
