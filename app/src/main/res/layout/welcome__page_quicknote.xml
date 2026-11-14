@@ -48,7 +48,7 @@
                         android:layout_marginTop="4dp"
                         android:lineSpacingMultiplier="1.15"
                         android:text="@string/welcome_demo_quicknote_text"
-                        android:textColor="@color/welcome_strong"
+                        android:textColor="@color/welcome_popup_text"
                         android:textSize="15sp" />
                 </LinearLayout>
             </FrameLayout>

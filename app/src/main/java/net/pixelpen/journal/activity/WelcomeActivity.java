@@ -72,9 +72,14 @@ public class WelcomeActivity extends AutumnBaseActivity {
     private View _final;
     private TextView _allow;
 
-    /** Opens the cards if they are due. True when they were opened. */
+    /**
+     * Opens the cards if they are due. True when they were opened.
+     *
+     * <p>Debug builds show them on every launch, done or not, so they can be checked while
+     * they are being worked on. Release builds keep to the done flag.
+     */
     public static boolean showIfDue(final Activity from) {
-        if (_shownThisRun || isDone(from)) {
+        if (_shownThisRun || (!net.pixelpen.journal.BuildConfig.DEBUG && isDone(from))) {
             return false;
         }
         _shownThisRun = true;
