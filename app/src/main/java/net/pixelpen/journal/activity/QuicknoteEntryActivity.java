@@ -66,7 +66,11 @@ public class QuicknoteEntryActivity extends AppCompatActivity {
         final WindowManager.LayoutParams lp = w.getAttributes();
         lp.dimAmount = 0f;
         lp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-        lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        // 20dp clear of each screen edge. Set on the window rather than as padding in the
+        // layout, so a tap in that margin is outside the box and closes it like any other.
+        final android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
+        final int margin = Math.round(20 * dm.density);
+        lp.width = Math.max(dm.widthPixels - 2 * margin, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         w.setAttributes(lp);
     }
