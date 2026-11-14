@@ -121,6 +121,7 @@
     <color name="guide_title">#4FD1C5</color>
 
 
+    <color name="qn_widget_tile">#0F131C</color>
     <color name="qn_widget_hint">#A3B4BE</color>
 
 </resources>

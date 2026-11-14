@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  The entry box, opened over the Quicknote widget and drawn as it is (widget_quicknote.xml):
-  same cream bar, padding and sizes, the logo at the end, which here saves. The field grows
-  downward as lines are added.
+  The entry box the Quicknote widget opens, across the top of the screen: a cream bar with
+  the field, and the Autumn logo at its end, which saves. The field grows downward.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"

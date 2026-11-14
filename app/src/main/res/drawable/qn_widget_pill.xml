@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  The Quicknote widget's bar, and the entry box drawn over it: the note field's cream.
-  12dp corners: rounder than that and the corner cuts into the logo.
--->
+<!-- The Quicknote widget and its entry box: the note field's cream, slightly rounded. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
     <solid android:color="@color/note_field_bg" />
     <stroke android:width="1dp" android:color="@color/note_field_border" />
-    <corners android:radius="12dp" />
+    <corners android:radius="6dp" />
 </shape>
