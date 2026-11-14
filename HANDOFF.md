@@ -1,6 +1,6 @@
 # Autumn — Handoff
 
-Current as of commit `b1201ab9` (13 Nov 2026). Replaces the earlier handoff entirely.
+Current as of commit `b6d2cdf4` (14 Nov 2026). Replaces the earlier handoff entirely.
 Read sections 1–4 before touching code. Section 8 is the list of things that have
 already cost an evening each; read it before you think you have found something new.
 
@@ -54,10 +54,22 @@ Build and install, debug only (the default):
 ```
 cd ~/StudioProjects/autumn
 ./gradlew assembleDebug --console=plain 2>&1 | tail -3 && \
-adb install -r "$(ls -t app/build/outputs/apk/debug/*.apk|head -1)"
+~/Android/Sdk/platform-tools/adb install -r "$(ls -t app/build/outputs/apk/debug/*.apk|head -1)"
 ```
 
 Release: `assembleRelease` and `.../release/*.apk`. Both can be installed side by side.
+The user often asks for both: `./gradlew assembleDebug assembleRelease` then two installs.
+
+### Landmine: adb is not on PATH
+
+Plain `adb` gives "command not found". Always write the full path
+`~/Android/Sdk/platform-tools/adb`. The user connects over **USB and Wi-Fi debugging both**:
+`-d` means USB only ("no devices found" when the cable is out); with both connected and no
+flag adb says "more than one device". Default to no flag; offer `-d` if that happens.
+`adb devices` settles which connections exist. "insufficient permissions … udev rules"
+was fixed with `sudo apt install android-sdk-platform-tools-common` (or a rule for Xiaomi
+vendor `2717` in `/etc/udev/rules.d/51-android.rules`), reload, replug, USB mode File
+transfer.
 
 ### Landmine: the APK name changes daily
 
@@ -135,14 +147,14 @@ Incremental **git bundles**, fetched by the user into their clone, plus the exac
 ```
 # cut (in the session)
 git branch -f autumn HEAD
-git bundle create /mnt/user-data/outputs/autumn-<topic>-<hash>.bundle <prereq>..autumn
+git bundle create /mnt/user-data/outputs/autumn-<NN>-<topic>-<hash>.bundle <prereq>..autumn
 git bundle list-heads <file>      # MUST show refs/heads/autumn, not only HEAD
 ```
 
 ```
 # apply (user pastes)
 cd ~/StudioProjects/autumn
-git fetch ~/Downloads/autumn-<topic>-<hash>.bundle "refs/heads/*:refs/remotes/bundle/*" --force && \
+git fetch ~/Downloads/autumn-<NN>-<topic>-<hash>.bundle "refs/heads/*:refs/remotes/bundle/*" --force && \
 git merge --ff-only <hash> && git log --oneline -1
 ```
 
@@ -153,8 +165,13 @@ Rules, each learned the hard way:
   the range form `<prereq>..HEAD` writes a ref named `HEAD`, which `refs/heads/*` does not
   match; the fetch "succeeded" with zero refs and the merge said "not something we can
   merge". Always bundle `..autumn` (a branch) and check `list-heads`.
-- **Unique filename per cut.** Re-issuing a name makes the browser save `name (1)` and
-  the user runs the stale one. Hash in the name, plus a topic word.
+- **Unique, numbered filename per cut** (user's rule, 14 Nov): `autumn-<NN>-<topic>-<hash>`,
+  NN a running sequence. The last was **12** (`autumn-12-welcome-always-b6d2cdf4`); the
+  next is **13**. Re-issuing a name makes the browser save `name (1)` and the user runs
+  the stale one. A bundle that "doesn't exist" usually never finished downloading:
+  `ls -lt ~/Downloads | head` before theorising.
+- When unsure what the user has applied, use a prerequisite they certainly have (the last
+  pushed commit). A bundle reaching further back than needed still applies cleanly.
 - **No wildcard deletes next to fresh files.** `rm ~/Downloads/apply-*.sh` once deleted
   the file just sent.
 - **Bare commands, not wrapper scripts.** The user asked for this explicitly after
@@ -222,6 +239,32 @@ log `AutumnTheme` on every resume — `adb logcat -s AutumnTheme` — so a regre
 measured, not theorised. `values-night/` has 43 variants; `tree_*`, `year_*`,
 `tree_open_*`, `surface_card` are themed.
 
+**Archive HTML export** (overflow › Export html archive, `MainActivity.runArchiveExport`):
+`ArchiveHtmlExport` (plain JDK: scan, link rewriting, copying) + `FlexmarkHtml` (markdown
+with tables, strikethrough, task lists; raw HTML **escaped**; single newlines kept) +
+`ExportPictures` (Android decode: pictures re-encoded at **800px, JPEG 75**; small ones
+already within size copied as-is). Output: `Autumn-web-<date>/` with `index.html`,
+`Images/`, `Files/`, `Pages/`, `READ ME FIRST.txt`, zipped. Attachments and saved pages over
+2 MB are left out and named in place. Pictures linked from outside `<home>/Images` land
+in `Images/other/`. The Timeline is **not** included (it has its own export). The page:
+teal sidebar is the only navigation (years toggle with an arrow and show one year at a
+time; months jump), search waits 300 ms or Enter, a banner appears if pictures fail to
+load. The zip is copied to **`Download/Autumn/`** and a dialog says so (Share offered);
+falls back to the share sheet if that fails. Measured: 2 years, 1,053 notes = ~12 MB.
+`HtmlExport` gained an `ImageSink` so both exports share one writer.
+
+**Welcome cards** (`WelcomeActivity`, `welcome__*.xml`, `welcome_*` colours/strings):
+four ViewPager pages: steps (category, note, Tree; pictures on the right), Quicknote,
+Timeline (title at the top; the others have it below the picture), Private and offline
+(ends with Allow storage access / Not now; reads Get started when access is already
+granted). Skip and Don't show again jump to the last card while storage is missing.
+`MainActivity.onResume` calls `WelcomeActivity.showIfDue` before its own permission
+check. Dark teal page `#2B4650`, light text, same in light and dark mode (no night
+variants). Small property-animator loops on each picture. **`ALWAYS_SHOW = true`**: shown
+on every launch in debug and release for testing and screenshots (pre-publication list).
+Design prototype: https://claude.ai/artifact/YLts7CggbCErzu99Fda7S7 (still shows the
+earlier light colours).
+
 **Launcher icon**: nothing in the app changes component enabled-state any more.
 `applySpecialLaunchersVisibility` toggled an alias on every launch, which fired a
 package-changed broadcast seconds after each install and MIUI dropped the icon. Deleted.
@@ -244,11 +287,16 @@ package-changed broadcast seconds after each install and MIUI dropped the icon. 
    General protected ✓; rename/delete/add ✓; delete offers move-or-delete with an
    "are you sure" (verify the second branch's wording); manual folders picked up ✓;
    collapse/expand ✓. User later said "sufficiently intact" — confirm before spending.
-5. **HTML export** of Year overview / whole archive (Timeline HTML exists:
-   `HtmlExport.exportTimeline`). User said "I'll sleep on it"; design not settled.
+5. **Archive HTML export**: built and working (§5). Parked until pre-publication
+   clean-up; remaining formatting points to be raised by the user then. Year-overview
+   export not built.
 6. Guide: sections still unwritten; tagline provisional ("You remember what happened.
    Autumn remembers when."). No term "pill" anywhere user-facing.
-7. First-run screen replacing the bare storage-permission prompt.
+7. **Welcome cards**: built (§5). User's text pass on `welcome_*` strings is next.
+   Unexplained: the user twice reported the Timeline card's title "missing" while it was
+   below the picture; moving it to the top fixed it. No screenshot was possible. If a
+   title vanishes again, get a screenshot (`adb exec-out screencap -p > ~/Desktop/x.png`)
+   before changing anything.
 8. Repo hygiene: `.github/ISSUE_TEMPLATE/` (four Markor templates), `CHANGELOG.md`,
    `build.gradle.ui-polish-backup`, stock `drawable/ic_launcher_background.xml` (unused;
    the adaptive icon uses `@color/`). `settings.gradle` already says `Autumn`.
@@ -257,6 +305,13 @@ package-changed broadcast seconds after each install and MIUI dropped the icon. 
    unused; API 24–25 has no raster fallback for 7 icon names.
 10. Launcher-icon WEBP conversion was uncommitted on the old laptop and is lost. The
     PNG set in the repo is what the icon fix was verified against.
+
+### Before publication
+
+- `WelcomeActivity.ALWAYS_SHOW` → `false` (marked "BEFORE PUBLICATION" in the code).
+- Archive export formatting pass (parked).
+- Welcome card text pass; bring the design canvas in line with the dark colours if it is
+  still wanted.
 
 ### Toolchain debt
 
@@ -282,6 +337,10 @@ deliberate job with a build at each step, not opportunistically.
 - They are on a Pro plan with weekly limits and watch usage. Long chats are expensive
   per message; prefer a fresh chat with this file, and a lighter model for shell work.
 - After "we'll resume tomorrow" or similar, stop; don't add offers.
+- Desktop file handling is not their strength, by their own account: give one command
+  that does it (unzip to `~/Desktop` and open in Firefox; `adb pull` from the phone),
+  never "right-click, Extract Here". They veto layouts quickly and precisely ("too busy",
+  "revert"); a full revert of the last commit is a normal request.
 
 ---
 
@@ -310,6 +369,17 @@ deliberate job with a build at each step, not opportunistically.
   (same folder, different strings) and emits absolute paths. `ArchiveImages.relativeLink`
   canonicalises.
 - Build type `resValue` strings and `archivesBaseName` are evaluated from `defaultConfig`.
+
+- A file handed to the share sheet straight from the app's cache lives only as long as
+  the cache. Anything the user must keep goes to a public folder (`Download/Autumn/`).
+- Exported HTML reusing another stylesheet: a class name clash (`.mo`) right-aligned
+  every note. Check new class names against the CSS being reused.
+- Raw HTML in a note (an unclosed `<!--`, a `<style>`) swallowed the rest of an exported
+  page, script included: the search "did nothing". Escape note HTML in exports.
+
+**Desktop (Linux Mint)**
+- Double-clicking `index.html` inside Archive Manager extracts that one file alone to
+  `~/.cache/.fr-*/`: every picture shows as its caption. Unzip the whole archive first.
 
 **XML / resources**
 - `--` inside an XML comment is a hard AAPT error. (Six times.)
