@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Two cells wide, one high: the logo with a note badge, and the word Quicknote. -->
+<!-- Four cells wide, one high: a cream bar with the logo at its end. Stretches sideways. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:description="@string/qn_widget_description"
     android:initialLayout="@layout/widget_quicknote"
-    android:minWidth="110dp"
+    android:minWidth="180dp"
     android:minHeight="40dp"
+    android:minResizeWidth="140dp"
     android:previewLayout="@layout/widget_quicknote"
     android:resizeMode="horizontal"
-    android:minResizeWidth="110dp"
     android:targetCellHeight="1"
-    android:targetCellWidth="2"
+    android:targetCellWidth="4"
     android:updatePeriodMillis="0"
     android:widgetCategory="home_screen" />
