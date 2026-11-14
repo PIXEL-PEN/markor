@@ -3,19 +3,7 @@
   The entry box the Quicknote widget opens, across the top of the screen: a cream bar with
   the field, and the Autumn logo at its end, which saves. The field grows downward.
 -->
-<!--
-  The 20dp either side is padding on this transparent frame, not a window size: some phones
-  ignore a floating window's width. A tap in it closes the box, as a tap outside does.
--->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/qn_entry_frame"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:paddingStart="20dp"
-    android:paddingTop="8dp"
-    android:paddingEnd="20dp">
-
-<LinearLayout
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/qn_widget_pill"
@@ -59,5 +47,3 @@
         android:src="@mipmap/ic_launcher" />
 
 </LinearLayout>
-
-</FrameLayout>
