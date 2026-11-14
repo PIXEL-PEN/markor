@@ -464,7 +464,23 @@ public class MainActivity extends AutumnBaseActivity {
             } catch (final Exception e) {
                 failed = true;
             }
-            final File result = zip;
+            // Kept in Download/Autumn as an ordinary file. Handed to the share sheet straight from
+            // the app's cache, the zip lived only as long as that cache did: the next export
+            // clears it and MIUI's cleaner empties it, and the copy that seemed to have landed in
+            // Downloads disappeared with it.
+            File saved = null;
+            if (zip != null) {
+                final File dir = new File(android.os.Environment.getExternalStoragePublicDirectory(
+                        android.os.Environment.DIRECTORY_DOWNLOADS), "Autumn");
+                final File dest = new File(dir, zip.getName());
+                if ((dir.isDirectory() || dir.mkdirs())
+                        && net.gsantner.opoc.util.GsFileUtils.copyFile(zip, dest)
+                        && dest.length() == zip.length()) {
+                    saved = dest;
+                }
+            }
+            final File result = (saved != null) ? saved : zip;
+            final boolean inDownloads = saved != null;
             final boolean error = failed;
             runOnUiThread(() -> {
                 if (isFinishing()) {
@@ -481,9 +497,20 @@ public class MainActivity extends AutumnBaseActivity {
                             android.widget.Toast.LENGTH_SHORT).show();
                     return;
                 }
-                android.widget.Toast.makeText(this, R.string.export_archive_done,
-                        android.widget.Toast.LENGTH_LONG).show();
-                _cu.shareStream(this, result, "application/zip");
+                if (!inDownloads) {
+                    // Could not write to Downloads: the share sheet is the only way out.
+                    android.widget.Toast.makeText(this, R.string.export_archive_done,
+                            android.widget.Toast.LENGTH_LONG).show();
+                    _cu.shareStream(this, result, "application/zip");
+                    return;
+                }
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setMessage(getString(R.string.export_archive_saved,
+                                "Download/Autumn/" + result.getName()))
+                        .setPositiveButton(android.R.string.ok, null)
+                        .setNeutralButton(R.string.share,
+                                (d, w) -> _cu.shareStream(this, result, "application/zip"))
+                        .show();
             });
         }).start();
     }

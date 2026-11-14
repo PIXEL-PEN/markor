@@ -604,6 +604,8 @@
     <string name="export_archive_working">Building the web pages\u2026</string>
     <!-- %1$d of %2$d is a count of notes. -->
     <string name="export_archive_progress">Building the web pages\u2026 %1$d of %2$d</string>
+    <!-- %1$s is a path such as Download/Autumn/Autumn-web-2026-11-14.zip -->
+    <string name="export_archive_saved">Saved to %1$s\n\nCopy it to your computer, unzip the whole file, then open index.html.</string>
     <string name="export_archive_done">Unzip it on your computer and open index.html.</string>
     <string name="export_archive_empty">There is nothing in the archive to export yet.</string>
     <string name="backup_empty">There is nothing in the archive to back up yet.</string>
