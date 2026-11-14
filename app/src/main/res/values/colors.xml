@@ -243,7 +243,7 @@
 
 
     <!-- Quicknote widget and its entry box. -->
-    <color name="qn_widget_bg">#E8EEF1</color>
+    <color name="qn_widget_badge_ink">#1E2135</color>
     <color name="qn_widget_hint">#4F6B73</color>
 
 </resources>

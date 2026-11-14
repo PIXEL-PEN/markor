@@ -18,11 +18,12 @@ import net.pixelpen.journal.R;
 import net.pixelpen.journal.activity.QuicknoteEntryActivity;
 
 /**
- * The Quicknote widget: a one-row field with the Autumn logo at its end.
+ * The Quicknote widget: the Autumn logo with a note badge, one cell.
  *
- * <p>A home-screen widget cannot hold a text field (RemoteViews have no EditText), so the
- * field and the logo both open {@link QuicknoteEntryActivity}, a small box over the home
- * screen where the typing happens. Nothing here changes after it is placed, so there is no
+ * <p>A home-screen widget cannot hold a text field (RemoteViews have no EditText), so a tap
+ * opens {@link QuicknoteEntryActivity}, a small box over the home screen where the typing
+ * happens. An earlier version drew a field here as well, which only meant the same field
+ * twice. Nothing here changes after it is placed, so there is no
  * update schedule.
  */
 public class QuicknoteWidgetProvider extends AppWidgetProvider {
@@ -37,7 +38,6 @@ public class QuicknoteWidgetProvider extends AppWidgetProvider {
         for (final int id : ids) {
             final RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_quicknote);
             views.setOnClickPendingIntent(R.id.qn_widget_root, pi);
-            views.setOnClickPendingIntent(R.id.qn_widget_field, pi);
             views.setOnClickPendingIntent(R.id.qn_widget_logo, pi);
             manager.updateAppWidget(id, views);
         }
