@@ -47,6 +47,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class WelcomeActivity extends AutumnBaseActivity {
 
+    /**
+     * BEFORE PUBLICATION: set to false.
+     *
+     * <p>True shows the cards on every launch, debug and release alike, for testing and
+     * screenshots; Don't show again is then ignored. False shows them until the run is
+     * finished or Don't show again is chosen, which is the behaviour users should get.
+     */
+    private static final boolean ALWAYS_SHOW = true;
+
     private static final String PREFS = "welcome";
     private static final String KEY_DONE = "done";
 
@@ -75,11 +84,10 @@ public class WelcomeActivity extends AutumnBaseActivity {
     /**
      * Opens the cards if they are due. True when they were opened.
      *
-     * <p>Debug builds show them on every launch, done or not, so they can be checked while
-     * they are being worked on. Release builds keep to the done flag.
+     * <p>{@link #ALWAYS_SHOW} overrides the done flag in every build until publication.
      */
     public static boolean showIfDue(final Activity from) {
-        if (_shownThisRun || (!net.pixelpen.journal.BuildConfig.DEBUG && isDone(from))) {
+        if (_shownThisRun || (!ALWAYS_SHOW && isDone(from))) {
             return false;
         }
         _shownThisRun = true;
