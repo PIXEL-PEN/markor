@@ -74,7 +74,9 @@ public class ShortcutUtils {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         final int icon = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-                ? R.mipmap.ic_shortcut_note : R.mipmap.ic_launcher;
+                // A new name, not ic_shortcut_note: MIUI caches a shortcut icon by resource and
+                // went on drawing the earlier leaf-only one after it gained its badge.
+                ? R.mipmap.ic_shortcut_note_badged : R.mipmap.ic_launcher;
         final ShortcutInfoCompat shortcut =
                 new ShortcutInfoCompat.Builder(context, ID_PREFIX + file.getAbsolutePath().hashCode())
                         .setIntent(open)
