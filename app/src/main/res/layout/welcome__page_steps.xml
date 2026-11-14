@@ -55,7 +55,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/welcome_step_1_title"
-                android:textColor="@color/welcome_strong"
+                android:textColor="@color/welcome_accent"
                 android:textSize="17sp"
                 android:layout_marginTop="2dp"
                 android:textStyle="bold" />
@@ -150,7 +150,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/welcome_step_2_title"
-                android:textColor="@color/welcome_strong"
+                android:textColor="@color/welcome_accent"
                 android:textSize="17sp"
                 android:layout_marginTop="2dp"
                 android:textStyle="bold" />
@@ -243,7 +243,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/welcome_step_3_title"
-                android:textColor="@color/welcome_strong"
+                android:textColor="@color/welcome_accent"
                 android:textSize="17sp"
                 android:layout_marginTop="2dp"
                 android:textStyle="bold" />
