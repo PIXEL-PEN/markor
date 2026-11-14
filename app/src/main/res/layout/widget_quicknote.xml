@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The Quicknote widget: what looks like a one-row field, and the Autumn logo as the button.
+  A widget cannot take typing, so both open the entry box (QuicknoteEntryActivity).
+  RemoteViews: only LinearLayout, FrameLayout, TextView and ImageView in here.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/qn_widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/qn_widget_bg"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="6dp">
+
+    <TextView
+        android:id="@+id/qn_widget_field"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/qn_widget_field"
+        android:gravity="center_vertical"
+        android:minHeight="36dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="12dp"
+        android:singleLine="true"
+        android:text="@string/qn_widget_hint"
+        android:textColor="@color/qn_widget_hint"
+        android:textSize="15sp" />
+
+    <ImageView
+        android:id="@+id/qn_widget_logo"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="6dp"
+        android:contentDescription="@string/qn_widget_save"
+        android:src="@mipmap/ic_launcher" />
+
+</LinearLayout>

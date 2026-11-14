@@ -712,4 +712,12 @@
     <string name="welcome_demo_folder">Documents/Autumn</string>
     <string name="welcome_demo_file">note.md</string>
     <string name="welcome_demo_photo">photo.jpg</string>
+
+    <!-- Quicknote widget -->
+    <string name="qn_widget_hint">Quicknote\u2026</string>
+    <string name="qn_widget_description">A Quicknote field on your home screen</string>
+    <string name="qn_widget_save">Save quicknote</string>
+    <string name="qn_widget_empty">Type a quicknote first.</string>
+    <string name="qn_widget_failed">Could not save the quicknote.</string>
+    <string name="qn_widget_no_storage">Open Autumn once to allow storage access.</string>
 </resources>

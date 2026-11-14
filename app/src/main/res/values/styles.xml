@@ -126,4 +126,15 @@
         <item name="android:ellipsize">end</item>
         <item name="android:textSize">14sp</item>
     </style>
+
+    <!--
+      The Quicknote entry box opened from the widget: a small rounded dialog over the home
+      screen, with the keyboard up. Its activity is an AppCompatActivity, not
+      AutumnBaseActivity, which would replace this theme with the full-screen one.
+    -->
+    <style name="Theme.Autumn.QuicknoteEntry" parent="Theme.AppCompat.DayNight.Dialog.Rounded">
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowSoftInputMode">stateVisible|adjustResize</item>
+    </style>
+
 </resources>

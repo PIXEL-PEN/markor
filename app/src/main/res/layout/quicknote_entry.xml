@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The entry box the Quicknote widget opens: the field, and the logo to save. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="bottom"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <EditText
+        android:id="@+id/qn_entry_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="@drawable/qn_widget_field"
+        android:gravity="top|start"
+        android:hint="@string/qn_widget_hint"
+        android:importantForAutofill="no"
+        android:inputType="textMultiLine|textCapSentences"
+        android:maxLines="8"
+        android:minHeight="48dp"
+        android:paddingStart="16dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="12dp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textColorHint="@color/qn_widget_hint"
+        android:textSize="16sp" />
+
+    <ImageButton
+        android:id="@+id/qn_entry_save"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_marginStart="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/qn_widget_save"
+        android:padding="4dp"
+        android:scaleType="fitCenter"
+        android:src="@mipmap/ic_launcher" />
+
+</LinearLayout>

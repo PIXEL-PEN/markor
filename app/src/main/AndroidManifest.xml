@@ -167,6 +167,29 @@
             android:parentActivityName=".activity.MainActivity"
             android:windowSoftInputMode="stateHidden|adjustResize" />
 
+        <!-- The Quicknote widget and the box it opens over the home screen. -->
+        <activity
+            android:name=".activity.QuicknoteEntryActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:label="@string/quicknote"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Autumn.QuicknoteEntry"
+            android:windowSoftInputMode="stateVisible|adjustResize" />
+
+        <receiver
+            android:name=".widget.QuicknoteWidgetProvider"
+            android:exported="true"
+            android:label="@string/quicknote">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/quicknote_widget" />
+        </receiver>
+
         <receiver
             android:name="other.writeily.widget.WrMarkorWidgetProvider"
             android:exported="true">
