@@ -18,7 +18,12 @@
             android:textSize="28sp"
             android:textStyle="bold" />
 
-        <FrameLayout
+        <!--
+          RelativeLayout, not FrameLayout: the line is pinned to the rows' top and bottom. As a
+          match_parent child of a FrameLayout it took all the height the page offered, which
+          stretched the picture over the whole card and pushed the text below off the screen.
+        -->
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -32,7 +37,9 @@
             <View
                 android:id="@+id/welcome__timeline_line"
                 android:layout_width="2dp"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@+id/welcome__timeline_years"
+                android:layout_alignBottom="@+id/welcome__timeline_years"
                 android:layout_marginStart="7dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="16dp"
@@ -201,7 +208,7 @@
                 </LinearLayout>
             </LinearLayout>
             </LinearLayout>
-        </FrameLayout>
+        </RelativeLayout>
 
 
         <TextView
