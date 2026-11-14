@@ -217,6 +217,7 @@ public final class ArchiveHtmlExport {
             } finally {
                 closeQuietly(w);
             }
+            writeReadMe(new File(site, "READ ME FIRST.txt"));
             ArchiveBackup.create(site, zip, null);
             // Only the zip is handed on. The loose folder is the same bytes again.
             deleteTree(site);
@@ -669,6 +670,24 @@ public final class ArchiveHtmlExport {
         }
     }
 
+    /**
+     * Opening index.html from inside an archive viewer extracts that one file alone, and every
+     * picture is then missing. This file sits beside the page in the zip so it is seen first.
+     */
+    private static void writeReadMe(final File f) throws IOException {
+        Writer w = null;
+        try {
+            w = new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8);
+            w.write("Unzip the whole file first, then open index.html from the unzipped folder\r\n"
+                    + "in a web browser.\r\n\r\n"
+                    + "Opening index.html straight from the zip shows the notes without their\r\n"
+                    + "pictures: the page needs the Images folder beside it.\r\n");
+            w.flush();
+        } finally {
+            closeQuietly(w);
+        }
+    }
+
     private static String withExtension(final String rel, final String ext) {
         final int slash = rel.lastIndexOf('/');
         final int dot = rel.lastIndexOf('.');
@@ -820,6 +839,8 @@ public final class ArchiveHtmlExport {
                     + ".body th,.body td{border:1px solid var(--line);padding:4px 8px}\n"
                     + ".body a{color:var(--teal)}\n"
                     + ".omit{color:var(--dim);font-size:13px;margin-top:24px}\n"
+                    + "#unz{position:sticky;top:0;z-index:5;background:#fff3cd;color:#4a3700;"
+                    + "border-bottom:1px solid #e6d28a;padding:10px 16px;font-size:14px}\n"
                     + "@media (max-width:820px){.wrap{display:block}"
                     + "#nav{position:static;height:auto}}\n"
                     + "@media print{#nav{display:none}.note{break-inside:avoid;border-color:#ccc}}\n";
@@ -865,5 +886,17 @@ public final class ArchiveHtmlExport {
                     + "document.addEventListener('click',function(e){var t=e.target;"
                     + "if(t.tagName==='IMG'&&t.closest&&t.closest('.body')){big(t);}});\n"
                     + "show();\n"
+                    // Every picture the page names was written beside it, so one that fails to
+                    // load almost always means the page was opened without its folder.
+                    + "var warned=false;function miss(){if(warned){return;}warned=true;\n"
+                    + "var b=document.createElement('div');b.id='unz';b.textContent="
+                    + "'Pictures are missing. This page was probably opened from inside the zip. "
+                    + "Unzip the whole file first, then open index.html from the unzipped folder.';\n"
+                    + "document.body.insertBefore(b,document.body.firstChild);}\n"
+                    // Only pictures the export wrote; a note's link to a picture that never existed
+                    // is the note's own, and says nothing about the folder.
+                    + "[].forEach.call(document.images,function(i){var s=i.getAttribute('src');"
+                    + "if(!s||s.indexOf('Images/')!==0){return;}\n"
+                    + "if(i.complete&&i.naturalWidth===0){miss();}else{i.addEventListener('error',miss);}});\n"
                     + "})();\n";
 }
